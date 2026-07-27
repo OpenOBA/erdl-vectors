@@ -1,0 +1,1460 @@
+# ERDL Decision Object v1.2 — 企业 AI Agent 审计基础设施标准
+
+> **白皮书 · 征求意见稿 (Request for Comments)**
+>
+> **版本**：Draft 3 · 2026-07-27
+> **作者**：唐浩然（OpenOBA AI 执行官）与 Henry（OpenOBA 联合创始人）
+> **征集意见对象**：Erik Newton (Concordia)、Christopher Hopley (chopmob-cloud / AlgoVoi)、监管合规专家、联合审计委员会
+> **状态**：征求意见稿 — 非最终版本。所有设计细节均可能在收到反馈后调整。
+>
+> **修订记录**：
+> - Draft 1（2026-07-27）：初始版本，23 字段设计
+> - Draft 2（2026-07-27）：联合审计委员会意见修订，扩展至 24 字段，增加 JCS 数值约束、冷热分离隐私方案、跨版本审计链锚定
+> - Draft 3（2026-07-27）：引入分层哈希（Hierarchical Hashing）架构，实现 Schema 冻结 × 合规演进，目标为 10 年尺度审计基础设施
+>
+> **摘要**：本白皮书提出 ERDL Decision Object v1.2 设计方案——一个面向企业 AI Agent 的跨实现、防篡改、多辖区兼容、10 年尺度的审计决策记录标准。方案基于 JCS (RFC 8785) + SHA-256 密码学基础，与 IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00) 技术对齐，覆盖 EU AI Act、GB/Z 185、NIST AI RMF、COSO 2026 等 12 个全球主要监管框架的审计要求。DO 包含 24 个顶层字段（CORE 15 + JURISDICTION 9），通过辖区激活机制实现按需适配，通过分层哈希架构实现"Schema 冻结，合规演进"——核心字段永不修改，未来法规扩展通过自描述的 extensions 层承载，不影响已有审计链的连续性。
+
+---
+
+## 目录
+
+**第一部分：架构与设计**
+1. 背景与动机（含 v1.0/v1.1 兼容声明）
+2. 设计哲学：通用事实证据容器
+3. 密码学基础：全链路 JCS (RFC 8785) + 分层哈希
+4. Decision Object Schema：24 字段设计（CORE 15 + JURISDICTION 9）
+
+**第二部分：合规与适配**
+5. 全向兼容 × 按需适配：辖区激活机制
+6. 12 监管框架兼容性
+7. 生态兼容性（三方审计视角 / IETF AAT / MCP / A2A / Agent 框架 / OpenTelemetry / 审计报告输出）
+8. 隐私与数据最小化设计
+9. 法规版本化与升级路径
+
+**第三部分：10 年尺度扩展性**
+10. 分层哈希：Schema 冻结 × 合规演进
+11. 扩展区自描述设计
+12. 字段治理原则
+
+**第四部分：验证与附录**
+13. 向量集与跨实现验证
+14. 征求意见事项
+附录 A：完整 DO 示例
+附录 B：参考标准
+附录 C：分层哈希实现参考（TypeScript）
+附录 D：分层哈希实现参考（Python）
+附录 E：10 年演进场景推演
+
+---
+
+## 第一部分：架构与设计
+
+---
+
+## 1. 背景与动机
+
+### 1.1 AI Agent 进入高监管领域
+
+2026 年，AI Agent 已进入企业的财务、医疗、招聘、保险、关键基础设施等**高监管领域**。全球监管机构正在关闭"黑箱决策"的窗口：
+
+- **EU AI Act**：Article 12 要求高风险 AI 系统自动记录事件日志，Article 14 要求有效人类监督
+- **GB/Z 185-2026**：中国首套智能体互联国家标准，要求 28 位 AID 身份码、工具调用安全五机制、审计日志留存 ≥36 个月
+- **COSO 2026**：生成式 AI 内部控制指导，要求日志/可追溯性覆盖模型版本、提示词、输入输出、审批记录
+- **Colorado SB 205**：AI 决策须可解释，消费者有权申诉
+
+企业合规团队面临一个共同的技术障碍：**不同厂商的 Agent 用不同的格式输出决策。** 审计员拿到的是 Prompt 日志 + 对话截图，不是结构化、可验证的决策记录。
+
+### 1.2 ERDL Decision Object 的定位
+
+ERDL Decision Object（DO）为 Agent 决策提供一个**机器可读、跨实现验证、防篡改、多辖区兼容**的标准输出格式。
+
+它的核心承诺：
+
+> **给定相同的规则集和上下文，任何兼容的 ERDL 实现必须产生逐字节一致的 Decision Object。**
+
+### 1.3 为什么是 v1.2
+
+v1.0 和 v1.1 已被三个独立实现验证通过（Rulsynor/TypeScript [OpenOBA]、Concordia/Python [Erik Newton]、chopmob-cloud/Python [Christopher Hopley]）。但工程实践中暴露出若干需要修正的问题：
+
+| 事项 | 来源 | v1.2 解决方案 |
+|------|------|----------|
+| `policies[].hash` 使用 `JSON.stringify`（非确定性） | 2026-07-27 独立审计报告 CQ-3 | 全链路 JCS (RFC 8785) |
+| v1.1 DO 覆盖 7/10 决策类型，AV 覆盖 6/10（NOTIFY/ROLLBACK/QUARANTINE 的审计哈希向量缺失；DELEGATE 在 v1.2 SPEC 中已定义，向量集预留至 v1.3） | 内部审计 | DO+AV 覆盖 13 种外部决策类型（10+3 WORKFLOW），DELEGATE 预留 v1.3 |
+| `expected_sha256` 作为答案密钥被移除，但没有替代机制确保验证完整性 | Erik Newton, A2A #2031 | AV-008 陈旧回归向量 + 七步法验证 |
+| 缺少法规版本化与辖区适配机制 | ERDL v1.2 设计 | `compliance_profile` + CORE × JURISDICTION 分层 |
+| 缺少 Schema 冻结与合规演进的长期架构保障 | ERDL v1.2 设计 | 分层哈希 + content-addressable schema reference |
+| v1.0/v1.1 → v1.2 迁移路径 | ERDL v1.2 设计 | 破坏性变更范围声明 + 跨版本审计链锚定（见 §1.4） |
+
+### 1.4 v1.0/v1.1 向后兼容声明
+
+**v1.2 是一个破坏性版本变更。** 以下变动导致 v1.2 DO 的 `audit.hash` 与 v1.0/v1.1 完全不兼容：
+
+1. `policies[].hash` 计算方式变更（JSON.stringify → JCS canonicalize）
+2. `rule_set_version` 参与 JCS 序列化（v1.1 无此字段）
+3. 分层哈希架构引入 `extensions_hash`，改变了 `audit.hash` 的计算公式
+
+**v1.0 和 v1.1 文件保持冻结（frozen）状态。** 现有三方验证结果作为历史档案保留。
+
+**v1.2 发布后，所有新实现应针对 v1.2 的 101 条向量集进行验证。** Erik Newton (Concordia) 和 Christopher Hopley (chopmob-cloud) 已受邀对 v1.2 向量进行独立重新验证。验证通过后，v1.0/v1.1 向量集将被标注为"已由 v1.2 替代"。
+
+### 1.5 征求意见的目的
+
+本白皮书为**征求意见稿 (RFC)**，发送给：
+- **Erik Newton (Concordia)**：ERDL Decision Object 的第二个独立 runner（Python 实现）。Concordia 在 v1.1 冻结期独立发现了 `expected_sha256` 答案密钥的结构性风险
+- **Christopher Hopley (chopmob-cloud / AlgoVoi)**：合规 substrate 模型与跨验证愿景的提出者。独立审计了 v1.1 的 c3f22df 事故（em-dash 空格修复导致 3/7 向量 audit.hash 不匹配，commit c3f22df → 5cff368）
+- **监管合规专家与联合审计委员会**：对 DO 字段设计与 12 监管框架的兼容性、分层哈希架构的长期可维护性进行审查
+
+所有收到的反馈将在 v1.2 正式发布前公开记录并逐条回应。
+
+---
+
+## 2. 设计哲学：通用事实证据容器
+
+### 2.1 核心原则
+
+**ERDL Decision Object 定位为通用事实证据容器（Universal Fact Container），而非特定法规的申报表。**
+
+DO 记录的是决策过程中产生的**不可变物理/数字事实**：
+
+- Agent 使用了哪个模型（`model_id`）
+- 评估了哪些规则（`policies[]`）
+- 匹配了哪些条件（`evaluation.matched_rules[]`）
+- 输出了什么决策（`result.decision`）
+- 谁参与了监督（`human_oversight`）
+- 耗时多少（`evaluation_duration_ms`）
+
+这些"事实"在未来 10 年内几乎不会改变——不论法规如何演进，一条"Agent 在 2026-07-27 14:00 UTC 被拒绝执行 sudo 命令"的记录永远是一条事实。
+
+**合规定性（这条决策是否符合某法规）由外部合规评估引擎（Policy as Code，如 OPA/Rego）读取 DO 中的事实后动态计算。** 法规对"高风险 AI"的定义变了？更新外部引擎的规则库即可，不修改 DO Schema。
+
+### 2.2 设计原则
+
+1. **一条 DO 自包含**：监管者打开任何一条 DO，能在 JSON 内找到所有合规所需信息，不需要跳转到外部系统。自包含的边界：DO 包含"决策元数据与哈希证据"。对于超大型 Context（如 >4KB 的文件内容），MUST 使用 `context_snapshot_hash` + `context_ref` 的引用模式，不得内联存储大文件
+2. **事实与合规分离**：DO 记录事实，外部引擎判定合规。法规演进通过更新外部规则吸收，核心字段永久冻结
+3. **CORE × JURISDICTION × EXTENSIONS**：15 个 CORE 字段永久不变，9 个 JURISDICTION 字段按辖区激活，extensions 层承载未来法规扩展
+4. **密码学完整性**：分层哈希保护——CORE+JURISDICTION 参与主 JCS，extensions 通过 extensions_hash 间接保护
+5. **只增不删（Append-Only Schema）**：字段一旦发布，只能标记为 deprecated，绝不物理删除。所有历史 DO 可被任意版本的验证器验证
+
+---
+
+## 3. 密码学基础：全链路 JCS (RFC 8785) + 分层哈希
+
+### 3.1 JCS 数值类型约束
+
+JCS (RFC 8785 §3.2.2.3) 基于 IEEE 754 双精度规范序列化 JSON number。不同语言的 IEEE 754 实现存在差异，在未加约束的情况下可能导致跨语言 JCS 序列化结果不一致：
+
+| 语言 | 风险 |
+|------|------|
+| Python | 支持任意精度整数/Decimal。`12` 可能被序列化为 `12` 或 `12.0` |
+| JavaScript | 仅支持双精度浮点。大整数（>2^53）精度丢失 |
+| Go | `json.Marshal` 默认将整数序列化为不含小数点的形式 |
+
+**v1.2 强制约束**：
+
+1. **整数类型**（`evaluation.total_evaluated`、`total_matched`、`evaluation_duration_ms`、`policies[].version`、`ring` 等）MUST 由各实现保证输出为不带小数点的整数形式，且值域 MUST 在 JavaScript 安全整数范围（-(2^53-1) 至 2^53-1）内
+2. **浮点/金额类型**（如 extensions 中的财务相关字段）MUST 使用字符串表达（如 `"100.50"`），禁止使用原生 number 类型
+3. **禁止 NaN/Infinity**：任何参与 JCS 序列化的数值 MUST NOT 为 NaN 或 Infinity（RFC 8785 强制要求）
+4. **数值字符串约束**：所有以字符串表达的数值（如 `confidence_score`）MUST 匹配正则 `^\d+(\.\d+)?$`（如 `"0.95"`），禁止前后空格、科学计数法（`"1e-3"`）、前导零（`"00.95"`）
+5. **Omit over Null**：所有值为 `null`、`undefined` 或空数组 `[]` 的可选字段，在传入 JCS 序列化器之前 MUST 从 JSON 树中物理删除（Omit），不得保留键名。`{"a": null}` 和 `{}` 在 JCS 下产生不同的 canonical bytes
+6. **Extensions 输入清洗**：在计算 `extensions_hash` 前，SDK MUST 对 extensions 对象进行深度克隆和清洗，剔除或转换所有非 JCS 兼容的值（NaN → 移除，Infinity → 移除，循环引用 → 抛出错误），确保 JCS 序列化永不阻断主决策流程
+
+### 3.2 全链路 JCS
+
+v1.1 中 `policies[].hash` 使用了 `JSON.stringify`。`JSON.stringify` 不保证 key 顺序——ES2015+ 在实际实现中按插入顺序序列化，但该行为不在规范中保证。不同 Node.js 版本或不同语言实现可能产生不同的字节序列。v1.2 将全部哈希统一为 JCS：
+
+```
+policies[].hash = SHA-256(JCS(policy))
+```
+
+### 3.3 分层哈希（Hierarchical Hashing）
+
+v1.2 的 `audit.hash` 采用分层哈希架构——将 DO 的三个区域分别序列化，通过哈希间接关联而非直接拼接：
+
+```
+DO 三区域：
+  CORE        — 15 个永久冻结字段
+  JURISDICTION — 9 个按需激活字段
+  EXTENSIONS   — 开放式扩展区（未来法规、自定义厂商字段）
+
+audit.hash 计算公式：
+
+  Step A: 移除 extensions 对象，保留 extensions_hash
+  Step B: JCS(core + jurisdiction) → canonical_core
+          （此时 core 中已包含 extensions_hash，#15）
+  Step C: JCS(extensions) → canonical_ext
+  Step D: 验证 extensions_hash ⊆ SHA-256(canonical_ext)
+          即 extensions_hash MUST 等于重算的 SHA-256(JCS(extensions))
+  Step E: JCS(core + jurisdiction) → canonical_full
+           ↑ extensions_hash 已作为 core #15 自然包含在内
+  Step F: audit.hash = SHA-256(canonical_full)
+
+  关键：extensions 对象被物理移除，不参与主 JCS。
+        extensions_hash 保留在 core 中，自然参与主 JCS。
+        Step D 是验证步骤——引擎生成 DO 时已计算 extensions_hash 并写入 CORE #15，
+        验证器重算后比对确认扩展区未被篡改。
+
+**空扩展规范化定义**：当无扩展数据时，`extensions` MUST 初始化为空数组 `[]`（不得为 null、undefined 或省略该字段）。其 `extensions_hash` MUST 为 `[]` 的 JCS+SHA-256 值，即 `sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945`。不同语言实现的验证器将各自的 `extensions` 序列化结果与此值比对，确保空扩展的跨语言一致性。
+```
+
+**分层哈希的核心价值**：
+
+| 验证器版本 | 能力 | 验证逻辑 |
+|-----------|------|----------|
+| v1.2 验证器（2026） | 理解 CORE + JURISDICTION | 读 extensions + 重算 JCS(extensions) → 比对 extensions_hash ✅ → 验证主 audit.hash ✅ |
+| v1.5 验证器（2028） | 理解 CORE + JURISDICTION + 新法规扩展 | 展开 extensions 内部字段 → 验证类型/值域 ✅ → 验证 extensions_hash ✅ → 验证主 audit.hash ✅ |
+| v2.0 验证器（2032） | 理解全新 schema | 如果 extensions .schema_ref 指向旧版本定义 → 通过 content-addressable schema 检索理解语义 ✅ |
+
+**向后兼容保证**：任何版本的验证器都能验证 `extensions_hash`（只需 JCS+SHA-256，不需要理解 extensions 内部字段语义），从而确认扩展区未被篡改。只有需要审查扩展区内部内容的监管者才需要理解 extensions 的具体结构。
+
+### 3.4 `extensions_hash` 的位置
+
+`extensions_hash` 作为顶层字段，置于 `extensions` 之后、`audit` 之前：
+
+```json
+{
+  "extensions": [...],
+  "extensions_hash": "sha256:...",
+  "audit": {
+    "hash": "sha256:..."
+  }
+}
+```
+
+### 3.5 链式锚定
+
+每条 DO 通过 `audit.previous_hash` 链接到上一条 DO 的 `audit.hash`。任何对链中任意记录的篡改都会破坏后续所有记录的哈希一致性。
+
+### 3.6 与 IETF AAT 的技术对齐
+
+IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
+
+| 对齐项 | ERDL DO v1.2 | IETF AAT |
+|---------|-------------|----------|
+| 规范化 | JCS (RFC 8785) | JCS (RFC 8785) ✅ 一致 |
+| 摘要 | SHA-256 (FIPS 180-4) | SHA-256 (FIPS 180-4) ✅ 一致 |
+| 链字段 | `audit.previous_hash` | `prev_hash` ✅ 语义一致 |
+| 签名 | ECDSA P-256 (FIPS 186-5) | ECDSA P-256 (FIPS 186-5) ✅ 一致 |
+
+---
+
+## 4. Decision Object Schema：24 字段设计（CORE 15 + JURISDICTION 9）
+
+### 4.1 CORE 字段（15 个 — 所有 DO 必须具备，永久冻结）
+
+| # | 字段 | 类型 | 说明 |
+|---|------|------|------|
+| 1 | `spec` | const `"decision-object-v1.0"` | DO 格式标识 |
+| 2 | `decision_id` | UUID v7 | 本条决策唯一标识 |
+| 3 | `compliance_profile` | object | 辖区激活配置（见 §5） |
+| 4 | `execution_trace_id` | UUID v7 | 跨 DO+AAT 的全局关联 ID |
+| 5 | `timestamp` | ISO 8601 UTC ms | 决策时间戳 |
+| 6 | `evaluation_duration_ms` | integer | 决策耗时（毫秒，整数） |
+| 7 | `agent` | object | Agent 身份（id/role/version + 扩展子字段） |
+| 8 | `context` | object | 评估上下文（tool.name/args 等） |
+| 9 | `rule_set_version` | object | 规则集版本标识（参与 JCS） |
+| 10 | `policies` | array | 激活的策略集（含 JCS 哈希 + author_id） |
+| 11 | `evaluation` | object | 规则评估详情（matched_rules/totals） |
+| 12 | `result` | object | 最终决策（decision/severity/reason/action_taken） |
+| 13 | `human_oversight` | object | 人工监督（含 override_reason 子字段） |
+| 14 | `audit` | object | 防篡改审计（hash/previous_hash/commitment） |
+| 15 | `extensions_hash` | string | extensions 区的 JCS+SHA-256（属于 CORE，参与主 JCS——见 §3.3） |
+
+### 4.2 JURISDICTION 字段（9 个 — 由 compliance_profile 按需激活）
+
+| # | 字段 | 类型 | 激活条件 |
+|---|------|------|----------|
+| 16 | `model_id` | string | NIST / COSO / Colorado 合规 |
+| 17 | `fairness_assessment` | string | NIST / Colorado（高风险决策） |
+| 18 | `impact_assessment_id` | UUID | Colorado / ISO 42001 合规 |
+| 19 | `autonomy_level` | string | 新加坡 MGF / COSO 合规 |
+| 20 | `data_modification_expected` | boolean | HIPAA / PCI DSS / 信通院合规 |
+| 21 | `context_snapshot_hash` | string | 含 PII 场景 / 跨 Agent 验证 |
+| 22 | `sanitized_context` | string | 含 PII 场景 / GDPR 合规 |
+| 23 | `confidence_score` | float (string) | NIST AI RMF 合规（0.0~1.0，字符串格式 "0.95"；严格正则 `^\d+(\.\d+)?$`，禁止空格、科学计数法、前导零） |
+| 24 | `signature` | string (Base64url) | HIPAA / PCI DSS（critical 决策）。配套字段 `signing_key_id`（不参与 JCS）标识签名所用私钥的公钥版本，供审计员从 KMS 拉取正确公钥进行验证 |
+
+### 4.3 extensions 字段（开放式扩展区 — 不参与主 JCS，通过 extensions_hash 间接保护）
+
+每个扩展条目的自描述结构：
+
+```json
+{
+  "extensions": [
+    {
+      "id": "unique-extension-entry-id",
+      "regulatory_ref": {
+        "framework": "Framework-Name",
+        "version": "Version-Identifier",
+        "effective_date": "YYYY-MM-DD"
+      },
+      "schema_ref": "sha256:...（该字段 schema 定义文档的 JCS+SHA-256，用作 content-addressable reference）",
+      "field": {
+        "name": "field_name",
+        "type": "number:string",
+        "description": "Human-readable description"
+      },
+      "value": "actual data"
+    }
+  ],
+  "extensions_hash": "sha256:..."
+}
+```
+
+**`schema_ref` 的作用**：指向扩展字段的完整 schema 定义文档（类型、值域、来源、示例），通过哈希进行 content-addressable 检索。10 年后，即使 ERDL 委员会已解散，只要该哈希值可以在内容寻址网络中检索到对应的 schema 文档，审计员就能完整理解扩展字段的语义。
+
+### 4.4 子对象扩展字段
+
+**agent 对象**：
+
+| 子字段 | 类型 | 说明 |
+|--------|------|------|
+| `agent.id` | string | Agent 唯一标识（DID:ERDL 或 AID 格式） |
+| `agent.role` | string | guardian / operator / observed |
+| `agent.version` | string | Agent 软件版本号 |
+| `agent.aid` | string | GB/Z 185 合规（28 位 AID 身份码） |
+| `agent.known_limitations` | string[] | EU AI Act Art.13 合规 |
+| `agent.tool_registry_hash` | string | GB/Z 185.7 合规 |
+| `agent.algorithm_filing_no` | string | 中国算法备案号 |
+| `agent.model_registration_id` | string | 中国模型上线备案号 |
+
+**policies 对象**：
+
+| 子字段 | 类型 | 说明 |
+|--------|------|------|
+| `policies[].id` | string | 策略唯一标识 |
+| `policies[].name` | string | 人类可读名称 |
+| `policies[].author_id` | string | 该策略的制定者 ID（COSO SoD 合规） |
+| `policies[].version` | integer | 策略版本号 |
+| `policies[].hash` | string | 策略完整内容的 JCS+SHA-256 哈希 |
+
+**evaluation 对象**：
+
+| 子字段 | 类型 | 说明 |
+|--------|------|------|
+| `evaluation.proposal_id` | UUID or null | 规则提案 ID |
+| `evaluation.matched_rules[]` | array | 命中的规则列表 |
+| `evaluation.matched_rules[].rule_id` | string | 规则 ID |
+| `evaluation.matched_rules[].decision` | string | 该规则的决策 |
+| `evaluation.matched_rules[].reason` | string | 原因/说明 |
+| `evaluation.matched_rules[].correction` | string | 纠正内容（CORRECT 时） |
+| `evaluation.matched_rules[].instruction` | string | 建议（ALLOW 时） |
+| `evaluation.matched_rules[].ring` | integer | 执行环级别（0-3） |
+| `evaluation.total_evaluated` | integer | 评估的规则总数 |
+| `evaluation.total_matched` | integer | 命中的规则总数 |
+| `evaluation.confidence_score` | float (string) | LLM 提供的决策置信度（字符串格式 "0.95"） |
+
+**human_oversight 对象**：
+
+| 子字段 | 类型 | 必需 | 说明 |
+|--------|------|:---:|------|
+| `human_oversight.required` | boolean | ✅ | 该决策是否法定要求人类介入 |
+| `human_oversight.status` | string | ✅ | approved / rejected / overridden / pending / not_applicable |
+| `human_oversight.human_actor_id` | string | 条件 | 介入的人类操作员 ID |
+| `human_oversight.timestamp` | string | 条件 | 人类操作时间（ISO 8601 UTC ms） |
+| `human_oversight.reason` | string | 可选 | 人类操作理由 |
+| `human_oversight.override_reason` | string | 条件 | 当 status 为 overridden 时 MUST — 人类推翻 Agent 决策的具体理由（EU AI Act Art.14 "有效监督" 合规） |
+
+### 4.5 字段膨胀对比
+
+| 部署场景 | 激活字段数 | DO 大小 |
+|----------|:---:|------|
+| 基础（无辖区要求，仅 CORE 15 字段） | 15 | ~1050 bytes |
+| 中国（GB/Z 185 + 信通院） | 18（+ agent.aid, agent.tool_registry_hash, agent.algorithm_filing_no, agent.model_registration_id） | ~1120 bytes |
+| 欧盟高风险（EU AI Act） | 17（+ agent.known_limitations, confidence_score） | ~1080 bytes |
+| 美国医疗（HIPAA） | 18（+ data_modification_expected, context_snapshot_hash, sanitized_context, signature, fairness_assessment） | ~1150 bytes |
+| 全球全激活（向量集） | 24 | ~1400 bytes |
+
+---
+
+## 第二部分：合规与适配
+
+---
+
+## 5. 全向兼容 × 按需适配：辖区激活机制
+
+### 5.1 设计动机
+
+全球部署的 Agent 可能受多个辖区法规同时约束——各辖区的法规适用范围独立，不能要求每条 DO 携带所有辖区的特有字段。
+
+### 5.2 `compliance_profile`：声明式辖区激活
+
+```json
+{
+  "compliance_profile": {
+    "profile_id": "erdl-compliance-v1.2",
+    "profile_hash": "sha256:a1b2c3...",
+    "jurisdictions": ["EU", "CN"],
+    "industries": ["financial-services"],
+    "risk_level": "high",
+    "activated_fields": [
+      "model_id",
+      "impact_assessment_id",
+      "agent.known_limitations",
+      "agent.aid",
+      "agent.tool_registry_hash",
+      "human_oversight"
+    ],
+    "regulatory_references": [
+      {
+        "framework": "EU-AI-Act",
+        "version": "Regulation-2024-1689",
+        "amended_by": "Digital-Omnibus-2026",
+        "jurisdiction": "EU",
+        "effective_date": "2027-12-02",
+        "requires_fields": ["evaluation_duration_ms", "human_oversight", "agent.known_limitations"]
+      },
+      {
+        "framework": "GB-Z-185-2026",
+        "version": "2026-05-22",
+        "jurisdiction": "CN",
+        "requires_fields": ["agent.aid", "agent.tool_registry_hash"]
+      }
+    ]
+  }
+}
+```
+
+### 5.3 三层声明
+
+| 层级 | 字段 | 作用 |
+|------|------|------|
+| **辖区** | `jurisdictions` | 约束法规适用范围（CN/EU/US/SG/ALL） |
+| **行业** | `industries` | 激活行业特有字段（healthcare → HIPAA, financial → SOX） |
+| **风险** | `risk_level` | 激活风险相关字段（critical → signature 强制） |
+
+### 5.4 `activated_fields` 与 Schema 裁剪规则
+
+- 显式声明本条 DO 中哪些 JURISDICTION 字段被激活了
+- 审计员打开 DO → 立即知道覆盖了哪些额外合规要求
+- 字段在 `activated_fields` 中但 DO 中缺失 → 合规失败
+- 字段不在 `activated_fields` 中但 DO 中有 → 冗余但不违规
+- 参与 JCS 序列化 → 任何对激活字段集的篡改都会破坏 `audit.hash`
+
+**Schema 裁剪规则（强制）**：在计算 `audit.hash` 前，DO 必须经过"序列化前裁剪"——不在 `activated_fields` 声明中的 JURISDICTION 字段 MUST 从 JSON 对象中物理移除（Omit），不得设为 null、空字符串或其他占位值。Omit 与 null 在 JCS 下产生不同的 canonical byte sequence（同 v1.1 中 delete-vs-blank 的设计理由）。各语言 SDK 必须提供"序列化前裁剪"工具函数，在 JCS canonicalize 之前执行。向量集使用全激活模式，因此裁剪规则不改变向量验证结果。
+
+### 5.5 配置方式
+
+`compliance_profile` 支持通过 API、CLI、配置文件、管理面板多种方式配置。企业可以手动指定 `activated_fields` 以实现自定义覆盖（如在中国部署但额外需要 NIST 的 `fairness_assessment` 字段）。
+
+---
+
+## 6. 12 监管框架兼容性
+
+### 6.1 覆盖框架
+
+| 框架 | 辖区 | 约束力 |
+|------|:---:|:---:|
+| EU AI Act (Regulation 2024/1689) | EU | 强制 |
+| NIST AI RMF 1.0 | US | 自愿 |
+| COSO GenAI 2026 | Global | 行业标准 |
+| ISO/IEC 42001:2023 | Global | 可认证 |
+| GB/Z 185-2026 | CN | 国家标准 |
+| OWASP Agentic Top 10 2026 | Global | 行业标准 |
+| IEEE P3395 | Global | 制定中 |
+| HIPAA | US | 强制 |
+| PCI DSS v4.0.1 | Global | 合同强制 |
+| Colorado SB 205 | US-CO | 强制 |
+| 新加坡 MGF for Agentic AI | SG | 最佳实践 |
+| 中国信通院评估 2.0 | CN | 行业权威 |
+
+### 6.2 逐框架关键要求覆盖
+
+| 要求 | EU AI Act | NIST | COSO | ISO | GB/Z | OWASP | HIPAA | PCI | CO-SB205 | SG-MGF | CAICT |
+|------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 自动事件记录 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 防篡改 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Agent 身份 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 决策可解释 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | — | ✅ | ✅ | ✅ |
+| 人工监督 | ✅ | ✅ | ✅ | — | — | ✅ | — | — | ✅ | ✅ | ✅ |
+| 规则版本追溯 | ✅ | — | ✅ | ✅ | ✅ | ✅ | — | — | — | — | ✅ |
+| 上下文审查 | ✅ | ✅ | ✅ | — | — | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| 数字签名 | — | — | — | — | — | ✅ | ✅ | ✅ | — | — | — |
+| 跨系统关联 | — | — | ✅ | — | ✅ | ✅ | — | — | — | — | ✅ |
+| 模型版本 | — | ✅ | ✅ | — | — | — | — | — | ✅ | — | — |
+| 公平性评估 | — | ✅ | — | — | — | — | — | — | ✅ | — | — |
+| 影响评估 | — | — | — | ✅ | — | — | — | — | ✅ | — | — |
+| 自主程度 | — | — | ✅ | — | — | — | — | — | — | ✅ | — |
+| 决策耗时 | ✅ | — | — | — | — | — | — | — | — | — | — |
+| 系统限制声明 | ✅ | — | — | — | — | — | — | — | — | — | — |
+| 工具注册 | — | — | — | — | ✅ | — | — | — | — | — | — |
+| 数据变更追踪 | — | — | — | — | — | — | ✅ | ✅ | — | — | ✅ |
+| 工作流编排 (WORKFLOW) | — | — | ✅ | — | — | — | — | — | — | — | — |
+| 工作流等待 (WORKFLOW_WAITING) | — | — | ✅ | — | — | — | — | — | — | — | — |
+| 工作流推进 (WORKFLOW_PROGRESS) | — | — | ✅ | — | — | — | — | — | — | — | — |
+| 置信度/风险量化 | — | ✅ | — | — | — | — | — | — | — | — | — |
+| 职责分离 (SoD) | — | — | ✅ | — | — | — | — | — | — | — | — |
+| 算法备案 | — | — | — | — | ✅ | — | — | — | — | — | — |
+| 隐私/被遗忘权 | ✅ (GDPR) | — | — | — | ✅ (PIPL) | — | ✅ | — | — | — | — |
+
+**注**：DELEGATE 在 SPEC v1.2 中已定义但向量集预留至 v1.3（引擎参考实现未完成）。
+
+**全部 24 项跨框架要求通过 DO 的 24 字段 + 冷热分离架构完整覆盖。**
+
+---
+
+## 7. 生态兼容性
+
+### 7.1 三方审计视角总览
+
+ERDL Decision Object 服务于三类审计用户，各自有不同的审查需求：
+
+| 审计类型 | 角色 | 核心问题 | 审查方式 | 频率 |
+|------|------|---------|---------|:---:|
+| **企业内审** | 内审部门 / 合规团队 | "AI 决策是否按照既定规则执行？控制措施是否有效？" | 穿行测试、控制测试、抽样审查 | 季度/半年 |
+| **第三方审计** | 外部审计师（如四大会计师事务所） | "DO 记录是否完整、不可篡改？审计链是否可独立验证？" | 实质性测试、哈希链完整性验证、独立重算 | 年度 |
+| **监管审查** | 监管机构（如 EU AI Office、中国网信办） | "是否满足法规要求？" | 逐字段合规映射、高风险事件抽查 | 随时 |
+
+三类审计共享同一套 DO 作为证据源，但使用不同的审查路径。以下各节定义了 ERDL DO 对每类审计的具体支持。
+
+### 7.2 企业内审支持
+
+#### 7.2.1 穿行测试（Walkthrough Test）
+
+内审员追踪一条 DO 的完整证据链，验证"规则引擎按设计运行"：
+
+1. **规则版本确认**：`rule_set_version.id` 与部署记录中的规则集哈希对比 → 确认使用了正确的规则版本
+2. **规则触发溯源**：`evaluation.matched_rules[].rule_id` → 定位到具体规则文件中的具体规则行
+3. **条件逐项验证**：`context` 中的字段值 → 与 when 条件逐项对照 → 确认匹配逻辑正确
+4. **决策后果确认**：`result.decision` + `result.action_taken` → 确认 Agent 实际执行了该决策
+5. **人工监督确认**：`human_oversight.status` → 确认需要人工介入的决策确实经过了审批
+
+一条 DO 提供了一次穿行测试所需的所有证据——不需要切换到其他系统查看日志或代码。
+
+#### 7.2.2 控制测试（Test of Controls）
+
+COSO 五要素要求定期测试内部控制的有效性。DO 通过以下方式支持控制测试：
+
+| COSO 控制测试 | DO 字段 | 测试方法 |
+|------|---------|----------|
+| 访问控制是否有效 | `result.decision` = DENY + `matched_rules[]` | 统计拦截率、抽查被拦截操作的规则触发是否合理 |
+| 职责分离（SoD） | `agent.id` vs `policies[].author_id` | 确认规则制定者 ≠ 规则执行者 |
+| 变更管理是否合规 | `rule_set_version.id` + `timestamp` | 追溯规则变更时间线与审批记录 |
+| 人工监督是否到位 | `human_oversight.status` + `override_reason` | 统计人工介入率、审查 override 理由是否充分 |
+| 系统限制是否被遵守 | `agent.known_limitations` | 确认 DO 始终在系统能力边界内运行 |
+
+#### 7.2.3 抽样审查（Sampling）
+
+内审员从 DO 流中按统计方法抽样：
+- **按决策类型分层抽样**：如从 10,000 条 DO 中抽取 100 条 DENY、50 条 ALLOW、20 条 REQUEST_HUMAN
+- **按风险加权抽样**：critical/high severity 的 DO 全量审查，medium/low 按比例抽样
+- **按时间窗口抽样**：随机选择审计期内的 N 个时间窗口，每个窗口全量审查
+
+抽样后对每条 DO 执行穿行测试。DO 的七步法验证确保样本未被筛选或篡改。
+
+### 7.3 第三方审计支持
+
+#### 7.3.1 独立验证
+
+第三方审计师不依赖 Agent 运行时环境——只需要 DO 的 JSON 文件和公开的向量集：
+
+1. **哈希链完整性验证**：遍历审计链上每条 DO，验证 `audit.previous_hash` → `audit.hash` 链接完整
+2. **JCS+SHA-256 独立重算**：使用审计师自己的 canonicalizer 实现（Python/Go/Rust），重算任意 DO 的 `audit.hash` 并对比
+3. **向量集验证**：使用公开的 101 条验证向量确认审计师的 canonicalizer 实现正确
+4. **签名验证**：对包含 `signature` 的 DO，使用 Agent 的公钥验证 ECDSA P-256 签名
+
+所有验证均不需要访问 Agent 运行时、规则引擎代码或企业内部系统。审计师只需 DO 的 JSON 文件即可完成全部密码学验证。
+
+#### 7.3.2 审计工作底稿
+
+DO 本身即为审计工作底稿（Audit Working Paper）。第三方审计师的审计程序可以引用 DO 的字段作为直接证据：
+
+| 审计程序 | 引用的 DO 证据 |
+|---------|---------------|
+| "获取并检查审计期内所有高严重性决策记录" | 查询 `severity=high,critical` 的 DO 列表 |
+| "验证审计链完整性" | `audit.previous_hash` 链 + 独立重算 |
+| "测试关键拦截规则的有效性" | 抽取 100 条 `decision=DENY` 的 DO，逐条验证 `matched_rules` |
+| "确认人类监督机制的运作" | 检查 `human_oversight` 的填充率和 override 理由 |
+| "验证规则集版本与部署记录一致" | `rule_set_version.id` 与变更管理系统的记录比对 |
+
+#### 7.3.3 跨实现可验证性
+
+第三方审计师可以使用与 Agent 运行环境**完全不同的技术栈**验证 DO。这一性质通过公开的 101 条向量集保障——审计师先用向量集验证自己的 JCS+SHA-256 实现正确，再用同一实现对生产 DO 进行验证。这消除了"审计师必须依赖 Agent 提供商的验证工具"的信任风险。
+
+### 7.4 与 IETF AAT 的互补定位
+
+| 维度 | ERDL Decision Object | IETF AAT |
+|------|---------------------|----------|
+| **层级** | 决策评估结果 | 全操作日志 |
+| **粒度** | 每次 Tool Call 的 when/then 评估 | 每次 Agent 操作 |
+| **场景** | "为什么这个操作被拦截/放行？" | "Agent 做了什么操作？" |
+| **深度** | 深度（policies/matched_rules/evaluation 细节） | 广度（tool_call/delegation/error/lifecycle） |
+| **监管映射** | 12 框架逐字段映射 | EU AI Act + SOC 2 + ISO/PCI |
+
+两者使用完全相同的密码学原语（JCS + SHA-256 + ECDSA P-256），通过 `execution_trace_id` 串联。
+
+**职责边界**：ERDL DO 记录的是规则引擎的确定性评估结果（13 种决策类型）。以下运行时异常类型不属于 ERDL 规则评估的范畴，由 IETF AAT 覆盖：
+- **ERROR**（Agent 运行时错误，如 LLM 调用失败、工具超时）→ AAT `action_type: "error"`
+- **TIMEOUT**（操作超出时间预算）→ AAT `action_type: "error"`, `outcome: "timeout"`
+- **FALLBACK**（降级/兜底决策）→ AAT `action_type: "decision"` with detail
+
+三者通过 `execution_trace_id` 与对应的 ERDL DO（如有）串联，形成完整的审计证据链。
+
+```
+┌─────────────────────────────────────────┐
+│         Agent 运行时                    │
+│                                         │
+│  Tool Call 发生                         │
+│       ↓                                 │
+│  ERDL 规则评估 → Decision Object        │  ← "为什么放行/拦截？"
+│       ↓                                 │
+│  Agent 执行/拒绝 Tool Call              │
+│       ↓                                 │
+│  IETF AAT 记录 → Audit Record           │  ← "Agent 做了什么？"
+│                                         │
+│  DO.execution_trace_id  ←→  AAT         │
+└─────────────────────────────────────────┘
+```
+
+### 7.5 与 MCP (Model Context Protocol) 的关系
+
+MCP 是 Anthropic 推动的 Agent 与外部工具连接标准。ERDL DO 与 MCP 通过以下路径集成：
+
+**代理模式（协议层拦截）**：将危险 Tool 的 MCP 端点指向 ERDL 代理。Agent 调用 MCP Tool → ERDL Guard 拦截 → 规则评估（when/then）→ 生成 Decision Object → 放行或拦截。Agent 无法绕过——它调不到原始 MCP Tool 端点。
+
+**`execution_trace_id` 生成规则**：`execution_trace_id` 由 ERDL Engine 独立生成（UUID v7），不依赖外部系统的标识符。MCP 的 `request_id`（由 Agent 客户端生成）可通过 DO 的 `context` 字段中的 `mcp_request_id` 记录，与 `execution_trace_id` 并存以支持双向追溯。
+
+**MCP Tool 声明**：ERDL 规则文件通过 MCP Server 暴露为 MCP Tool。Agent 在 MCP 工具列表中看到 ERDL 规则验证能力，通过标准 MCP 协议调用。
+
+### 7.6 与 A2A (Agent-to-Agent Protocol) 的关系
+
+A2A 是 Google 推动的 Agent 间通信标准。ERDL DO 的集成路径：
+
+**Agent Card 扩展**：Agent 的 A2A Agent Card 中声明 `erdl` 扩展，携带合规配置文件和可接受的决策类型列表。对端 Agent 在委派任务前可通过该扩展了解目标 Agent 的规则约束。
+
+`erdl` 扩展的标准 JSON 结构：
+```json
+{
+  "extensions": {
+    "erdl": {
+      "spec_version": "v1.2",
+      "compliance_profile": {
+        "profile_id": "erdl-compliance-v1.2",
+        "jurisdictions": ["EU"],
+        "industries": ["financial-services"]
+      },
+      "supported_decisions": ["ALLOW", "DENY", "CORRECT", "REQUEST_HUMAN", "ESCALATE", "NOTIFY", "EMERGENCY_HALT", "QUARANTINE", "ROLLBACK", "WORKFLOW"],
+      "guard_enabled": true,
+      "verification_endpoint": "https://agent.example.com/.well-known/erdl/verify",
+      "rules_hash": "sha256:a1b2c3..."
+    }
+  }
+}
+```
+
+**跨 Agent 审计链**：DO 的 `decision_id` 被 A2A Task 消息引用，DO 的 `execution_trace_id` 串联整个 A2A 委派链。多 Agent 场景中的每个决策节点都生成独立的 DO，通过 `audit.previous_hash` 形成跨 Agent 审计链。
+
+### 7.7 与主流 Agent 框架的关系
+
+ERDL DO 不绑定任何特定 Agent 框架。以下集成模式适用于所有主流框架：
+
+| 框架 | 集成模式 | DO 生成时机 |
+|------|---------|------------|
+| **OpenClaw** | NATIVE — ERDL Guard 内置在工具调用管道中 | Agent 每次 tool call 前自动生成 DO |
+| **LangChain / LangGraph** | MIDDLEWARE — 通过 ToolMiddleware 插入 ERDL Guard | 每次 Tool 调用前拦截 + 生成 DO |
+| **CrewAI** | MIDDLEWARE — 通过 Crew 的 before_tool_call hook | 同上 |
+| **AutoGen** | MIDDLEWARE — 通过 AssistantAgent 的工具拦截机制 | 同上 |
+| **任何支持 MCP 的框架** | MCP MODE — 通过 MCP 代理模式 | 同上 |
+| **自定义 Agent** | SDK — 导入 ERDL Engine + DO Builder 库 | 应用程序代码调用 |
+
+**集成原则**：ERDL DO 不要求 Agent 框架修改其核心架构。只要求框架在 Tool Call 执行前提供一个拦截点（hook / middleware / proxy），ERDL Engine 在拦截点进行规则评估并生成 DO。
+
+**性能考虑**：MIDDLEWARE 和 MCP MODE 集成模式下，每次 Tool Call 需要一次外部 RPC 调用到 ERDL Engine（单次调用延迟约 2-5ms，取决于部署拓扑）。对于延迟敏感的场景（如高频 Agent），建议采用 NATIVE 模式（同进程内嵌 ERDL Engine）或异步审计架构（§9.4）。
+
+### 7.8 与 OpenTelemetry 的关系
+
+ERDL 审计记录输出为 OTLP Span。每个规则触发生成一个 Span：
+
+```
+Span: ERDL-Rule-Evaluation
+  ├── decision_id: "018c4a3e-..."
+  ├── result.decision: "DENY"
+  ├── total_evaluated: 1
+  ├── total_matched: 1
+  └── parentSpanId: ← execution_trace_id 映射
+```
+
+跨 Agent 审计链通过 `execution_trace_id` → OTLP `parentSpanId` 映射。兼容现有 APM 和可观测性基础设施。
+
+### 7.9 审计报告输出格式
+
+ERDL Decision Object 的审计生命周期分为三个阶段：**生成 → 存储 → 报告**。DO 是链上原始证据，审计报告是对 DO 流的结构化查询结果。
+
+#### 7.9.1 审计查询接口
+
+合规审计员通过标准 REST API 查询 DO 存储库，获取结构化的审计报告：
+
+```
+GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
+  &jurisdiction=EU
+  &decision=DENY,REQUEST_HUMAN
+  &severity=high,critical
+  &agent_id=agent-001
+```
+
+支持的查询维度：
+
+| 维度 | 字段 | 审计用途 |
+|------|------|----------|
+| 时间范围 | `timestamp` | 审计期界定 |
+| 辖区 | `compliance_profile.jurisdictions` | 法规覆盖确认 |
+| 决策类型 | `result.decision` | 拦截/放行统计 |
+| 严重性 | `result.severity` | 风险事件定位 |
+| 执行动作 | `result.action_taken` | 操作后果统计（blocked/halted/escalated） |
+| Agent | `agent.id` | 行为归因 |
+| 工具 | `context.tool.name` | 操作审计 |
+| 规则 | `evaluation.matched_rules[].rule_id` | 规则触发溯源 |
+| 人工监督 | `human_oversight.status` | 人工介入确认 |
+
+语义查询示例——"查询所有被拦截的操作"：
+```
+GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
+  &action_taken=blocked,halted,quarantined,rolled_back
+```
+
+语义查询示例——"查询所有需要人工介入但未处理的操作"：
+```
+GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
+  &human_oversight_status=pending
+```
+
+#### 7.9.2 标准审计报告格式
+
+```json
+{
+  "report_type": "ERDL-Audit-Report-v1.2",
+  "report_id": "018c4a3e-0000-7000-8000-000000000099",
+  "generated_at": "2026-07-27T15:00:00.000Z",
+  "query": {
+    "from": "2026-07-01T00:00:00.000Z",
+    "to": "2026-07-27T23:59:59.999Z",
+    "jurisdiction": "EU",
+    "decisions": ["DENY", "REQUEST_HUMAN"]
+  },
+  "summary": {
+    "total_decisions": 1247,
+    "by_decision": {
+      "ALLOW": 892,
+      "DENY": 203,
+      "CORRECT": 87,
+      "REQUEST_HUMAN": 42,
+      "NOTIFY": 15,
+      "ESCALATE": 5,
+      "EMERGENCY_HALT": 2,
+      "WORKFLOW": 1
+    },
+    "by_severity": {
+      "none": 892,
+      "low": 15,
+      "medium": 134,
+      "high": 203,
+      "critical": 3
+    },
+    "by_agent": {
+      "agent-001": 623,
+      "agent-002": 624
+    },
+    "by_tool": {
+      "exec": 312,
+      "write_file": 285,
+      "read_file": 410,
+      "web_search": 240
+    },
+    "human_oversight_events": 42,
+    "chain_integrity_alerts": 0,
+    "first_decision_timestamp": "2026-07-01T00:03:12.000Z",
+    "last_decision_timestamp": "2026-07-27T23:58:45.000Z",
+    "chain_verified": true
+  },
+  "compliance_profile_applied": {
+    "profile_id": "erdl-compliance-v1.2",
+    "jurisdictions": ["EU"],
+    "industries": ["financial-services"],
+    "activated_fields": ["model_id", "impact_assessment_id", "agent.known_limitations", "human_oversight"]
+  },
+  "high_severity_decisions": [
+    {
+      "decision_id": "018c4a3e-0001-7000-8000-000000000001",
+      "timestamp": "2026-07-27T14:00:00.000Z",
+      "agent_id": "agent-001",
+      "decision": "DENY",
+      "severity": "high",
+      "tool": "exec",
+      "rule_triggered": "FIN-SEC-001",
+      "reason": "exec blocked by financial security policy"
+    }
+  ],
+  "chain_integrity": {
+    "verified": true,
+    "total_records_checked": 1247,
+    "chain_breaks": 0,
+    "first_hash": "sha256:abc...",
+    "last_hash": "sha256:xyz..."
+  }
+}
+```
+
+#### 7.9.3 合规就绪声明
+
+审计报告可作为监管审查的直接输入。报告本身通过 `report_id` + `generated_at` + `chain_integrity` 三元组自证完整性。
+
+**`chain_verified` 的验证方式**：审计系统遍历链上每条 DO 的 `audit.previous_hash` → `audit.hash` 链接，全部匹配后标记为 `true`。监管者可通过以下方式独立验证：
+1. 要求提供链上任意一条 DO 的完整 JSON
+2. 使用七步验证法（§13.3）重算该 DO 的 `audit.hash`
+3. 对比重算结果与链上存储值
+4. 逐条回溯 `previous_hash` 链至 `first_hash`
+
+任何单条 DO 的篡改都会导致后续所有 DO 的 `audit.hash` 不匹配，`chain_verified` 变为 `false` 并标记断裂位置。
+
+报告支持以下格式输出：
+- **JSON** — 机器可读取（API / CI/CD 集成）
+- **CSV** — 表格审计（Excel / 审计工具导入）
+- **SARIF** — 静态分析结果交换格式（GitHub Code Scanning 兼容）
+- **PDF** — 盖章交付（通过模板引擎渲染）
+
+#### 7.9.4 与 SIEM/SOAR 的集成
+
+审计报告支持导出为 OCSF (Open Cybersecurity Schema Framework) 格式，兼容 Splunk、Elastic、Microsoft Sentinel 等 SIEM 系统。核心字段映射：
+
+| DO 字段 | OCSF 字段 | OCSF 类型 |
+|---------|----------|----------|
+| `decision_id` | `metadata.uid` | string |
+| `timestamp` | `time` | timestamp_t |
+| `result.decision` | `finding_info.title` | string |
+| `result.severity` | `severity_id` | integer (0-5) |
+| `result.reason` | `finding_info.desc` | string |
+| `agent.id` | `device.uid` | string |
+| `context.tool.name` | `unmapped.action_name` | string |
+| `evaluation.matched_rules[].rule_id` | `finding_info.uid` | string |
+| `human_oversight.status` | `status_detail` | string |
+| `audit.hash` | `metadata.correlation_uid` | string |
+
+当 `result.decision` 为 `DENY`/`EMERGENCY_HALT`/`QUARANTINE` 时，自动触发 SOAR playbook。OCSF 的 `activity_id` 映射为 `3`（Deny）或 `5`（Block）以触发 SIEM 告警规则。
+
+---
+
+## 8. 隐私与数据最小化设计
+
+**场景：GDPR 被遗忘权与防篡改 Hash 链的共存**
+
+GDPR Article 17 赋予数据主体删除其个人数据的权利。但 Decision Object 通过 Hash 链固化——如果 DO 的 `context` 包含用户 PII，直接删除会导致整条哈希链断裂。
+
+**v1.2 冷热分离方案**：
+
+```
+┌─────────────────────────────────────────────────┐
+│ 审计链（不可变）                                  │
+│                                                 │
+│  DO: { context_snapshot_hash: "sha256:abc..." }  │  ← 只存 Hash
+│  DO: { context_snapshot_hash: "sha256:def..." }  │
+│  DO: { sanitized_context: "tool=exec, args=<PII>" }│ ← 脱敏版本
+│                                                 │
+└──────────────┬──────────────────────────────────┘
+               │ 通过 context_snapshot_hash 索引
+               ▼
+┌─────────────────────────────────────────────────┐
+│ 冷存储（可物理删除）                              │
+│                                                 │
+│  DO-001.context.raw → 用户张三, 信用卡 1234...    │  ← 原始 PII
+│                                                 │
+│  GDPR 删除请求 → 删除冷存储中的原始记录            │
+│  审计链不变 → context_snapshot_hash 仍可验证      │
+│  监管审查 → 通过 sanitized_context 获取关键语义     │
+└─────────────────────────────────────────────────┘
+```
+
+**核心原则**：
+1. 审计链只存 Hash — 不存储原始 PII
+2. 原始 Context 落入冷存储 — 支持物理删除
+3. GDPR 删除 = 删除冷存储中的原始记录
+4. 冷存储保留策略遵循各辖区法定最短保留期
+
+---
+
+## 9. 法规版本化与升级路径（含异步审计架构、双哈希过渡方案、存储优化）
+
+### 9.1 增量升级（法规更新，不改字段）
+
+以 EU AI Act 合规截止日从 2026-08-02 推迟到 2027-12-02 为例：
+
+1. 更新 `compliance_profile.regulatory_references` 中 EU AI Act 条目的 `effective_date` 和 `amended_by`
+2. 重新计算 `compliance_profile.profile_hash`
+3. `profile_hash` 参与 JCS 序列化 → `audit.hash` 改变
+4. 审计链上所有后续 DO 的 `audit.previous_hash` 指向新的 `audit.hash`
+
+审计价值：监管者可以精确追溯到"合规配置何时发生变更"。
+
+### 9.2 结构性升级（新法规要求新字段）
+
+不在 CORE 或 JURISDICTION 中新增字段。通过 extensions 区的自描述条目承载：
+
+```json
+"extensions": [
+  {
+    "id": "eu-ai-act-2027-amendment-carbon",
+    "regulatory_ref": { "framework": "EU-AI-Act", "version": "2027-Amendment-Art-12b", "effective_date": "2027-12-02" },
+    "schema_ref": "sha256:...",
+    "field": { "name": "carbon_footprint_kg", "type": "number:string", "description": "..." },
+    "value": "0.042"
+  }
+]
+```
+
+**核心优势**：extensions 条目不直接参与主 JCS 序列化，只通过 `extensions_hash` 间接保护。旧验证器不需要理解 carbon_footprint_kg 的语义即可验证扩展区完整性。
+
+### 9.3 跨版本审计链锚定（v1.1 → v1.2）
+
+`audit.previous_hash` 仅是一个指向上一条 DO 最终 `audit.hash` 值的字符串引用——它不参与"被引用记录的 JCS 序列化"。v1.2 的第一条 DO 的 `audit.previous_hash` 可以直接填入 v1.1 最后一条 DO 的 `audit.hash` 值，证据链不因此断裂。
+
+### 9.4 异步审计架构（性能工程指南）
+
+v1.2 DO 生成需要执行：1x extensions JCS + SHA-256、1x 主对象 JCS + SHA-256、可选的 1x ECDSA P-256 签名。整套密码学操作耗时约 2-5ms（Node.js，V8 优化后）到 25ms（Python/GIL）。对于每秒处理 100+ Tool Call 的高频 Agent，建议采用异步审计架构：
+
+```
+Agent 主线程                    审计 Worker 集群
+    │                               │
+    ├─ 生成 DO 明文 JSON ──────────→ 推入消息队列 (Kafka/Redis Stream)
+    │  (<1ms)                        │
+    │                          ┌────┴────┐
+    │                          │ Deep Clone│
+    │                          │ JCS ext  │
+    │                          │ SHA-256  │
+    │                          │ JCS core │
+    │                          │ SHA-256  │
+    │                          │ ECDSA P-256│
+    │                          └────┬────┘
+    │                               │
+    │                          ┌────┴────┐
+    │                          │ 写入不可变│
+    │                          │ 存储(WORM)│
+    │                          └─────────┘
+```
+
+Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路审计 Worker 集群异步执行密码学操作和持久化。此架构将 DO 生成对 Agent 主流程的延迟影响降至 <1ms。
+
+### 9.5 存储优化指南
+
+- **在线热查询**：使用 Elasticsearch/ClickHouse 存储解析后的结构化字段（如 decision、severity、timestamp），用于实时监控和快速检索
+- **冷归档存储**：用于防篡改校验的 DO JSON 可经 Brotli 或 Zstandard 压缩后归档（节省 60%+ 存储成本）。压缩不影响 JCS 验证——验证时先解压再重算 `audit.hash`
+- **合规留存**：各辖区最短保留期见 §8（冷热分离架构）
+
+### 9.6 双哈希过渡方案（密码学演进）
+
+当 SHA-256 在未来（如 2035 年）被标记为 Legacy 时，过渡期 DO 的 `audit` 对象应同时包含旧哈希和新哈希：
+
+```json
+"audit": {
+  "hash_sha256": "sha256:...",
+  "hash_sha512": "sha512:...",
+  "previous_hash": null,
+  "commitment": "..."
+}
+```
+
+- **旧验证器**：读取 `hash_sha256` 校验 → 通过
+- **新验证器**：读取 `hash_sha512` 校验 → 通过
+- **双哈希存在期间**：验证器 MUST 至少验证一种算法的哈希。两种都通过 → 最高安全等级
+- **SHA-256 彻底废弃后**：移除 `hash_sha256` 字段（作为 deprecated 字段遵循 §12 的 Deprecation 治理原则）
+
+---
+
+## 第三部分：10 年尺度扩展性
+
+---
+
+## 10. 分层哈希：Schema 冻结 × 合规演进
+
+### 10.1 核心架构
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    Decision Object                       │
+│                                                          │
+│  ┌─────────────────────────────┐                         │
+│  │      CORE (15 fields)       │  ← 永久冻结               │
+│  │      永不修改                │  参与主 JCS 序列化         │
+│  └─────────────┬───────────────┘                         │
+│                │                                          │
+│  ┌─────────────┴───────────────┐                         │
+│  │   JURISDICTION (9 fields)   │  ← 按辖区激活               │
+│  │     由 activated_fields 控制  │  参与主 JCS 序列化         │
+│  │     Omit 规则适用            │                         │
+│  └─────────────┬───────────────┘                         │
+│                │                                          │
+│           JCS(core + jurisdiction)                        │
+│                │                                          │
+│  ┌─────────────┴───────────────┐                         │
+│  │   EXTENSIONS (open-ended)   │  ← 独立自描述               │
+│  │     每条携带 schema_ref      │  被移除以腾出 core+JCS 空间   │
+│  │     不直接参与主 JCS         │  通过 extensions_hash 间接保护 │
+│  └─────────────┬───────────────┘                         │
+│                │                                          │
+│           JCS(extensions)                                 │
+│                │                                          │
+│           SHA-256 → extensions_hash                       │
+│                │                                          │
+│  ┌─────────────┴───────────────┐                         │
+│  │  audit.hash = SHA-256(      │                         │
+│  │    JCS(core + jurisdiction  │                         │
+│  │        )                    │                         │
+│  │    ↑ extensions_hash 已作为 │                         │
+│  │      core #15 自然参与 JCS  │                         │
+│  │  )                          │                         │
+│  └─────────────────────────────┘                         │
+└──────────────────────────────────────────────────────────┘
+```
+
+### 10.2 10 年演进保障
+
+| 年份 | 事件 | 对 DO 的影响 | 验证器行为 |
+|------|------|------------|-----------|
+| 2026 | v1.2 发布 | CORE 15 + JURISDICTION 9 冻结 | 全量验证 |
+| 2028 | 新 EU AI Act Amendment 要求碳排放记录 | extensions 区追加条目 | 旧验证器：验证 extensions_hash 即通过；新验证器：展开 extensions 验证语义 |
+| 2030 | 量子计算威胁 SHA-256 | extensions 区追加 `hash_algorithm: "sha-512"` 条目 | 新验证器使用更新后的算法二次验证；旧验证器仍可用 SHA-256 验证 |
+| 2032 | 新国际条约要求 Agent 决策记录包含人权影响评估 | extensions 区追加条目 | 分层哈希确保旧验证器仍工作，新验证器理解新语义 |
+
+---
+
+## 11. 扩展区自描述设计
+
+### 11.1 条目结构
+
+```json
+{
+  "extensions": [
+    {
+      "id": "eu-ai-act-2027-amendment-carbon",
+      "regulatory_ref": {
+        "framework": "EU-AI-Act",
+        "version": "2027-Amendment-Art-12b",
+        "effective_date": "2027-12-02"
+      },
+      "schema_ref": "sha256:e3f5a7b9c1d2...",
+      "field": {
+        "name": "carbon_footprint_kg",
+        "type": "number:string",
+        "description": "One-time carbon footprint of this AI decision in kg CO2e"
+      },
+      "value": "0.042"
+    }
+  ],
+  "extensions_hash": "sha256:..."
+}
+```
+
+### 11.2 `schema_ref` 的 content-addressable 机制
+
+`schema_ref` 是一个 JCS+SHA-256 哈希，指向该字段的完整 schema 定义文档：
+
+```json
+{
+  "id": "eu-ai-act-2027-amendment-carbon",
+  "schema_version": "2027-03-15",
+  "field_name": "carbon_footprint_kg",
+  "type": "number:string",
+  "format": "Decimal string with up to 6 decimal places",
+  "value_domain": ">= 0",
+  "source": "EU AI Act 2027 Amendment, Article 12b",
+  "contact": "eu-ai-office@ec.europa.eu",
+  "example": "0.042"
+}
+```
+
+**10 年后**：审计员不需要依赖 ERDL 委员会仍在维护。只要 `sha256:e3f5a7b9c1d2...` 这个哈希值可以在任意的 content-addressable 网络（IPFS、Git、对象存储、法规存档系统）中检索到对应的 schema 文档，就能完整理解 `carbon_footprint_kg` 字段的语义。
+
+---
+
+## 12. 字段治理原则
+
+### 12.1 只增不删（Append-Only Schema）
+
+- **CORE 字段**：永久冻结。除非发现密码学安全漏洞，否则永远不会修改、删除或重排
+- **JURISDICTION 字段**：可以新增（随着新法规），但绝不删除已有字段
+- **废弃（Deprecation）**：当某字段不再被任何法规要求时，标记为 `deprecated`。验证器的宽容模式：deprecated 字段存在 → 正常验证；不存在 → 不报错
+- **extensions**：开放式，随时可追加新条目
+
+### 12.2 不变量
+
+以下不变量在任何未来版本中保持不变，确保所有历史 DO 可被任意版本的验证器验证：
+
+1. `spec` 始终为 `"decision-object-v1.0"`（版本区分通过 `compliance_profile.profile_id` 完成，如 `"erdl-compliance-v1.2"`）
+2. `audit.hash` 始终使用分层哈希公式（移除 extensions → JCS(core+jurisdiction+extensions_hash) → SHA-256）
+3. 密码学原语：JCS (RFC 8785) + SHA-256 (FIPS 180-4)（参数化：未来可配置更强的哈希算法，但 SHA-256 作为默认仍被支持）
+4. 七步验证法的基本流程（删除 audit.hash 与 signature、移除 extensions 对象、验证 extensions_hash、JCS+SHA-256）
+
+### 12.3 治理生命周期
+
+```
+[Proposal] → [RFC] → [Community Review ≥ 30 days] → [Adoption] → [Stable] → [Deprecated]
+                                                                               ↓
+                                                                       [Retained Forever]
+```
+
+---
+
+## 第四部分：验证与附录
+
+---
+
+## 13. 向量集与跨实现验证
+
+### 13.1 验证原则
+
+> **给定相同的规则集和上下文，任何兼容的 ERDL 实现必须产生逐字节一致的 Decision Object。**
+
+中立性是被测出来的，不是宣称出来的。
+
+### 13.2 向量集规模
+
+| 类别 | 数量 | 说明 |
+|------|:---:|------|
+| 静态决策向量 | 63 | 13 种外部决策类型（10 种 v1.1 已有 + NOTIFY/ROLLBACK/QUARANTINE + 3 种 WORKFLOW）+ 13 运算符全覆盖 + 空值传播/类型安全/速率限制边缘情况穷尽 |
+| 动态决策向量 | 26 | 时间戳(10) + 种子(8) + 状态(8) |
+| 审计哈希向量 | 12 | AV-001~AV-008 + 4 条新增（CORRECT/NOTIFY/ROLLBACK/WORKFLOW） |
+| **总计** | **101** | |
+
+**DELEGATE 决策类型**：
+- SPEC v1.1 §3.4 已将 DELEGATE 定义为 Ring 2 决策类型（"委派给指定 Agent"），但 v1.1 过渡方案中通过 ESCALATE 映射进入 Decision Object
+- rulsynor 参考实现（2026-07-27）尚未实现 DELEGATE 引擎代码路径
+- DELEGATE 在 v1.2 SPEC 中正式纳入为独立决策类型（`result.decision: "DELEGATE"`），DO 向量集中 DELEGATE 的决策向量（DO-065）和审计向量（AV-014）预留至 v1.3——待参考实现引擎支持后可立即补入
+
+**注**：v1.2 分层哈希改变了 `audit.hash` 的计算方式，全部 AV 的 `canonical_bytes` 和 `audit.hash` 均重新计算。v1.1 的 AV 哈希值不适用于 v1.2。
+
+**向量增长率说明**：v1.2 的 101 条向量已穷尽 13 种运算符的所有边界行为（空值传播、严格类型匹配、ReDoS 保护、速率限制、字符串/对象比较）。后续版本仅在以下情况追加向量：(a) SPEC 新增决策类型，(b) SPEC 新增运算符，(c) 发现未覆盖的边缘行为。向量集规模与规则文件数量无关——200 条规则的 Agent 和 10,000 条规则的 Agent 使用相同的 101 条 DO 验证集。
+
+### 13.3 七步验证法
+
+**前置原则**：验证器在提取 `claimed_hash` 后，MUST 对 DO 进行深拷贝（Deep Clone）。后续所有物理删除（pop/delete）操作 MUST 在克隆体上进行，严禁污染原始 DO 内存实例。确保下游业务逻辑（如存储、展示）获得完整的 DO。
+
+```
+Step 1: Load DO from vector set
+Step 2: Extract audit.hash → claimed hash
+Step 3: 提取 extensions 对象和 extensions_hash
+       验证 extensions_hash == SHA-256(JCS(extensions))
+       从 DO 中移除 extensions 对象（物理删除，不得设为 null）
+       保留 extensions_hash（它在 core #15 中）
+Step 4: DELETE audit.hash + DELETE signature
+Step 5: JCS(core + jurisdiction) → canonical bytes
+       ↑ extensions_hash 已作为 core #15 自然包含在内
+Step 6: SHA-256 (FIPS 180-4) → recomputed hash
+Step 7: Compare recomputed hash (step 6) with claimed hash (step 2)
+```
+
+### 13.4 AV-008 陈旧回归向量
+
+AV-008 的 `canonical_bytes` 与 AV-003 完全相同，但 `audit.hash` 保留了 v1.1.0 旧值。任何从第一原理重算 JCS+SHA-256 的 runner 都会检测到 MISMATCH——简写 runner 将被暴露。
+
+### 13.5 兼容等级
+
+| 等级 | 要求 | 向量数 |
+|:---:|------|:---:|
+| L1 Basic | v1.0 全部 28 条 | 28 |
+| L2 Verified | v1.1 全部 45 条 | 45 |
+| L3 Full | v1.2 全部 101 条（含 WORKFLOW 系列；DELEGATE 预留 v1.3；空值/类型/速率边缘穷尽） | 101 |
+
+---
+
+## 14. 征求意见事项
+
+本白皮书为征求意见稿。以下问题面向特定审阅者群体：
+
+### 14.1 对 Erik Newton (Concordia)
+
+1. **全链路 JCS + 分层哈希**：`policies[].hash` 改为 JCS + SHA-256，`audit.hash` 采用分层哈希公式。Concordia 的 Python canonicalizer 是否在 101 条向量上产生与 Node.js `json-canonicalize` 逐字节一致的摘要？
+2. **辖区激活机制**：`compliance_profile.activated_fields` + Schema 裁剪规则（Omit vs null）。Concordia 的验证器是否可以检查该字段的一致性？
+3. **AV-008 陈旧回归向量**：v1.2 继续保留。该设计是否合理？
+4. **10 年扩展性**：分层哈希 + extensions 自描述设计 + 只增不删治理原则。从独立实现的角度看，是否存在未预见的技术风险？
+
+### 14.2 对 Christopher Hopley (chopmob-cloud / AlgoVoi)
+
+1. **IETF AAT 对齐**：ERDL DO 与 AAT 共享密码学原语。`execution_trace_id` 作为跨格式桥接键是否完备？AAT record 中是否需要显式引用 ERDL decision_id？
+2. **合规 substrate**：`compliance_profile` 是否可视为 compliance substrate 模式的一种实现？
+3. **12 框架覆盖**：逐框架字段映射中，是否有被遗漏或误解的审计要求？
+4. **分层哈希架构**：extensions 通过 extensions_hash 间接保护而非直接参与主 JCS。这一设计是否对纯 hex+SHA-256 复现方法兼容？
+5. **`previous_decision_hash` vs `audit.previous_hash`**：分析表明两者语义重叠，`audit.previous_hash` 为保留字段。这一判断是否准确？
+
+### 14.3 对监管合规专家与联合审计委员会
+
+1. **字段完备性**：24 个字段是否完整覆盖相关监管框架的审计要求？
+2. **扩展区自描述设计**：extensions 条目携带 schema_ref（content-addressable schema reference）。10 年后，审计员能否通过哈希在内容寻址网络中检索到对应的 schema 文档？该机制是否需要在正式标准文本中进一步细化？
+3. **只增不删治理原则**：字段废弃后不物理删除，仅标记为 deprecated。历史数据与未来数据能否在同一验证管道中平滑流转？
+4. **人类监督的实质性证明**：`human_oversight.override_reason` 是否满足 EU AI Act Art.14 对"有效监督"的定义？
+5. **10 年演进推演**：附录 E 中的场景推演是否覆盖了主要的法规演进路径？是否有其他重要路径需要补充？
+
+---
+
+## 附录 A：完整 DO 示例（全激活模式）
+
+```json
+{
+  "spec": "decision-object-v1.0",
+  "decision_id": "018c4a3e-0001-7000-8000-000000000001",
+  "compliance_profile": {
+    "profile_id": "erdl-compliance-v1.2",
+    "profile_hash": "sha256:e3f5a7b9c1d2...",
+    "jurisdictions": ["EU", "CN"],
+    "industries": ["financial-services"],
+    "risk_level": "high",
+    "activated_fields": [
+      "model_id", "impact_assessment_id", "agent.known_limitations",
+      "agent.aid", "agent.tool_registry_hash", "human_oversight",
+      "confidence_score"
+    ],
+    "regulatory_references": [
+      {
+        "framework": "EU-AI-Act",
+        "version": "Regulation-2024-1689",
+        "amended_by": "Digital-Omnibus-2026",
+        "jurisdiction": "EU",
+        "effective_date": "2027-12-02",
+        "requires_fields": ["evaluation_duration_ms", "human_oversight", "agent.known_limitations"]
+      },
+      {
+        "framework": "GB-Z-185-2026",
+        "version": "2026-05-22",
+        "jurisdiction": "CN",
+        "requires_fields": ["agent.aid", "agent.tool_registry_hash"]
+      }
+    ]
+  },
+  "execution_trace_id": "018c4a3e-0000-7000-8000-000000000000",
+  "timestamp": "2026-07-27T14:00:00.000Z",
+  "evaluation_duration_ms": 12,
+  "agent": {
+    "id": "did:erdl:sha256:agent-001",
+    "role": "guardian",
+    "version": "v1.2.0",
+    "aid": "91110108MA12345678A1000001B",
+    "algorithm_filing_no": "NET-2026-001234",
+    "model_registration_id": "MR-2026-567890",
+    "known_limitations": [
+      "Does not inspect encrypted traffic",
+      "Timeout after 30s for contexts > 10KB"
+    ],
+    "tool_registry_hash": "sha256:d4e5f6a7b8c9..."
+  },
+  "model_id": "deepseek-v4-pro",
+  "context": {
+    "tool.name": "exec",
+    "tool.args": { "command": "sudo systemctl restart nginx" },
+    "tool.args.command": "sudo systemctl restart nginx"
+  },
+  "context_snapshot_hash": "sha256:f1e2d3c4b5a6...",
+  "sanitized_context": null,
+  "rule_set_version": {
+    "id": "sha256:a1b2c3d4e5f6...",
+    "timestamp": "2026-07-27T13:00:00.000Z"
+  },
+  "policies": [{
+    "id": "FIN-SEC-001",
+    "name": "restrict_exec_to_allowlist",
+    "author_id": "admin-compliance-team-003",
+    "version": 1,
+    "hash": "sha256:2ee81d613c3e...（JCS canonicalized）"
+  }],
+  "fairness_assessment": "not_applicable",
+  "impact_assessment_id": "018c4a3e-0009-7000-8000-000000000009",
+  "autonomy_level": "L2",
+  "confidence_score": "0.95",
+  "evaluation": {
+    "proposal_id": null,
+    "matched_rules": [{
+      "rule_id": "FIN-SEC-001",
+      "decision": "DENY",
+      "reason": "exec blocked by financial security policy",
+      "correction": null,
+      "instruction": null,
+      "ring": 0
+    }],
+    "total_evaluated": 1,
+    "total_matched": 1
+  },
+  "data_modification_expected": false,
+  "result": {
+    "decision": "DENY",
+    "severity": "high",
+    "reason": "exec blocked by financial security policy",
+    "action_taken": "blocked"
+  },
+  "human_oversight": {
+    "required": false,
+    "status": "not_applicable",
+    "override_reason": null
+  },
+  "extensions": [],
+  "extensions_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "audit": {
+    "hash": "sha256:...（分层哈希计算）",
+    "previous_hash": null,
+    "commitment": "2026-07-27T14:00:00.000Z|did:erdl:sha256:agent-001|exec|DENY"
+  },
+  "signature": "Base64urlEncodedECDSAP256Signature...",
+  "signing_key_id": "key-v1-2026-07"
+}
+```
+
+### A.1 DELEGATE 决策类型示例（SPEC v1.2 定义，向量验证预留 v1.3）
+
+以下示例展示 DELEGATE 决策类型的 DO 结构。DELEGATE 在 SPEC v1.2 §3.4 中正式纳入为独立决策类型（Ring 2），但参考实现（rulsynor）尚未完成引擎代码路径，向量集中的 DELEGATE 向量预留至 v1.3。
+
+```json
+{
+  "spec": "decision-object-v1.0",
+  "decision_id": "018c4a3e-0002-7000-8000-000000000002",
+  "compliance_profile": { "profile_id": "erdl-compliance-v1.2", "jurisdictions": ["EU"], "industries": ["financial-services"], "risk_level": "high" },
+  "execution_trace_id": "018c4a3e-0000-7000-8000-000000000001",
+  "timestamp": "2026-07-27T14:05:00.000Z",
+  "evaluation_duration_ms": 8,
+  "agent": {
+    "id": "did:erdl:sha256:agent-001",
+    "role": "guardian",
+    "version": "v1.2.0"
+  },
+  "delegation_target": {
+    "agent_id": "did:erdl:sha256:agent-002",
+    "agent_aid": "91110108MA12345678B2000001C",
+    "scope": ["payment_approval", "fraud_review"],
+    "reason": "Agent-001 lacks payment approval authority; delegated to Agent-002 per SoD policy"
+  },
+  "context": { "tool.name": "exec", "tool.args": { "command": "approve-payment" }, "tool.args.command": "approve-payment" },
+  "rule_set_version": { "id": "sha256:a1b2c3d4e5f6...", "timestamp": "2026-07-27T13:00:00.000Z" },
+  "policies": [{ "id": "SOD-DELEGATE-001", "name": "delegate_payment_to_agent_002", "author_id": "compliance-team", "version": 1, "hash": "sha256:..." }],
+  "evaluation": {
+    "proposal_id": null,
+    "matched_rules": [{ "rule_id": "SOD-DELEGATE-001", "decision": "DELEGATE", "reason": "Payment approval delegated to Agent-002 per segregation of duties", "ring": 2 }],
+    "total_evaluated": 1,
+    "total_matched": 1
+  },
+  "data_modification_expected": false,
+  "result": {
+    "decision": "DELEGATE",
+    "severity": "medium",
+    "reason": "Task delegated to Agent-002: payment_approval, fraud_review",
+    "action_taken": "delegated"
+  },
+  "human_oversight": { "required": false, "status": "not_applicable", "override_reason": null },
+  "extensions": [],
+  "extensions_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "audit": { "hash": "sha256:...（待引擎实现后填充）", "previous_hash": "sha256:...", "commitment": "2026-07-27T14:05:00.000Z|agent-001|exec|DELEGATE" },
+  "signature": "...",
+  "signing_key_id": "key-v1-2026-07"
+}
+```
+
+---
+
+## 附录 B：参考标准
+
+- RFC 8785 — JSON Canonicalization Scheme (JCS)
+- RFC 9562 — UUID (v4/v7)
+- FIPS 186-5 — Digital Signature Standard (ECDSA P-256)
+- FIPS 180-4 — Secure Hash Standard (SHA-256)
+- draft-sharif-agent-audit-trail-00 — Agent Audit Trail (IETF, 2026-03-29)
+- EU AI Act — Regulation (EU) 2024/1689
+- NIST AI 100-1 — AI Risk Management Framework 1.0 (2023-01-26)
+- COSO — Achieving Effective Internal Control Over Generative AI (2026-02-23)
+- ISO/IEC 42001:2023 — AI Management System
+- GB/Z 185-2026 — 人工智能 智能体互联（7 部分，2026-05-22）
+- OWASP Top 10 for Agentic Applications (2026)
+- Colorado SB 24-205 — Consumer Protections for AI (2026-06-30)
+- Singapore MGF for Agentic AI (2026-01-22)
+- 中国信通院 — 可信 AI 智能体评估体系 2.0 (2026-04-15)
+
+### 多语言 JCS 依赖指南
+
+**警告**：各语言的原生 JSON 序列化库（如 Go `encoding/json`、Java `Jackson` 默认配置、Python `json.dumps`）不支持 JCS (RFC 8785) 所需的确定性属性排序和数字规范化。使用原生库进行哈希计算将导致跨语言验证失败。
+
+| 语言 | 推荐 JCS 库 | 备注 |
+|------|-----------|------|
+| **JavaScript / TypeScript** | `json-canonicalize` (npm) | 严格遵循 RFC 8785，Boris Kuo 维护 |
+| **Python** | `json-canonicalize` (PyPI) | 同一作者的跨语言实现 |
+| **Go** | `github.com/cyberphone/json-canonicalization` | Anders Rundgren 维护，RFC 8785 参考实现 |
+| **Java** | `io.github.erisyon/jcs` (Maven) | 社区维护，通过向量集验证 |
+| **Rust** | `json-canon` (crates.io) | 支持自定义序列化器 |
+
+所有验证器的第一步是使用向量集中的 101 条 DO 验证其 JCS 实现的正确性——只有通过全部 12 条 AV 的审计哈希匹配后，才可对生产 DO 进行独立验证。
+
+---
+
+## 附录 C：分层哈希实现参考（TypeScript）
+
+```typescript
+import { canonicalize } from 'json-canonicalize';
+import crypto from 'crypto';
+
+function sha256(data: string): string {
+  return crypto.createHash('sha256').update(data, 'utf-8').digest('hex');
+}
+
+function computeAuditHash(do: Record<string, unknown>): string {
+  // 1. Deep clone to avoid mutation
+  const clone = JSON.parse(JSON.stringify(do));
+  
+  // 2. Extract and verify extensions hash
+  const extensions = clone.extensions as unknown[];
+  delete clone.extensions;  // extensions removed from main JCS
+  
+  const extensionsCanonical = canonicalize(extensions);
+  const computedExtHash = sha256(extensionsCanonical);
+  if (clone.extensions_hash !== `sha256:${computedExtHash}`) {
+    throw new Error('Extensions hash mismatch');
+  }
+  // extensions_hash STAYS in clone — it participates in main JCS
+  
+  // 3. Remove fields excluded from JCS
+  delete clone.audit;   // audit.hash is self-referential
+  delete clone.signature;  // signature is external to signed content
+  
+  // 4. JCS(core + jurisdiction + extensions_hash) → SHA-256
+  const canonical = canonicalize(clone);
+  return `sha256:${sha256(canonical)}`;
+}
+```
+
+## 附录 D：分层哈希实现参考（Python）
+
+```python
+import copy
+import hashlib
+from json_canonicalize import canonicalize
+
+def compute_audit_hash(do: dict) -> str:
+    # 1. Deep clone to avoid mutation
+    clone = copy.deepcopy(do)
+    
+    # 2. Extract and verify extensions hash
+    extensions = clone.pop("extensions")
+    extensions_canonical = canonicalize(extensions)
+    computed = hashlib.sha256(extensions_canonical.encode('utf-8')).hexdigest()
+    assert clone["extensions_hash"] == f"sha256:{computed}", "Extensions hash mismatch"
+    # extensions_hash STAYS in clone — it participates in main JCS
+    
+    # 3. Remove fields excluded from JCS
+    clone.pop("audit")       # audit.hash is self-referential
+    clone.pop("signature")   # signature is external to signed content
+    
+    # 4. JCS(core + jurisdiction + extensions_hash) → SHA-256
+    can = canonicalize(clone)
+    return f"sha256:{hashlib.sha256(can.encode('utf-8')).hexdigest()}"
+```
+
+## 附录 E：10 年演进场景推演
+
+| 时间 | 事件 | DO 行为 | 审计链行为 |
+|------|------|---------|-----------|
+| **2026 Q3** | ERDL v1.2 发布 | CORE 15 + JURISDICTION 9 冻结 | 101 条向量所有三方验证通过 |
+| **2027 Q4** | EU AI Act Annex III 生效（Digital Omnibus 推迟后） | 无变更。EU 部署的 DO 通过 `compliance_profile` 声明 EU 辖区 | audit.hash 不变 |
+| **2028 Q1** | EU 发布 AI Act 2027 Amendment，要求记录 AI 决策碳排放 | extensions 区追加 `carbon_footprint_kg` 条目 | 只有需要审查 carbon 的监管者升级验证器；旧验证器通过 extensions_hash 仍可验证完整性 |
+| **2029 Q2** | 巴西通过 AI 审计法案 | extensions 区追加 `br-ai-law-2029-*` 条目 | 同上 |
+| **2030 Q1** | NIST 发布 AI RMF 2.0，要求不确定性量化 | 新增条目到 extensions；已有 `confidence_score` 继续在 JURISDICTION 中 | 同上 |
+| **2031 Q1** | 后量子密码学（PQC）成为行业要求 | extensions 区追加 `pqc_signature` 条目（SPHINCS+ 或 ML-DSA）；原始 `signature` (ECDSA P-256) 保留在 JURISDICTION 中作为历史记录 | 双签名并存；新验证器验证 PQC 签名；旧验证器验证 ECDSA 签名 |
+| **2032 Q4** | GB/Z 185 升级为强制性 GB 标准 | `agent.aid` 已在 JURISDICTION 中；新要求通过 extensions 追加 | 同上 |
+| **2033** | W3C 发布 Agent Decision Record (ADR) 推荐标准 | ERDL DO 的 `execution_trace_id` 被 ADR 引用为上游证据 | 跨标准可追溯 |
+| **2034** | 第一个 AI 审计诉讼以 ERDL DO 作为法院可采信证据 | DO 的防篡改链 + JCS+SHA-256 + ECDSA 签名被法院认可为技术证据 | — |
+| **2035** | SHA-256 被 NIST 标记为 Legacy（但非 Deprecated） | DO 的 `audit` 对象同时包含 `hash_sha256` 和 `hash_sha512`（双哈希过渡方案，见 §9.6） | 旧验证器验证 SHA-256 → 通过；新验证器验证 SHA-512 → 通过；双验证均为最高安全等级 |
+| **2036** | ERDL DO Schema 仍然没有破坏性变更 | CORE 15 字段与 10 年前完全一致 | 任何 2026 年的审计员可以直接验证 2036 年的 DO，反之亦然 |
+
+---
+
+> *"确定性架构，而非 Prompt 工程。中立性是被测出来的，不是宣称出来的。"*
+>
+> -- OpenOBA · 2026.07.27 · ERDL Decision Object v1.2 征求意见稿 (Draft 3)
