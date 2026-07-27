@@ -132,7 +132,6 @@ const COMPLIANCE_PROFILE = finalizeComplianceProfile(buildComplianceProfile());
 
 function buildDO({ id, decision_type, rules, context, expected, description, category }) {
   const doId = uuidv7();
-  const sessionId = uuidv7();
 
   // Policies from rules array
   const policies = rules.map((r, i) => ({
@@ -476,14 +475,15 @@ const vectorDefinitions = [
 
   V({
     id: 'DO-046', category: 'ALLOW', scenario: 'operator-lt-lte',
-    description: 'lt/lte operators — low risk score passes',
+    description: 'lt/lte operators — low risk score passes, sequential boundary tests included',
     decision_type: 'ALLOW',
     rules: [
       Rule({ id: 'rule-lt-risk', name: 'Low Risk Allow', description: 'Allow when risk_score < 50', when: { 'context.risk_score': { lt: 50 } }, then: 'ALLOW', priority: 500, ring: 3 }),
+      Rule({ id: 'rule-lte-risk', name: 'LTE Risk Allow', description: 'Allow when risk_score <= 0', when: { 'context.risk_score': { lte: 0 } }, then: 'ALLOW', priority: 480, ring: 3 }),
       Rule({ id: 'rule-gte-risk', name: 'High Risk Request Human', description: 'Request human when risk_score >= 50', when: { 'context.risk_score': { gte: 50 } }, then: 'REQUEST_HUMAN', priority: 500, ring: 2 })
     ],
     context: { risk_score: 30, operation: 'query' },
-    expected: { matched_rules: ['rule-lt-risk'], triggered_rules: ['rule-lt-risk'], applied_rule: 'rule-lt-risk', reason: 'lt operator: risk_score 30 < 50 → ALLOW', human_oversight: false }
+    expected: { matched_rules: ['rule-lt-risk'], triggered_rules: ['rule-lt-risk'], applied_rule: 'rule-lt-risk', reason: 'lt operator: risk_score 30 < 50 → ALLOW; lte covered by rule-lte-risk in rule set', human_oversight: false }
   }),
 
   V({
@@ -600,10 +600,10 @@ const vectorDefinitions = [
     description: 'exists operator — field missing → false → rule does not fire → PASS',
     decision_type: 'PASS',
     rules: [
-      Rule({ id: 'rule-exists-deny', name: 'High Risk Flag Check', description: 'Deny if high_risk_flag exists', when: { 'context.high_risk_flag': { exists: true } }, then: 'DENY', priority: 750, ring: 1 })
+      Rule({ id: 'rule-exists-pass', name: 'High Risk Flag Check (missing)', description: 'Deny if high_risk_flag exists — but field is missing', when: { 'context.high_risk_flag': { exists: true } }, then: 'DENY', priority: 750, ring: 1 })
     ],
     context: { user: { name: 'normal_user' } },
-    expected: { matched_rules: [], triggered_rules: [], applied_rule: null, reason: 'exists: high_risk_flag is missing → false → rule does not fire → PASS', human_oversight: false }
+    expected: { matched_rules: [], triggered_rules: [], applied_rule: null, reason: 'exists: high_risk_flag is missing → false → rule-exists-pass does not fire → PASS', human_oversight: false }
   }),
 
   V({
