@@ -134,16 +134,20 @@ function buildDO({ id, decision_type, rules, context, expected, description, cat
   const doId = uuidv7();
 
   // Policies from rules array
-  const policies = rules.map((r, i) => ({
-    id: r.id || `policy-${String(i + 1).padStart(3, '0')}`,
-    name: r.name || `Test Policy ${i + 1}`,
-    description: r.description || '',
-    when: r.when || {},
-    then: r.then || decision_type,
-    priority: r.priority ?? (100 - i * 10),
-    ring: r.ring ?? 3,
-    hash: '' // computed below
-  }));
+  const policies = rules.map((r, i) => {
+    const policy = {
+      id: r.id || `policy-${String(i + 1).padStart(3, '0')}`,
+      name: r.name || `Test Policy ${i + 1}`,
+      description: r.description || '',
+      when: r.when || {},
+      then: r.then || decision_type,
+      priority: r.priority ?? (100 - i * 10),
+      ring: r.ring ?? 3,
+      hash: '' // computed below
+    };
+    if (r.unless !== undefined) policy.unless = r.unless;
+    return policy;
+  });
 
   // Compute rule_set_version.id
   const rsJcs = jcs(policies.map(p => {
@@ -189,14 +193,14 @@ function buildDO({ id, decision_type, rules, context, expected, description, cat
     autonomy_level: AUTONOMY_LEVEL,
     confidence_score: CONFIDENCE_SCORE,
     evaluation: {
-      matched_rules: expected.matched_rules || policiesWithHash.map(p => p.id),
-      triggered_rules: expected.triggered_rules || policiesWithHash.map(p => p.id),
+      matched_rules: expected.matched_rules !== undefined ? expected.matched_rules : policiesWithHash.map(p => p.id),
+      triggered_rules: expected.triggered_rules !== undefined ? expected.triggered_rules : policiesWithHash.map(p => p.id),
       evaluation_details: expected.evaluation_details || {}
     },
     data_modification_expected: DATA_MODIFICATION_EXPECTED,
     result: {
       decision_type: decision_type,
-      applied_rule: expected.applied_rule || (policiesWithHash[0] ? policiesWithHash[0].id : null),
+      applied_rule: expected.applied_rule !== undefined ? expected.applied_rule : (policiesWithHash[0] ? policiesWithHash[0].id : null),
       reason: expected.reason || `Decision: ${decision_type}`,
       decision: decision_type,
       rules_matched: expected.matched_rules ? expected.matched_rules.length : 1
@@ -248,8 +252,10 @@ function V({ id, category, scenario, description, decision_type, rules, context,
   return { id, category: category || decision_type, scenario: scenario || id, description, decision_type, rules, context, expected };
 }
 
-function Rule({ id, name, description, when, then, priority, ring }) {
-  return { id, name, description, when, then, priority, ring };
+function Rule({ id, name, description, when, then, priority, ring, unless }) {
+  const r = { id, name, description, when, then, priority, ring };
+  if (unless !== undefined) r.unless = unless;
+  return r;
 }
 
 // ═══════════════════════════════════════════════════
