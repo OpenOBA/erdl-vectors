@@ -223,10 +223,11 @@ function buildDO({ id, decision_type, rules, context, expected, description, cat
   }
 
   // Step C: Delete self-referencing / external fields
-  delete clone.extensions_validation; // not present in v1.2, defensive
+  delete clone.extensions;        // extracted to exts, must be deleted for JCS
   delete clone.audit;
   delete clone.signature;
   delete clone.signing_key_id;
+  delete clone.extensions_validation; // defensive
 
   // Step D: Main JCS + SHA-256
   const canonicalFull = jcs(clone);
