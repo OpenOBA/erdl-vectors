@@ -1051,6 +1051,8 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 **长期适用性**：审计员不需要依赖 ERDL 委员会仍在维护。只要 `sha256:e3f5a7b9c1d2...` 这个哈希值可以在任意的 content-addressable 网络（IPFS、Git、对象存储、法规存档系统）中检索到对应的 schema 文档，就能完整理解 `carbon_footprint_kg` 字段的语义。
 
 > ⚠️ **安全性约束**：验证器/审计工具 MUST NOT 在验证过程中自动发起对外部网络的 schema 检索。解析 schema_ref 必须遵循离线优先原则：(1) 使用本地预置白名单 schema 库；(2) 若需外部检索，目标地址必须在配置白名单内；(3) 响应体积不得超过 1MB 上限。自动 fetch 任意 URL 是 SSRF 攻击面，禁止在生产验证路径中启用。
+>
+> **本地缓存与过期策略**：content-addressable 网络（IPFS、Git 等）的可用性不构成密码学保证。为确保 schema 在法定期限内可解析，建议：(a) 验证器部署时预置完整的 schema 缓存副本（包括所有已知 schema_ref 的映射）；(b) 缓存条目附带 `last_fetched` 时间戳和 `valid_until` 有效期——过期条目触发后台刷新而非阻塞验证；(c) 若某个 `schema_ref` 在缓存中缺失且外部网络不可达，验证器 SHOULD 标记该扩展字段为 `semantics_unresolved` 但不阻断整个 DO 的哈希验证——哈希正确性不依赖 schema 解析。
 
 ---
 
