@@ -15,8 +15,8 @@ The ERDL Decision Object is the standardized, tamper-evident audit trail for AI 
 
 This project would not have been possible without the generous support of our collaborators:
 
-- **Christopher Hopley (chopmob-cloud / AlgoVoi)** — proposed the compliance substrate model and the cross-implementation verification vision. His independent audit of ERDL Decision Object v1.1 uncovered the c3f22df incident (em-dash whitespace fix causing 3/7 audit vector hash mismatches), which drove v1.2's adoption of hierarchical hashing and strict deterministic generation standards. His deep understanding of regulatory compliance and cryptographic audit shaped every aspect of the Decision Object's design.
-- **Erik Newton (Concordia)** — the first independent Runner implementer. His Python-based Decision Object verification engine confirmed the first 5 audit vectors (AV-001~AV-005) byte-for-byte across two independent implementations, proving that JCS+SHA-256 cross-implementation verification works in practice, not just in theory. He also identified the structural risk of `expected_sha256` answer keys, directly leading to the seven-step verification algorithm in v1.2.
+- **Christopher Hopley (chopmob-cloud / AlgoVoi)** — independent technical critic. His in-depth review of the ERDL Decision Object v1.2 draft identified critical issues including self-referential hash exclusion gaps, cross-engine string-to-number canonicalization inconsistencies, and layered integrity weaknesses, directly leading to the adoption of the flat hashing architecture and security hardening. His deep understanding of JCS RFC 8785 canonicalization and compliance auditing shaped the protocol's rigor.
+- **Erik Newton (Concordia)** — the first independent Runner implementer. His Python-based Decision Object verification engine confirmed the first 5 audit vectors (AV-001~AV-005) byte-for-byte across two independent implementations, proving that JCS+SHA-256 cross-implementation verification works in practice, not just in theory. He committed to running the full AV-001~AV-012 set against Concordia's independent canonicalizer for the v1.2 release.
 - **Rulsynor Team** — the reference ERDL rule engine serving as the canonical implementation against which all vectors are generated and validated. Their production-grade engine provided real-world constraints that shaped the Decision Object's field design, from agent identity metadata to compliance profile structure.
 
 We are deeply grateful for their contributions, which transformed a specification into a verified, cross-implementation standard.
@@ -30,9 +30,9 @@ This repository contains the authoritative set of **101 cross-implementation tes
 | Guarantee | Mechanism |
 |-----------|-----------|
 | **Deterministic generation** | `node scripts/generate-vectors.cjs` produces byte-identical output every run |
-| **Tamper-evident** | JCS (RFC 8785) + SHA-256 hierarchical hashing — any field change alters the audit hash |
+| **Tamper-evident** | JCS (RFC 8785) + SHA-256 flat hashing — any field change alters the audit hash |
 | **Cross-implementation verifiable** | `node scripts/verify.js` works with zero dependencies — implementers can validate their own engines |
-| **Stale-regression detection** | AV-008 acts as a canary — validators that skip seven-step verification will **fail** |
+| **Stale-regression detection** | AV-008 acts as a canary — validators that skip five-step verification will **fail** |
 | **RFC 9562 UUIDv7** | All `decision_id`/`execution_trace_id` fields are fully RFC 9562 compliant (frozen timestamp) |
 
 ### Deterministic Architecture
@@ -40,11 +40,11 @@ This repository contains the authoritative set of **101 cross-implementation tes
 ```
 $ node scripts/generate-vectors.cjs
 $ sha256sum decision-object-vectors-v1.2.json
-700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca
+a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369
 
 $ node scripts/generate-vectors.cjs  # second run
 $ sha256sum decision-object-vectors-v1.2.json
-700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca  # identical
+a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369  # identical
 ```
 
 No `Date.now()`, no `crypto.randomBytes()`. Frozen timestamp (`2026-07-28T00:00:00.000Z`) + deterministic counter → **exact reproducibility**.
@@ -66,14 +66,14 @@ Expected: `ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-008 STALE DETECTED`
 ```bash
 npm install
 node scripts/generate-vectors.cjs
-# → outputs decision-object-vectors-v1.2.json (~830 KB)
+# → outputs decision-object-vectors-v1.2.json (~813 KB)
 ```
 
 ### Run test suite
 
 ```bash
 npm test
-# → 156 tests covering JCS, SHA-256, 7-step verification, and full vector integrity
+# → 154 tests covering JCS, SHA-256, five-step verification, and full vector integrity
 ```
 
 ## Vector Set Composition
@@ -82,14 +82,14 @@ npm test
 
 | Decision Type | Count | Coverage |
 |---------------|:-----:|----------|
-| ALLOW | 11 | Normal ops, override safe-direction, unless exemption, operator coverage |
+| ALLOW | 12 | Normal ops, override safe-direction, unless exemption, operator coverage |
 | DENY | 12 | Security baseline, dangerous commands, critical paths, edge cases |
 | PASS | 10 | Selective match, safe commands, empty rules, null-safe, strict types |
 | REQUEST_HUMAN | 4 | PII/HIPAA compliance, business hours, risk thresholds |
 | EMERGENCY_HALT | 1 | Ring 0 short-circuit |
 | CORRECT | 3 | Case normalization, unit conversion, path normalization |
 | ESCALATE | 3 | Low-reputation agent, cross-domain, unknown tools |
-| NOTIFY | 3 | Anomaly detection, audit logging, threshold warnings |
+| NOTIFY | 4 | Anomaly detection, audit logging, threshold warnings, accompanying DENY |
 | QUARANTINE | 3 | Suspicious files, anomalous behavior, rate limiting |
 | ROLLBACK | 3 | Snapshot restore, partial failure, trade rollback |
 | WORKFLOW | 4 | Multi-step workflows, conditional branches, approvals |
@@ -132,20 +132,20 @@ npm test
 | DO-064 | DELEGATE | Reserved for v1.3 |
 | AV-013 | DELEGATE (audit) | Reserved for v1.3 |
 
-## Seven-Step Audit Hash Verification
+## Five-Step Audit Hash Verification
 
-The verification algorithm (Whitepaper §13.3) follows seven deterministic steps:
+The verification algorithm (Whitepaper §13.3) follows five deterministic steps:
 
 ```
-Step A: Extract extensions from decision_object
-Step B: Compute extensions_hash → compare with stored value
-Step C: Delete self-referencing fields (extensions, audit, signature, signing_key_id)
-Step D: JCS (RFC 8785) canonicalize the remaining fields
-Step E: SHA-256 the canonical representation
-Step F: Compare computed hash with stored audit.hash
+Step 1: Deep clone decision_object
+Step 2: Delete self-referencing fields (audit, signature, signing_key_id)
+        (extensions stays in the tree — participates directly in main JCS)
+Step 3: JCS (RFC 8785) canonicalize the entire remaining object
+Step 4: SHA-256 the canonical representation
+Step 5: Compare computed hash with stored audit.hash
 ```
 
-Any validator that shortcuts this process (e.g., by comparing pre-computed hashes directly) will **pass AV-001~AV-012 but fail AV-008** — the stale regression canary catches lazy implementations.
+Any validator that shortcuts this process (e.g., by comparing pre-computed hashes directly) will **pass AV-001~AV-007, AV-009~AV-012 but fail AV-008** — the stale regression canary catches lazy implementations.
 
 ## Compliance Profile
 
@@ -164,10 +164,10 @@ See `knowledge/regulatory/` for full reference documentation on all 12 framework
 
 ```
 erdl-vectors/
-├── decision-object-vectors-v1.2.json   # 101 vectors (~830 KB)
+├── decision-object-vectors-v1.2.json   # 101 vectors (~813 KB)
 ├── scripts/
 │   ├── generate-vectors.cjs            # Deterministic vector generator
-│   └── verify.js                       # Zero-dependency 7-step verifier
+│   └── verify.js                       # Zero-dependency five-step verifier
 ├── test/
 │   ├── generate-comprehensive.test.ts  # 68 generator integrity tests
 │   └── verify-comprehensive.test.ts    # 88 JCS/verification/audit tests
@@ -198,7 +198,7 @@ erdl-vectors/
 
 ## For Runner Implementers
 
-If you're building an ERDL rule engine and want to achieve cross-implementation compatibility, start with **[Runner's Guide](docs/RUNNERS-GUIDE.md)**. It covers the seven-step verification algorithm, JCS implementation details, common pitfalls, and testing strategy — with pseudocode you can translate to any language.
+If you're building an ERDL rule engine and want to achieve cross-implementation compatibility, start with **[Runner's Guide](docs/RUNNERS-GUIDE.md)**. It covers the five-step verification algorithm, JCS implementation details, common pitfalls, and testing strategy — with pseudocode you can translate to any language.
 
 ## Security
 
