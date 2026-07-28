@@ -34,6 +34,7 @@
 8. 隐私与数据最小化设计
 9. 法规版本化与升级路径
 
+**第三部分：治理与演进**
 10. 长期维护与合规演进
 11. 扩展区自描述设计
 12. 字段治理原则
@@ -129,7 +130,7 @@ DO 记录的是决策过程中产生的**不可变物理/数字事实**：
 
 1. **一条 DO 自包含**：监管者打开任何一条 DO，能在 JSON 内找到所有合规所需信息，不需要跳转到外部系统。自包含的边界：DO 包含"决策元数据与哈希证据"。对于超大型 Context（如 >4KB 的文件内容），MUST 使用 `context_snapshot_hash` + `context_ref` 的引用模式，不得内联存储大文件
 2. **事实与合规分离**：DO 记录事实，外部引擎判定合规。法规演进通过更新外部规则吸收，核心字段永久冻结
-3. **CORE × JURISDICTION × EXTENSIONS**：15 个 CORE 字段永久不变，9 个 JURISDICTION 字段按辖区激活，extensions 层承载未来法规扩展
+3. **CORE × JURISDICTION × EXTENSIONS**：14 个 CORE 字段永久不变，10 个 JURISDICTION 字段按辖区激活，extensions 层承载未来法规扩展
 4. **密码学完整性**：平面哈希保护——CORE+JURISDICTION+EXTENSIONS 统一参与主 JCS
 5. **只增不删（Append-Only Schema）**：字段一旦发布，只能标记为 deprecated，绝不物理删除。所有历史 DO 可被任意版本的验证器验证
 
@@ -237,7 +238,8 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | 21 | `context_snapshot_hash` | string | 含 PII 场景 / 跨 Agent 验证 |
 | 22 | `sanitized_context` | string | 含 PII 场景 / GDPR 合规 |
 | 23 | `confidence_score` | integer | NIST AI RMF 合规（0~100，整数，表示百分比；如 95 表示 95%） |
-| 24 | `signature` | string (Base64url) | HIPAA / PCI DSS（critical 决策）。配套字段 `signing_key_id`（不参与 JCS）标识签名所用私钥的公钥版本，供审计员从 KMS 拉取正确公钥进行验证 |
+| 24 | `signature` | string (Base64url) | HIPAA / PCI DSS（critical 决策）。ECDSA P-256 签名，覆盖除 audit/signature/signing_key_id 外的全部 DO 内容 |
+| 25 | `signing_key_id` | string | 配套 `signature` 字段，标识签名所用私钥的公钥版本。不参与 JCS 序列化（签名输入中含公钥指纹但不含 key_id 自身） |
 
 ### 4.3 extensions 字段（开放式扩展区 — 直接参与主 JCS）
 
@@ -921,6 +923,8 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 
 ---
 
+## 第三部分：治理与演进
+
 ## 10. 长期维护与合规演进
 
 ### 10.1 CORE 字段冻结保证
@@ -930,12 +934,12 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 │                    Decision Object                       │
 │                                                          │
 │  ┌─────────────────────────────┐                         │
-│  │      CORE (15 fields)       │  ← 永久冻结               │
+│  │      CORE (14 fields)       │  ← 永久冻结               │
 │  │      永不修改                │  参与主 JCS 序列化         │
 │  └─────────────┬───────────────┘                         │
 │                │                                          │
 │  ┌─────────────┴───────────────┐                         │
-│  │   JURISDICTION (9 fields)   │  ← 按辖区激活               │
+│  │   JURISDICTION (10 fields)  │  ← 按辖区激活               │
 │  │     由 activated_fields 控制  │  参与主 JCS 序列化         │
 │  │     Omit 规则适用            │                         │
 │  └─────────────┬───────────────┘                         │
@@ -1094,9 +1098,11 @@ Step 4: SHA-256 (FIPS 180-4) → recomputed hash
 Step 5: Compare recomputed hash with stored audit.hash
 ```
 
-### 13.4 AV-008 陈旧回归向量
+### 13.4 陈旧回归向量
 
-AV-008 的 `canonical_bytes` 与 AV-003 完全相同，但 `audit.hash` 保留了 v1.1.0 旧值。任何从第一原理重算 JCS+SHA-256 的 runner 都会检测到 MISMATCH——简写 runner 将被暴露。
+向量集的 12 条审计哈希向量中包含一条故意 stale 的金丝雀向量：其 `canonical_bytes` 与另一条有效向量相同，但 `audit.hash` 保留了旧版本的哈希值。任何从第一原理重算 JCS+SHA-256 的 runner 都会检测到 MISMATCH——简写 runner（仅比较预计算哈希而不重新计算）将被暴露。
+
+> 验证器不得通过硬编码向量 ID 的方式来特殊处理此向量。所有 12 条审计向量必须经过相同的五步验证流程。
 
 ### 13.5 兼容等级
 
@@ -1114,7 +1120,7 @@ AV-008 的 `canonical_bytes` 与 AV-003 完全相同，但 `audit.hash` 保留�
 
 1. **全链路 JCS + 平面哈希**：`policies[].hash` 采用 JCS + SHA-256 计算，`audit.hash` 采用平面哈希公式。该方案是否在所有主流语言中均可正确复现？
 2. **辖区激活机制**：`compliance_profile.activated_fields` + Schema 裁剪规则（Omit vs null）。该设计是否满足多辖区部署的合规需求？
-3. **AV-008 陈旧回归向量**：作为检测验证器正确性的金丝雀机制，该设计是否合理？
+3. **审计哈希回归检测**：向量集中包含保留旧版本哈希值的回归向量，用于检测跳过独立哈希重算的验证器实现。该设计是否合理？
 4. **平面哈希扩展性**：extensions 的自描述设计 + 只增不删治理原则下，扩展区的内容完整性是否得到充分保证？
 5. **IETF AAT 对齐**：ERDL DO 与 AAT 共享密码学原语。`execution_trace_id` 作为跨格式桥接键是否完备？
 6. **合规 substrate**：`compliance_profile` 是否可视为合规 substrate 模式的一种有效实现？
