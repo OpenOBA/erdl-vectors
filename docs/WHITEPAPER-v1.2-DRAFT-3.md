@@ -230,16 +230,18 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 
 | # | 字段 | 类型 | 激活条件 |
 |---|------|------|----------|
-| 16 | `model_id` | string | NIST / COSO / Colorado 合规 |
-| 17 | `fairness_assessment` | string | NIST / Colorado（高风险决策） |
-| 18 | `impact_assessment_id` | UUID | Colorado / ISO 42001 合规 |
-| 19 | `autonomy_level` | string | 新加坡 MGF / COSO 合规 |
-| 20 | `data_modification_expected` | boolean | HIPAA / PCI DSS / 信通院合规 |
-| 21 | `context_snapshot_hash` | string | 含 PII 场景 / 跨 Agent 验证 |
-| 22 | `sanitized_context` | string | 含 PII 场景 / GDPR 合规 |
-| 23 | `confidence_score` | integer | NIST AI RMF 合规（0~100，整数，表示百分比；如 95 表示 95%） |
-| 24 | `signature` | string (Base64url) | HIPAA / PCI DSS（critical 决策）。ECDSA P-256 签名，覆盖除 audit/signature/signing_key_id 外的全部 DO 内容 |
-| 25 | `signing_key_id` | string | 配套 `signature` 字段，标识签名所用私钥的公钥版本。不参与 JCS 序列化（签名输入中含公钥指纹但不含 key_id 自身） |
+| 15 | `model_id` | string | NIST / COSO / Colorado 合规 |
+| 16 | `fairness_assessment` | string | NIST / Colorado（高风险决策） |
+| 17 | `impact_assessment_id` | UUID | Colorado / ISO 42001 合规 |
+| 18 | `autonomy_level` | string | 新加坡 MGF / COSO 合规 |
+| 19 | `data_modification_expected` | boolean | HIPAA / PCI DSS / 信通院合规 |
+| 20 | `context_snapshot_hash` | string | 含 PII 场景 / 跨 Agent 验证 |
+| 21 | `sanitized_context` | string | 含 PII 场景 / GDPR 合规 |
+| 22 | `confidence_score` | integer | NIST AI RMF 合规（0~100，整数，表示百分比；如 95 表示 95%） |
+| 23 | `signature` | string (Base64url) | HIPAA / PCI DSS（critical 决策）。ECDSA P-256 签名，覆盖除 audit/signature/signing_key_id 外的全部 DO 内容 |
+| 24 | `signing_key_id` | string | 配套 `signature` 字段，标识签名所用私钥的公钥版本。不参与 JCS 序列化（签名输入中含公钥指纹但不含 key_id 自身） |
+
+> **编号规则**：CORE #1–#14（永久冻结），JURISDICTION #15–#24（按需激活），EXTENSIONS 为开放式扩展区不编号。
 
 ### 4.3 extensions 字段（开放式扩展区 — 直接参与主 JCS）
 
