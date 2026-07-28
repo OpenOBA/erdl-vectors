@@ -1,7 +1,7 @@
 /**
  * verify.js — 穷尽测试
  *
- * 维度：JCS RFC 8785 × audit hash 7-step × 边界 × 恶意输入 × 跨实现一致性
+ * 维度：JCS RFC 8785 × audit hash 5-step × 边界 × 恶意输入 × 跨实现一致性
  *
  * Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
  * @author 唐浩然 (Tang Haoran) · OpenOBA AI 执行官
@@ -216,16 +216,15 @@ describe('JCS → SHA-256 一致性', () => {
 })
 
 // ═══════════════════════════════════════════════
-// 7-step 验证的核心逻辑单元测试
+// 5-step 验证的核心逻辑单元测试
 // ═══════════════════════════════════════════════
-describe('7-Step 验证 — 核心逻辑', () => {
-  // 模拟一个小型 DO 结构
+describe('5-Step 验证 — 核心逻辑', () => {
+  // 模拟一个小型 DO 结构（平面哈希：无 extensions_hash，extensions 直接参与 JCS）
   function makeMiniDO(overrides: Record<string, unknown> = {}) {
     return {
-      spec: 'decision-object-v1.0',
+      spec: 'decision-object-v1.2',
       decision_id: 'test-id-001',
       extensions: [],
-      extensions_hash: 'sha256:' + sha256(jcsCanonicalize([])),
       audit: { hash: 'PLACEHOLDER' },
       signature: 'TEST_SIG',
       signing_key_id: 'key-1',
@@ -235,12 +234,6 @@ describe('7-Step 验证 — 核心逻辑', () => {
   }
 
   function computeAuditHash(doClone: Record<string, unknown>): string {
-    const exts = doClone.extensions
-    const computedExtHash = 'sha256:' + sha256(jcsCanonicalize(exts))
-    if (doClone.extensions_hash !== computedExtHash) {
-      throw new Error(`extensions_hash mismatch: ${doClone.extensions_hash} vs ${computedExtHash}`)
-    }
-    delete doClone.extensions
     delete doClone.audit
     delete doClone.signature
     delete doClone.signing_key_id
@@ -248,26 +241,25 @@ describe('7-Step 验证 — 核心逻辑', () => {
     return 'sha256:' + sha256(canonicalFull)
   }
 
-  it('Step A: extracts extensions', () => {
-    const do1 = makeMiniDO({ extensions: [{ type: 'test' }], extensions_hash: 'sha256:' + sha256(jcsCanonicalize([{ type: 'test' }])) })
+  it('Step 1: deep clone preserves extensions', () => {
+    const do1 = makeMiniDO({ extensions: [{ type: 'test' }] })
     const clone = JSON.parse(JSON.stringify(do1))
-    const exts = clone.extensions
-    expect(exts).toEqual([{ type: 'test' }])
+    expect(clone.extensions).toEqual([{ type: 'test' }])
   })
 
-  it('Step B: extensions_hash must match', () => {
-    const do1 = makeMiniDO({ extensions: [{ type: 'test' }], extensions_hash: 'sha256:' + sha256(jcsCanonicalize([{ type: 'test' }])) })
+  it('Step 2: extensions stays in tree — participates in JCS', () => {
+    const do1 = makeMiniDO({ extensions: [{ type: 'test' }] })
     const clone = JSON.parse(JSON.stringify(do1))
-    const computed = 'sha256:' + sha256(jcsCanonicalize(clone.extensions))
-    expect(computed).toBe(do1.extensions_hash)
+    delete clone.audit
+    delete clone.signature
+    delete clone.signing_key_id
+    // extensions must still be present
+    expect(clone.extensions).toBeDefined()
+    const canonical = jcsCanonicalize(clone)
+    expect(canonical).toContain('"type":"test"')
   })
 
-  it('Step B: extensions_hash mismatch throws', () => {
-    const do1 = makeMiniDO({ extensions: [{ type: 'test' }], extensions_hash: 'sha256:WRONG' })
-    expect(() => computeAuditHash(JSON.parse(JSON.stringify(do1)))).toThrow('extensions_hash mismatch')
-  })
-
-  it('Steps C-F: correct audit hash for simple DO', () => {
+  it('Step 2-5: correct audit hash for simple DO', () => {
     const do1 = makeMiniDO()
     const clone = JSON.parse(JSON.stringify(do1))
     const hash = computeAuditHash(clone)
@@ -278,19 +270,18 @@ describe('7-Step 验证 — 核心逻辑', () => {
     expect(hash).toMatch(/^sha256:[a-f0-9]{64}$/)
   })
 
-  it('Step F: different extensions → different audit hash', () => {
+  it('Step 5: different extensions produce different audit hash', () => {
     const emptyExt = makeMiniDO()
-    const withExt = makeMiniDO({ extensions: [{ x: 1 }], extensions_hash: 'sha256:' + sha256(jcsCanonicalize([{ x: 1 }])) })
+    const withExt = makeMiniDO({ extensions: [{ x: 1 }] })
     const h1 = computeAuditHash(JSON.parse(JSON.stringify(emptyExt)))
     const h2 = computeAuditHash(JSON.parse(JSON.stringify(withExt)))
     expect(h1).not.toBe(h2)
   })
 
-  it('tampered audit hash is detected', () => {
+  it('Step 5: tampered DO produces different audit hash', () => {
     const do1 = makeMiniDO()
     const clone = JSON.parse(JSON.stringify(do1))
     const realHash = computeAuditHash(clone)
-    // Tamper: change data but keep old hash
     const tampered = makeMiniDO({ data: 'tampered!' })
     const clone2 = JSON.parse(JSON.stringify(tampered))
     const tamperedHash = computeAuditHash(clone2)
@@ -445,7 +436,7 @@ describe('集成 — 已生成 vectors 文件验证', () => {
     let passed = 0
     for (const vec of data.vectors) {
       const clone = JSON.parse(JSON.stringify(vec.decision_object))
-      delete clone.extensions
+      // Flat hashing: delete audit/signature/signing_key_id, extensions stays
       delete clone.audit
       delete clone.signature
       delete clone.signing_key_id
@@ -486,12 +477,7 @@ describe('集成 — 已生成 vectors 文件验证', () => {
       const doObj = avVec.decision_object
       const clone = JSON.parse(JSON.stringify(doObj))
 
-      // 7-step verification
-      const exts = clone.extensions
-      const computedExtHash = 'sha256:' + sha256(jcsCanonicalize(exts))
-      expect(computedExtHash).toBe(clone.extensions_hash)
-
-      delete clone.extensions
+      // 5-step flat verification
       delete clone.audit
       delete clone.signature
       delete clone.signing_key_id
@@ -504,9 +490,6 @@ describe('集成 — 已生成 vectors 文件验证', () => {
       if (avVec.id === 'AV-008') {
         // Must mismatch
         expect(computedHash).not.toBe(storedHash)
-        // But canonical_hex should match AV-003's
-        const av3 = avs.find((a: any) => a.id === 'AV-003')
-        // The canonical bytes (from 7-step) should match AV-003's stored canonical_hex
         const computedBytes = Buffer.from(canonicalFull, 'utf8').toString('hex')
         expect(computedBytes).toBe(avVec.canonical_hex)
         mismatchCount++
@@ -617,9 +600,10 @@ describe('集成 — 已生成 vectors 文件验证', () => {
     }
   })
 
-  it('all DOs have extensions_hash', () => {
+  it('all DOs have extensions (no extensions_hash field)', () => {
     for (const vec of data.vectors) {
-      expect(vec.decision_object.extensions_hash).toMatch(/^sha256:[a-f0-9]{64}$/)
+      expect(Array.isArray(vec.decision_object.extensions)).toBe(true)
+      expect(vec.decision_object.extensions_hash).toBeUndefined()
     }
   })
 
@@ -707,11 +691,7 @@ describe('审计哈希 — 篡改检测', () => {
     const clone = JSON.parse(JSON.stringify(vec.decision_object))
     // Tamper with context
     clone.context.tool.name = 'TAMPERED'
-    // Recompute
-    const exts = clone.extensions
-    const extHash = 'sha256:' + sha256(jcsCanonicalize(exts))
-    clone.extensions_hash = extHash
-    delete clone.extensions
+    // Flat hashing: delete audit/signature/signing_key_id, extensions stays
     delete clone.audit
     delete clone.signature
     delete clone.signing_key_id
@@ -725,8 +705,6 @@ describe('审计哈希 — 篡改检测', () => {
     const clone = JSON.parse(JSON.stringify(vec.decision_object))
     clone.result.decision_type = 'ALLOW' // Was DENY
     clone.result.decision = 'ALLOW'
-    clone.extensions_hash = 'sha256:' + sha256(jcsCanonicalize(clone.extensions))
-    delete clone.extensions
     delete clone.audit
     delete clone.signature
     delete clone.signing_key_id
@@ -734,15 +712,13 @@ describe('审计哈希 — 篡改检测', () => {
     expect(tamperedHash).not.toBe(original)
   })
 
-  it('AV-001 vs tampered AV-001: 7-step detects tampering', () => {
+  it('AV-001 vs tampered AV-001: 5-step detects tampering', () => {
     const av1 = data.audit_vectors.find((a: any) => a.id === 'AV-001')
     const originalHash = av1.decision_object.audit.hash
     // Create tampered copy
     const tampered = JSON.parse(JSON.stringify(av1.decision_object))
     tampered.result.reason = 'TAMPERED REASON'
-    const exts = tampered.extensions
-    tampered.extensions_hash = 'sha256:' + sha256(jcsCanonicalize(exts))
-    delete tampered.extensions
+    // Flat hashing: extensions participates directly
     delete tampered.audit
     delete tampered.signature
     delete tampered.signing_key_id
