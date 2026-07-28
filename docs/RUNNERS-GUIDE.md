@@ -11,7 +11,7 @@
 ## 目录
 
 1. [What Is a Runner?](#1-what-is-a-runner)
-2. [Minimal Runner in 50 Lines](#2-minimal-runner-in-50-lines-pseudocode)
+2. [Minimal Runner in 40 Lines](#2-minimal-runner-in-40-lines-pseudocode)
 3. [The Five-Step Verification Algorithm](#3-the-five-step-verification-algorithm)
 4. [JCS: The Hardest 50 Lines You'll Write](#4-jcs-the-hardest-50-lines-youll-write)
 5. [Your Engine's Role: Populating Decision Objects](#5-your-engines-role-populating-decision-objects)
@@ -343,7 +343,7 @@ If your runner reports all 12 audit vectors as MATCH, your five-step verificatio
 
 The vector set uses `'2026-07-28T00:00:00.000Z'`. Your engine should use ISO 8601 with milliseconds and `Z` suffix.
 
-## 9. Language-Specific JCS Notes
+## 8. Language-Specific JCS Notes
 
 The JCS constraints in Whitepaper §3.1 apply across all languages. Below are known pitfalls and recommended practices for common implementation languages.
 
@@ -396,7 +396,7 @@ The JCS constraints in Whitepaper §3.1 apply across all languages. Below are kn
 
 > **Cross-validation**: The libraries recommended above have been byte-for-byte cross-validated across 8 languages on 24 canonicalisation vectors (see AlgoVoi's [8-impl attestation](https://github.com/chopmob-cloud/algovoi-jcs-conformance-vectors/blob/main/_attestations/2026-05-24-8-impl-cross-validation.md)). Your implementation should produce identical bytes on the same input. If it doesn't, the bug is in your pre-processing, not in the JCS library.
 
-## 8. Compatibility Levels
+## 9. Compatibility Levels
 
 | Level | Vectors | Requirement |
 |:-----:|:-------:|-------------|
@@ -406,7 +406,7 @@ The JCS constraints in Whitepaper §3.1 apply across all languages. Below are kn
 
 Start with L1. Most runners pass L1 within a few hours. L2 and L3 add edge cases that flush out JCS number formatting and null-handling bugs.
 
-## 9. Reference Implementations
+## 10. Reference Implementations
 
 | Language | File | Notes |
 |----------|------|-------|

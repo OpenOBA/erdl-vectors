@@ -14,13 +14,13 @@
 ### Architecture
 - **Deterministic generation**: `generate-vectors.cjs` produces byte-identical output every run (SHA-256: `700a683d...`)
 - **RFC 9562 UUIDv7**: All `decision_id`/`execution_trace_id` fully compliant (frozen timestamp `2026-07-28T00:00:00.000Z`)
-- **Seven-step hierarchical hashing**: JCS (RFC 8785) → SHA-256 → audit.hash, with extensions_hash as first step
+- **Five-step flat hashing**: JCS (RFC 8785) → SHA-256 → audit.hash, extensions participate directly in main JCS
 - **Canonical hex format**: `canonical_hex` field stores hex encoding of UTF-8 JCS bytes for cross-implementation comparison
 
 ### Verification
 - **Zero-dependency verifier**: `verify.js` uses self-built JCS (no npm deps) → truly cross-implementation verifiable
-- **Stale regression canary**: AV-008 intentionally mismatches — catches validators that skip seven-step verification
-- **156 tests**: JCS RFC 8785 compliance, SHA-256 determinism, 7-step verification, tamper detection, full vector integrity
+- **Stale regression canary**: AV-008 intentionally mismatches — catches validators that skip five-step verification
+- **156 tests**: JCS RFC 8785 compliance, SHA-256 determinism, 5-step verification, tamper detection, full vector integrity
 
 ### Security
 - **Independent security review** — 0 critical/high findings
@@ -42,7 +42,7 @@
 - CONTRIBUTING.md: contributor guidelines
 
 ### Breaking Changes from v1.0/v1.1
-- `expected_sha256` field removed entirely — verification is now via seven-step recomputation
+- `expected_sha256` field removed entirely — verification is now via five-step recomputation
 - `canonical_bytes` renamed to `canonical_hex` for cross-implementation clarity
 - `policies[].hash` is now JCS-based (previously unspecified)
 - `rule_set_version.id` is JCS-based on full policy set content

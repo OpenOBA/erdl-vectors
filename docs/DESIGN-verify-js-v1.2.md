@@ -196,29 +196,20 @@ function verifyAuditVector(av) {
   // 2. 提取 claimed hash
   const claimedHash = clone.audit.hash;
 
-  // 3. 提取 extensions (保留 extensions_hash 在主 JCS 中)
-  const extensions = clone.extensions;
-  delete clone.extensions;
-  // extensions_hash = sha256:JCS(extensions)
-  const computedExtHash = sha256(jcsCanonicalize(extensions));
-  if (clone.extensions_hash !== 'sha256:' + computedExtHash) {
-    return { status: 'FAIL', reason: 'extensions_hash mismatch', expected: clone.extensions_hash, actual: 'sha256:' + computedExtHash };
-  }
-  // extensions_hash 保留在 clone 中参与主 JCS
-
-  // 4. 删除自引用/外部字段
+  // 3. 删除自引用/外部字段
+  // (extensions 保留在对象中，直接参与主 JCS)
   delete clone.audit;
   delete clone.signature;
   delete clone.signing_key_id;
 
-  // 5. JCS 序列化
+  // 4. JCS 序列化（CORE + JURISDICTION + EXTENSIONS）
   const canonicalStr = jcsCanonicalize(clone);
   const canonicalBytes = Buffer.from(canonicalStr, 'utf-8').toString('hex');
 
-  // 6. SHA-256
+  // 5. SHA-256
   const recomputedHash = 'sha256:' + sha256(canonicalStr);
 
-  // 7. 比较
+  // 6. 比较
   const cbMatch = canonicalBytes === av.canonical_bytes;
   const ahMatch = recomputedHash === claimedHash;
 
@@ -280,7 +271,7 @@ hash = hashlib.sha256(data.encode('utf-8')).hexdigest()
 | 向量文件不存在 | 退出码 1，输出 `ERROR: Vector file not found` |
 | 向量格式无效 (缺少 audit_vectors) | 退出码 2，输出 `ERROR: Invalid vector format` |
 | AV-008 的 expected MISMATCH | 状态 `EXPECTED_FAIL`，不计入总失败数 |
-| extensions_hash 不一致 | 状态 `FAIL`，输出具体不匹配值 |
+| extensions 验证 | 直接参与主 JCS，不需要单独验证 |
 | canonical_bytes 不一致 | 状态 `FAIL`，输出差异长度和位置 |
 | 自建 JCS 与 reference 不同 | 状态 `PASS` 但输出 WARNING: `JCS divergence detected` |
 | JCS 遇到 NaN/Infinity | 抛出: 退出码 3，输出 `INVALID: NaN/Infinity in JCS input` |
@@ -297,7 +288,7 @@ function sha256(data) → string (hex)
 // 平面哈希验证 (对单个 DO)
 function computeAuditHash(decisionObject) → { hash, canonicalBytes }
 
-// 七步验证
+// 五步验证
 function verifyAuditVector(av) → AuditResult
 
 // 完整验证套件
@@ -322,7 +313,7 @@ function main(args) → exitCode
 `verify.js` 单文件约 **400-500 行**:
 - JCS 序列化器: ~70 行
 - SHA-256 封装: ~5 行
-- 七步验证逻辑: ~60 行
+- 五步验证逻辑: ~60 行
 - CLI 解析 + 格式化输出: ~100 行
 - 注释 + 文档字符串: ~100 行
 

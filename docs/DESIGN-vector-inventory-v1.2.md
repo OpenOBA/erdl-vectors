@@ -170,7 +170,7 @@ v1.0/v1.1 的测试设计模式是成熟的，v1.2 在新的 63 条 DO 中应该
 | ID | 决策 | 场景 | 关键测试点 |
 |----|------|------|---------|
 | DO-061 | DENY | 对象深层比较: context.tool.args == {cmd:"rm",opts:"-rf"} | object-deep-eq |
-| DO-062 | PASS | 空扩展规范化: extensions=[] 时 extensions_hash 必须为固定常量 | empty-extensions |
+| DO-062 | PASS | 空扩展规范化: extensions=[] 时平面哈希仍正确计算 | empty-extensions |
 | DO-063 | DENY | 整数安全范围: execution_count > Number.MAX_SAFE_INTEGER → 拒绝 | integer-safe-range |
 
 ---
@@ -195,7 +195,7 @@ v1.0/v1.1 的测试设计模式是成熟的，v1.2 在新的 63 条 DO 中应该
 ### AV-008 构造方法
 
 ```javascript
-// AV-008 不通过正常分层哈希流程生成
+// AV-008 不通过正常平面哈希流程生成
 // 步骤:
 // 1. 从 AV-003 深拷贝
 // 2. canonical_bytes 保持不变（与 AV-003 逐字节相同）
@@ -208,7 +208,7 @@ v1.0/v1.1 的测试设计模式是成熟的，v1.2 在新的 63 条 DO 中应该
 av008.audit.hash = 'sha256:342b4e9652101d0b75ef39bed7f5a7e6de4d890618ec6eeafe3a9a3490ddb64d';
 av008.vector_ref = 'AV-003';
 av008.source_commit = 'c3f22df';
-av008.note = 'STALE REGRESSION VECTOR: canonical_bytes identical to AV-003, audit.hash intentionally stale (v1.1 legacy value). Any validator that recomputes from first principles will detect MISMATCH; cached/shorthand validators will falsely PASS.';
+av008.note = 'STALE REGRESSION VECTOR: canonical_hex identical to AV-003, audit.hash intentionally stale (v1.1 legacy value). Any validator that recomputes from first principles will detect MISMATCH; cached/shorthand validators will falsely PASS.';
 ```
 
 ## Part D: 动态向量 26 条
@@ -274,7 +274,7 @@ av008.note = 'STALE REGRESSION VECTOR: canonical_bytes identical to AV-003, audi
 - [ ] 63 条 `vectors[]` 全部生成，无空缺 ID
 - [ ] 26 条 `dynamic_vectors` 全部生成
 - [ ] 12 条 `audit_vectors` 全部生成
-- [ ] AV-001~AV-007、AV-009~AV-012 的 `audit.hash` 七步法重算 = MATCH
+- [ ] AV-001~AV-007、AV-009~AV-012 的 `audit.hash` 五步法重算 = MATCH
 - [ ] AV-008 的 `canonical_bytes` = AV-003 的 `canonical_bytes`
 - [ ] AV-008 的 `audit.hash` ≠ AV-003 的 `audit.hash`
 - [ ] 无 `__` 前缀字段泄漏到输出 JSON
