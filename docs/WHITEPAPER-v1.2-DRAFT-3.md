@@ -9,6 +9,8 @@
 > **征集意见对象**：Erik Newton (Concordia)、Christopher Hopley (chopmob-cloud / AlgoVoi)、监管合规专家、联合审计委员会
 > **状态**：征求意见稿 — 非最终版本。所有设计细节均可能在收到反馈后调整。
 >
+> **关键字解释**：本文档中的 "MUST"、"MUST NOT"、"REQUIRED"、"SHALL"、"SHALL NOT"、"SHOULD"、"SHOULD NOT"、"RECOMMENDED"、"MAY" 和 "OPTIONAL" 等关键字遵循 [RFC 2119](https://datatracker.ietf.org/doc/rfc2119/) 和 [RFC 8174](https://datatracker.ietf.org/doc/rfc8174/) 的语义解释。
+>
 > **修订记录**：
 > - Draft 1（2026-07-27）：初始版本，23 字段设计
 > - Draft 2（2026-07-27）：联合审计委员会意见修订，扩展至 24 字段，增加 JCS 数值约束、冷热分离隐私方案、跨版本审计链锚定
