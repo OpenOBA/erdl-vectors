@@ -12,7 +12,7 @@
 
 1. [What Is a Runner?](#1-what-is-a-runner)
 2. [Minimal Runner in 50 Lines](#2-minimal-runner-in-50-lines-pseudocode)
-3. [The Seven-Step Verification Algorithm](#3-the-seven-step-verification-algorithm)
+3. [The Five-Step Verification Algorithm](#3-the-five-step-verification-algorithm)
 4. [JCS: The Hardest 50 Lines You'll Write](#4-jcs-the-hardest-50-lines-youll-write)
 5. [Your Engine's Role: Populating Decision Objects](#5-your-engines-role-populating-decision-objects)
 6. [Testing Against the Vector Set](#6-testing-against-the-vector-set)
@@ -28,7 +28,7 @@ A **Runner** is any piece of code that can take an ERDL Decision Object and vali
 
 You don't need to implement the **Generator**. The Generator produces the static test vectors (`decision-object-vectors-v1.2.json`). You only need to implement verification — taking a Decision Object and checking that its `audit.hash` is correct.
 
-## 2. Minimal Runner in 50 Lines (Pseudocode)
+## 2. Minimal Runner in 40 Lines (Pseudocode)
 
 ```python
 import json
@@ -57,32 +57,28 @@ def jcs(value) -> str:
     raise TypeError(f'{type(value)} not serializable')
 
 def verify_do(decision_object: dict) -> tuple[bool, str, str]:
-    """Seven-step audit hash verification. Returns (passed, computed_hash, stored_hash)."""
-    # Step 1-2: Clone and validate extensions_hash
-    clone = json.loads(json.dumps(decision_object))  # deep copy
-    exts = clone['extensions']
-    computed_ext_hash = 'sha256:' + sha256(jcs(exts))
-    if clone['extensions_hash'] != computed_ext_hash:
-        return False, computed_ext_hash, clone['extensions_hash']
+    """Five-step audit hash verification. Returns (passed, computed_hash, stored_hash)."""
+    # Step 1: Deep clone
+    clone = json.loads(json.dumps(decision_object))
 
-    # Step 3: Strip self-referencing fields
-    del clone['extensions']
+    # Step 2: Delete self-referencing fields
+    # (extensions stays — participates directly in main JCS)
     del clone['audit']
     del clone['signature']
     del clone['signing_key_id']
 
-    # Step 4-6: JCS → SHA-256
+    # Step 3-4: JCS → SHA-256
     canonical = jcs(clone)
     computed_hash = 'sha256:' + sha256(canonical)
     stored_hash = decision_object['audit']['hash']
 
-    # Step 7: Compare
+    # Step 5: Compare
     return computed_hash == stored_hash, computed_hash, stored_hash
 ```
 
 That's it. 50 lines. If your language's `json.dumps()` doesn't produce RFC 8785-compliant output (most don't), you need a proper JCS implementation. See Section 4.
 
-## 3. The Seven-Step Verification Algorithm
+## 3. The Five-Step Verification Algorithm
 
 The algorithm (Whitepaper §13.3) is designed to be implementable in any language with only two primitives: JCS serialization and SHA-256.
 
@@ -90,31 +86,28 @@ The algorithm (Whitepaper §13.3) is designed to be implementable in any languag
 Input:  decision_object (JSON-parsed object)
 Output: (passed: bool, computed_hash: str, stored_hash: str)
 
-Step A: Deep-clone the decision_object
+Step 1: Deep-clone the decision_object
         → clone = JSON.parse(JSON.stringify(decision_object))
 
-Step B: Extract extensions and verify extensions_hash
-        → exts = clone.extensions
-        → assert clone.extensions_hash == sha256(jcs(exts))
-
-Step C: Delete self-referencing / external fields
-        → delete clone.extensions
+Step 2: Delete self-referencing / external fields
         → delete clone.audit
         → delete clone.signature
         → delete clone.signing_key_id
+        (extensions stays in the tree — participates directly in main JCS)
         → (defensive) delete any __-prefixed internal fields
 
-Step D: JCS canonicalize the remaining object
+Step 3: JCS canonicalize the entire object
         → canonical = jcs(clone)
+        (all fields including extensions are included)
 
-Step E: SHA-256 hash
+Step 4: SHA-256 hash
         → hash_bytes = sha256(canonical)
 
-Step F: Compare
+Step 5: Compare
         → passed = 'sha256:' + hash_bytes == decision_object.audit.hash
 ```
 
-**Key insight**: Steps A-D are identical in every language. The only language-specific parts are SHA-256 (trivial, every stdlib has it) and JCS (requires a careful implementation — see next section).
+**Key insight**: Steps 1-3 are identical in every language. The only language-specific parts are SHA-256 (trivial, every stdlib has it) and JCS (requires a careful implementation — see next section).
 
 ## 4. JCS: The Hardest 50 Lines You'll Write
 
@@ -226,7 +219,7 @@ If you're building an ERDL rule engine (not just verifying), your engine produce
 | `evaluation` | Which rules matched, which triggered, why |
 | `result` | The final decision and applied rule |
 
-Everything else (`compliance_profile`, `impact_assessment_id`, `extensions`, `extensions_hash`, etc.) is either fixed or optional.
+Everything else (`compliance_profile`, `impact_assessment_id`, `extensions`, etc.) is either fixed or optional.
 
 **The hash formula** (what your engine computes before signing):
 
@@ -254,12 +247,11 @@ audit.hash = SHA-256(
     data_modification_expected,
     result,
     human_oversight,
-    extensions_hash   // ← hash of extensions, NOT extensions itself
   })
 )
 ```
 
-Note: `extensions`, `audit`, `signature`, and `signing_key_id` are NOT included in the hash. They're external to the core DO.
+Note: `audit`, `signature`, and `signing_key_id` are NOT included in the hash. `extensions` IS included — it participates directly in the main JCS.
 
 ## 6. Testing Against the Vector Set
 
@@ -271,7 +263,7 @@ node scripts/verify.js --vectors=decision-object-vectors-v1.2.json
 
 Expected output: `ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-008 STALE DETECTED`
 
-With your runner, do the same: for each of the 12 audit hash vectors, run the seven-step verification. You should get 11 MATCH + 1 MISMATCH (AV-008, the intentional stale regression).
+With your runner, do the same: for each of the 12 audit hash vectors, run the five-step verification. You should get 11 MATCH + 1 MISMATCH (AV-008, the intentional stale regression).
 
 ### Step 2: Verify your engine's DO output
 
@@ -280,7 +272,7 @@ Once your JCS is verified correct, test your engine:
 1. Take DO-001 from the vector set as input context
 2. Run your engine's rule evaluator against it
 3. Your engine must produce a Decision Object
-4. Run seven-step verification on your engine's output
+4. Run five-step verification on your engine's output
 5. If the hash matches, your DO format is compatible
 
 ### Step 3: Full L3 compatibility
@@ -291,7 +283,24 @@ Run all 63 static DO vectors through your engine's evaluate → produce DO → v
 
 ### P0: Using the wrong hash formula
 
-The audit hash covers the **core DO minus extensions/audit/signature/signing_key_id**, with `extensions_hash` substituted for `extensions`. If you hash the entire DO including `audit` → circular dependency → always wrong.
+The audit hash covers the **entire DO minus audit/signature/signing_key_id**. `extensions` participates directly in the main JCS. If you hash the entire DO including `audit` → circular dependency → always wrong.
+
+### P0: Self-referential hash fields — forget to exclude the hash key
+
+`policies[].hash` and `compliance_profile.profile_hash` are computed from the object they sit inside. When computing these hashes, you MUST **temporarily remove the hash key itself** before JCS. If you leave `hash` in the policy object while canonicalizing, your result will differ from the reference implementation.
+
+```python
+# WRONG — hash key participates in its own computation
+policy = {'id': 'rule-001', 'hash': '', 'when': {...}}
+policy['hash'] = sha256(jcs(policy))  # ← hash key is still in policy!
+
+# RIGHT — exclude hash key first
+policy = {'id': 'rule-001', 'when': {...}}  # no hash yet
+h = sha256(jcs(policy))  # JCS without hash
+policy['hash'] = h  # write back after
+```
+
+This is the exact same class of bug as c3f22df — accidental serialization form affecting the hash.
 
 ### P0: Including `null` fields in JCS
 
@@ -307,7 +316,9 @@ Keys containing spaces, colons, or Unicode require proper JSON string escaping i
 
 ### P2: AV-008 passed when it should fail
 
-If your runner reports AV-008 as a MATCH, your seven-step verification is NOT computing from scratch — you're comparing pre-computed hashes. This is the exact shortcut that AV-008 exists to catch.
+If your runner reports AV-008 as a MATCH, your five-step verification is NOT computing from scratch — you're comparing pre-computed hashes. This is the exact shortcut that AV-008 exists to catch.
+
+> ⚠️ **Important**: AV-008 is a self-consistency check, not a structural independence guarantee. A runner should NEVER special-case any vector by id. All 12 audit vectors go through the same five-step pipeline. AV-008 has `canonical_hex` identical to AV-003 but with a deliberately stale `audit.hash` — only a runner that independently recalculates the hash (not just reads stored values) will detect this MISMATCH.
 
 ### P2: Timestamp format
 
