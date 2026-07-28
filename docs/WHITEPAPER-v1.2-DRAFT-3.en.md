@@ -1047,7 +1047,8 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
       },
       "value": "0.042"
     }
-  ],}
+  ]
+}
 ```
 
 ### 11.2 Content-Addressable Mechanism of `schema_ref`
