@@ -999,8 +999,8 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 │                │                                          │
 │  ┌─────────────┴───────────────┐                         │
 │  │   EXTENSIONS (open-ended)   │  ← 独立自描述               │
-│  │     每条携带 schema_ref      │  被移除以腾出 core+JCS 空间   │
-│  │     直接参与主 JCS           │  JCS 序列化包含全部字段       │
+│  │     每条携带 schema_ref      │  直接参与主 JCS，保留全部语义 │
+│  │     直接参与主 JCS           │  不可由 ERDL 自身修改        │
 │  └─────────────┬───────────────┘                         │
 │                │                                          │
 │           JCS(core + jurisdiction + extensions)           │
