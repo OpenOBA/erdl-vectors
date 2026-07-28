@@ -278,7 +278,7 @@ Self-describing structure of each extension entry:
       },
       "value": "actual data"
     }
-  ],
+  ]
 }
 ```
 
