@@ -1,7 +1,9 @@
 # DESIGN: verify.js — 通用零依赖验证器设计
 
+> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+
 > 版本: 1.0 · 2026-07-27
-> 状态: Design (待 Henry 确认后实现)
+> 状态: Released · 2026-07-28
 > 目标: 跨语言、跨实现、零依赖的 DO 验证器，支持 L1/L2/L3 三级兼容
 
 ---

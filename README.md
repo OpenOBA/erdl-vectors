@@ -1,79 +1,219 @@
-# ERDL Decision Object — Cross-Implementation Test Vectors
+# ERDL Decision Object v1.2 — 跨实现测试向量集
 
-> **Version**: v1.2 (Draft)  
-> **Status**: Request for Comments  
-> **Maintainer**: OpenOBA  
-> **License**: MIT
+> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-## Overview
+> **版本**：v1.2.0  
+> **状态**：已发布  
+> **维护方**：OpenOBA (https://openoba.com)  
+> **许可**：MIT
 
-This repository contains the ERDL Decision Object v1.2 cross-implementation test vectors, verification tools, and supporting documentation. The Decision Object (DO) is a standardized, tamper-evident audit format for AI Agent rule evaluation decisions, based on JCS (RFC 8785) + SHA-256.
+## 背景
 
-## Repository Structure
+ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追踪格式。与传统 AI 系统的黑箱输出不同，Decision Object 记录了每一次决策的完整链条——哪些规则命中了、哪个运算符匹配了、什么上下文参与了评估——并通过 JCS（RFC 8785，JSON 规范化方案）与 SHA-256 哈希确保完整性。本项目提供了跨实现验证的标准测试向量集，任何符合 ERDL 协议的规则引擎均可通过独立运行验证来证明自身决策对象的正确性。
+
+## 鸣谢
+
+本项目能够顺利完成，离不开以下合作者的鼎力支持：
+
+- **Christopher Hopley（chopmob-cloud / AlgoVoi）** — 合规 substrate 模型与跨实现验证愿景的提出者。他独立审计了 ERDL Decision Object v1.1，发现了 c3f22df 事故（em-dash 空格修复导致 3/7 审计向量的 audit.hash 不匹配），推动 v1.2 建立了分层哈希架构和严格的确定性生成标准。他对监管合规与密码学审计的深刻理解，贯穿了 Decision Object 的设计全程。
+- **Erik Newton（Concordia）** — 首个独立 Runner 实现者。他用 Python 构建了 Decision Object 验证引擎，在 Node.js 实现之外首次逐字节验证了前 5 个审计向量（AV-001~AV-005），以实践证明了 JCS+SHA-256 跨实现验证的技术可行性。他还率先指出了 `expected_sha256` 答案密钥的结构性风险，直接推动了 v1.2 中七步验证法的确立。
+- **Rulsynor 团队** — 作为 ERDL 规则引擎的参考实现，Rulsynor 是所有测试向量生成与验证的基准。其生产级引擎为 Decision Object 的字段设计提供了真实世界的约束输入——从 Agent 身份元数据到合规配置结构——确保协议定义经得起工程实践的检验。
+
+我们对此深表感谢。正是他们的贡献，将一份规范转化为经过多方独立验证的跨实现标准。
+
+## 概述
+
+本仓库包含 ERDL（Entity-Rule Definition Language）Decision Object v1.2 协议的标准**101 条跨实现测试向量**。每条向量是一个完整的、可自验证的 Decision Object——AI Agent 规则评估决策的标准化、防篡改审计格式。
+
+### 核心保证
+
+| 保证 | 机制 |
+|------|------|
+| **确定性生成** | `node scripts/generate-vectors.cjs` 每次运行产出字节级完全相同的输出 |
+| **防篡改** | JCS（RFC 8785）+ SHA-256 层级哈希——任何字段变更都会改变审计哈希 |
+| **跨实现可验证** | `node scripts/verify.js` 零依赖运行——实现者可以验证自己的引擎 |
+| **陈旧回归检测** | AV-008 充当金丝雀——跳过七步验证的验证器将**失败** |
+| **RFC 9562 UUIDv7** | 所有 `decision_id`/`execution_trace_id` 完全符合 RFC 9562（冻结时间戳） |
+
+### 确定性架构
+
+```
+$ node scripts/generate-vectors.cjs
+$ sha256sum decision-object-vectors-v1.2.json
+700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca
+
+$ node scripts/generate-vectors.cjs  # 第二次运行
+$ sha256sum decision-object-vectors-v1.2.json
+700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca  # 完全一致
+```
+
+不使用 `Date.now()`，不使用 `crypto.randomBytes()`。冻结时间戳（`2026-07-28T00:00:00.000Z`）+ 确定性计数器 → **精确可复现**。
+
+## 快速开始
+
+### 验证现有向量文件
+
+```bash
+npm install
+node scripts/verify.js                    # 默认：./decision-object-vectors-v1.2.json
+node scripts/verify.js path/to/vectors.json
+```
+
+预期输出：`ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-008 STALE DETECTED`
+
+### 从零生成向量（维护者使用）
+
+```bash
+npm install
+node scripts/generate-vectors.cjs
+# → 输出 decision-object-vectors-v1.2.json（~830 KB）
+```
+
+### 运行测试套件
+
+```bash
+npm test
+# → 156 个测试覆盖 JCS、SHA-256、七步验证及全量向量完整性
+```
+
+## 向量集组成
+
+### 静态决策向量（63 条）
+
+| 决策类型 | 数量 | 覆盖内容 |
+|----------|:----:|----------|
+| ALLOW | 11 | 常规操作、override 安全方向、unless 豁免、运算符覆盖 |
+| DENY | 12 | 安全基线、危险命令、关键路径、边界情况 |
+| PASS | 10 | 选择性匹配、安全命令、空规则、空值安全、严格类型 |
+| REQUEST_HUMAN | 4 | PII/HIPAA 合规、非营业时间、风险阈值 |
+| EMERGENCY_HALT | 1 | Ring 0 短路 |
+| CORRECT | 3 | 大小写规范化、单位转换、路径规范化 |
+| ESCALATE | 3 | 低信誉 Agent、跨域操作、未知工具 |
+| NOTIFY | 3 | 异常检测、审计记录、阈值告警 |
+| QUARANTINE | 3 | 可疑文件、异常行为、速率限制 |
+| ROLLBACK | 3 | 快照恢复、部分失败、交易回滚 |
+| WORKFLOW | 4 | 多步工作流、条件分支、审批节点 |
+| WORKFLOW_WAITING | 3 | 人工审批等待、时间窗口等待、前置任务等待 |
+| WORKFLOW_PROGRESS | 3 | 步骤推进、阶段完成、最终步骤 |
+
+**覆盖运算符**：`eq`、`neq`、`gt`、`gte`、`lt`、`lte`、`in`、`not_in`、`contains`、`matches`、`starts_with`、`ends_with`、`exists`（全部 13 种）
+
+**边界情况**：空值传播、严格类型匹配、ReDoS 防护、速率限制、安全整数范围、深层对象比对、空扩展规范化
+
+### 动态向量（26 条）
+
+| 类别 | 数量 | 说明 |
+|------|:----:|------|
+| Temporal（T-001~T-010） | 10 | 时间段、星期、节假日、闰年、Y2K38 边界 |
+| Seeded（S-001~S-008） | 8 | 确定性随机种子，可复现评估 |
+| Stateful（ST-001~ST-008） | 8 | 状态机转换（idle→running→paused→error→recovering→stopped） |
+
+### 审计哈希向量（12 条）
+
+| 向量 | 引用 | 用途 |
+|------|------|------|
+| AV-001 | DO-001 | Ring 0 安全拦截（DENY） |
+| AV-002 | DO-013 | PII 合规审批（REQUEST_HUMAN，GDPR Art.22） |
+| AV-003 | DO-011 | Override 安全方向（ALLOW，多规则） |
+| AV-004 | DO-009 | Ring 0 紧急停止（EMERGENCY_HALT） |
+| AV-005 | DO-017 | 低信誉 Agent 升级（ESCALATE） |
+| AV-006 | DO-024 | Unless 豁免触发（ALLOW） |
+| AV-007 | DO-027 | 空值安全字段访问（PASS） |
+| AV-008 | AV-003 | ⚠️ **陈旧回归金丝雀**——必须不匹配 |
+| AV-009 | DO-021 | 自动修正（CORRECT） |
+| AV-010 | DO-031 | 异常通知（NOTIFY） |
+| AV-011 | DO-038 | 快照回滚（ROLLBACK） |
+| AV-012 | DO-051 | 多步工作流（WORKFLOW） |
+
+### v1.3 预留
+
+| ID | 类型 | 状态 |
+|----|------|------|
+| DO-064 | DELEGATE | v1.3 预留 |
+| AV-013 | DELEGATE（审计） | v1.3 预留 |
+
+## 七步审计哈希验证
+
+验证算法（白皮书 §13.3）遵循七个确定性步骤：
+
+```
+步骤 A：从 decision_object 中提取 extensions
+步骤 B：计算 extensions_hash → 与存储值比较
+步骤 C：删除自引用字段（extensions、audit、signature、signing_key_id）
+步骤 D：对剩余字段进行 JCS（RFC 8785）规范化
+步骤 E：对规范化表示进行 SHA-256
+步骤 F：将计算哈希与存储的 audit.hash 比较
+```
+
+任何走捷径的验证器（如直接比较预计算哈希）将**通过 AV-001~AV-012 但失败于 AV-008**——陈旧回归金丝雀专门捕获偷懒的实现。
+
+## 合规配置
+
+所有向量内嵌 `erdl-compliance-v1.2` 合规配置，引用以下框架：
+
+| 框架 | 管辖范围 | 生效日期 |
+|------|----------|----------|
+| EU AI Act（Regulation 2024/1689） | 欧盟 | 2027-12-02 |
+| GB/Z 185-2026 | 中国 | 2026-05-22 |
+| NIST AI RMF 1.0 | 美国 | 现行 |
+| COSO GenAI 2026 | 全球 | 现行 |
+
+完整参考文档见 `knowledge/regulatory/` 目录下的 12 个监管框架。
+
+## 仓库结构
 
 ```
 erdl-vectors/
+├── decision-object-vectors-v1.2.json   # 101 条向量（~830 KB）
+├── scripts/
+│   ├── generate-vectors.cjs            # 确定性向量生成器
+│   └── verify.js                       # 零依赖七步验证器
+├── test/
+│   ├── generate-comprehensive.test.ts  # 68 项生成器完整性测试
+│   └── verify-comprehensive.test.ts    # 88 项 JCS/验证/审计测试
 ├── docs/
-│   ├── WHITEPAPER-v1.2-DRAFT-3.md       # White paper (Chinese)
-│   └── WHITEPAPER-v1.2-DRAFT-3.en.md    # White paper (English) — in progress
+│   ├── RUNNERS-GUIDE.md                # Runner 实现者指南
+│   ├── DESIGN-generate-vectors-v1.2.md # 生成器架构设计
+│   ├── DESIGN-vector-inventory-v1.2.md # 完整 63 DO 清单
+│   ├── DESIGN-verify-js-v1.2.md        # 验证器架构设计
+│   ├── WHITEPAPER-v1.2-DRAFT-3.md      # 白皮书（中文版）
+│   └── WHITEPAPER-v1.2-DRAFT-3.en.md   # 白皮书（英文版）
 ├── knowledge/
-│   ├── regulatory/                       # 12 global regulatory frameworks
-│   │   ├── 01-EU-AI-Act-2024.md
-│   │   ├── 02-NIST-AI-RMF-2023.md
-│   │   ├── ...                           # (12 files total)
-│   │   └── 12-CAICT-Trusted-AI-Agent-2-2026.md
-│   └── spec/                             # ERDL specification references
-│       ├── erdl-spec-v1.1.md
-│       ├── erdl-spec-v1.1.en.md
-│       └── erdl-spec-v1.2.md
-├── scripts/                              # (forthcoming)
-│   ├── verify.js                         # Universal verification script
-│   └── generate-vectors.cjs             # Vector generation script (maintainer use)
-├── decision-object-vectors-v1.2.json     # (forthcoming) 101 test vectors
-└── README.md
+│   ├── regulatory/                     # 12 个监管框架
+│   └── spec/                           # ERDL 规范参考
+├── CHANGELOG.md                        # 版本历史
+├── CONTRIBUTING.md                     # 贡献指南
+├── package.json
+├── README.md                           # 本文件（中文版）
+└── README.en.md                        # English version
 ```
 
-## Vector Set (v1.2)
+## 兼容等级
 
-| Category | Count | Description |
-|----------|:-----:|-------------|
-| Static Decision Vectors | 63 | 13 decision types + 13 operators + edge cases |
-| Dynamic Decision Vectors | 26 | Temporal(10) + Seeded(8) + Stateful(8) |
-| Audit Hash Vectors | 12 | AV-001~AV-008 + 4 new (CORRECT/NOTIFY/ROLLBACK/WORKFLOW) |
-| **Total** | **101** | |
+| 等级 | 要求 | 向量数 |
+|:----:|------|:------:|
+| **L1 — 基础** | v1.0 Decision Object 结构 + JCS + SHA-256 | 28 |
+| **L2 — 已验证** | v1.1 全部向量 + 动态向量 | 45 |
+| **L3 — 完整** | v1.2 全部 101 条向量，含陈旧回归检测 | 101 |
 
-DELEGATE decision type is defined in SPEC v1.2 but reserved for v1.3 (reference implementation pending).
+## Runner 实现指南
 
-## Compatibility Levels
+如果你正在构建 ERDL 规则引擎并希望实现跨实现兼容，请从 **[Runner's Guide](docs/RUNNERS-GUIDE.md)** 开始。它涵盖了七步验证算法、JCS 实现细节、常见陷阱和测试策略——附带了可翻译为任意语言的伪代码。
 
-| Level | Requirement | Vectors |
-|:-----:|-------------|:-------:|
-| L1 Basic | All v1.0 vectors | 28 |
-| L2 Verified | All v1.1 vectors | 45 |
-| L3 Full | All v1.2 vectors | 101 |
+## 安全
 
-## Quick Start (forthcoming)
+本向量集已通过独立第三方安全审查，涵盖 JCS 正确性、SHA-256 用法、确定性可复现性和密码学安全性。零严重或高危发现。
 
-```bash
-# Verify your ERDL implementation
-node scripts/verify.js --vectors decision-object-vectors-v1.2.json
-```
+## 参考资料
 
-## Previous Versions
-
-- **v1.1** (Deprecated): [erdl-vectors-1.1](https://github.com/OpenOBA/erdl-vectors-1.1) — 45 vectors, validated by three independent implementations
-- **v1.0** (Deprecated): 28 vectors, frozen
-
-## References
-
-- RFC 8785 — JSON Canonicalization Scheme (JCS)
-- FIPS 186-5 — Digital Signature Standard (ECDSA P-256)
-- FIPS 180-4 — Secure Hash Standard (SHA-256)
+- [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) — JSON Canonicalization Scheme（JCS）
+- [RFC 9562](https://www.rfc-editor.org/rfc/rfc9562) — Universally Unique IDentifiers（UUID）
+- [FIPS 180-4](https://csrc.nist.gov/publications/detail/fips/180/4/final) — Secure Hash Standard（SHA-256）
 - [ERDL Specification v1.1](https://openoba.github.io/erdl-landing/)
-- IETF Agent Audit Trail: [draft-sharif-agent-audit-trail-00](https://datatracker.ietf.org/doc/draft-sharif-agent-audit-trail/)
+- [IETF Agent Audit Trail](https://datatracker.ietf.org/doc/draft-sharif-agent-audit-trail/)
 
 ---
 
-> *"Deterministic architecture, not prompt engineering. Neutrality is tested, not declared."*
+> *"确定性架构，而非 Prompt 工程。中立性靠检验，不靠宣言。"*
 >
-> — OpenOBA · 2026-07-27 · ERDL Decision Object v1.2 RFC
+> — OpenOBA · 2026-07-28 · ERDL Decision Object v1.2

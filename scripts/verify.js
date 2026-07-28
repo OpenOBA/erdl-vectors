@@ -16,9 +16,10 @@
  *   6. SHA-256 → Step E
  *   7. Compare with stored audit.hash → Step F
  *
- * Special: AV-008 EXPECTED_MISMATCH — canonical_bytes matches AV-003
+ * Special: AV-008 EXPECTED_MISMATCH — canonical_hex matches AV-003
  *          but audit.hash is a hardcoded v1.1 legacy value.
  *
+ * Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
  * Author: Tang Haoran — OpenOBA AI Executive
  * Date: 2026-07-28
  *
@@ -86,7 +87,25 @@ function jcsCanonicalize(value) {
     return '[' + elements.join(',') + ']';
   }
 
+  if (typeof value === 'bigint') {
+    throw new Error('JCS: BigInt is not a valid JSON value per RFC 8785')
+  }
+  if (typeof value === 'symbol') {
+    throw new Error('JCS: Symbol is not a valid JSON value per RFC 8785')
+  }
+  if (typeof value === 'function') {
+    throw new Error('JCS: Function is not a valid JSON value per RFC 8785')
+  }
+
   if (typeof value === 'object') {
+    // Defensive: reject non-plain objects that could serialize ambiguously
+    if (value === null) return 'null'
+    if (value instanceof Date) {
+      throw new Error('JCS: Date objects are not serializable — convert to ISO string first')
+    }
+    if (value.constructor !== Object && value.constructor !== Array) {
+      throw new Error('JCS: non-plain object (' + (value.constructor ? value.constructor.name : 'unknown') + ') is not serializable')
+    }
     // Sort keys by UTF-16 code unit (JS default for Object.keys)
     const keys = Object.keys(value).sort();
     const members = [];
@@ -134,11 +153,11 @@ function verifyDO(vectorId, decisionObject) {
 
   // Sanitize: also delete any leftover placeholder/internal fields
   delete clone.extensions_validation;
-  delete clone.canonical_bytes;
+  delete clone.canonical_hex;
 
   // Step 5: JCS Serialize (Step D)
   const canonicalFull = jcsCanonicalize(clone);
-  const canonicalBytes = Buffer.from(canonicalFull, 'utf8').toString('hex');
+  const canonicalHex = Buffer.from(canonicalFull, 'utf8').toString('hex');
 
   // Step 6: SHA-256 (Step E)
   const computedHash = 'sha256:' + sha256(canonicalFull);
@@ -148,7 +167,7 @@ function verifyDO(vectorId, decisionObject) {
 
   return {
     passed: computedHash === storedHash,
-    canonical_bytes: canonicalBytes,
+    canonical_hex: canonicalHex,
     computedHash,
     storedHash,
     extensions_hash: clone.extensions_hash || computedExtHash
@@ -176,6 +195,32 @@ function main() {
   console.log('');
 
   const data = JSON.parse(fs.readFileSync(vectorsPath, 'utf8'));
+
+  // ── Schema validation ──
+  if (!data.vectors || !Array.isArray(data.vectors)) {
+    console.error('ERROR: vectors file missing "vectors" array field')
+    process.exit(1)
+  }
+  if (!data.audit_vectors || !Array.isArray(data.audit_vectors)) {
+    console.error('ERROR: vectors file missing "audit_vectors" array field')
+    process.exit(1)
+  }
+  for (const vec of data.vectors) {
+    if (!vec.decision_object) {
+      console.error('ERROR: vector ' + (vec.id || '?') + ' is missing decision_object')
+      process.exit(1)
+    }
+    if (!vec.canonical_hex || typeof vec.canonical_hex !== 'string') {
+      console.error('ERROR: vector ' + (vec.id || '?') + ' is missing canonical_hex')
+      process.exit(1)
+    }
+  }
+  for (const av of data.audit_vectors) {
+    if (!av.decision_object || !av.decision_object.audit || !av.decision_object.audit.hash) {
+      console.error('ERROR: audit vector ' + (av.id || '?') + ' is missing decision_object.audit.hash')
+      process.exit(1)
+    }
+  }
 
   // ── Verify JCS self-consistency first ──
   console.log('── JCS Self-Consistency Check ──');
@@ -234,27 +279,27 @@ function main() {
   let doPasses = 0;
   let doFails = 0;
   for (const vec of data.vectors) {
-    // Verify that DO's canonical_bytes matches self-JCS
+    // Verify that DO's canonical_hex matches self-JCS
     const clone = JSON.parse(JSON.stringify(vec.decision_object));
     delete clone.extensions;
     delete clone.audit;
     delete clone.signature;
     delete clone.signing_key_id;
     delete clone.extensions_validation;
-    delete clone.canonical_bytes;
+    delete clone.canonical_hex;
     const selfJcs = jcsCanonicalize(clone);
     const selfCanonical = Buffer.from(selfJcs, 'utf8').toString('hex');
 
-    if (selfCanonical === vec.canonical_bytes) {
+    if (selfCanonical === vec.canonical_hex) {
       doPasses++;
     } else {
       doFails++;
       if (doFails <= 3) {
-        console.log('  ✗ ' + vec.id + ' canonical_bytes mismatch');
+        console.log('  ✗ ' + vec.id + ' canonical_hex mismatch');
       }
     }
   }
-  console.log('  ✓ ' + doPasses + ' / ' + data.vectors.length + ' DO canonical_bytes self-consistent');
+  console.log('  ✓ ' + doPasses + ' / ' + data.vectors.length + ' DO canonical_hex self-consistent');
   if (doFails > 0) {
     console.log('  ✗ ' + doFails + ' FAILURES — check JCS implementation vs json-canonicalize');
   }
@@ -273,13 +318,13 @@ function main() {
     const id = avVec.id;
     const result = verifyDO(id, avVec.decision_object);
 
-    // Compare canonical_bytes with stored value
-    const canBytesMatch = result.canonical_bytes === avVec.canonical_bytes;
+    // Compare canonical_hex with stored value
+    const canHexMatch = result.canonical_hex === avVec.canonical_hex;
 
     let status;
     if (id === 'AV-008') {
       // AV-008: EXPECTED MISMATCH (stale regression vector)
-      if (!result.passed && canBytesMatch) {
+      if (!result.passed && canHexMatch) {
         status = '✓ EXPECTED_MISMATCH';
         passes++;
       } else if (result.passed) {
@@ -290,22 +335,22 @@ function main() {
         errors++;
       }
     } else {
-      if (result.passed && canBytesMatch) {
+      if (result.passed && canHexMatch) {
         status = '✓ MATCH';
         passes++;
-      } else if (result.passed && !canBytesMatch) {
-        status = '⚠ PARTIAL (hash matches but canonical_bytes differ — JCS difference?)';
+      } else if (result.passed && !canHexMatch) {
+        status = '⚠ PARTIAL (hash matches but canonical_hex differ — JCS difference?)';
         errors++;
-      } else if (!result.passed && canBytesMatch) {
-        status = '✗ MISMATCH (same canonical_bytes but different hash — implementation algorithm error)';
+      } else if (!result.passed && canHexMatch) {
+        status = '✗ MISMATCH (same canonical_hex but different hash — implementation algorithm error)';
         mismatches++;
       } else {
-        status = '✗ FAIL: ' + (result.error || 'canonical_bytes + hash both mismatch');
+        status = '✗ FAIL: ' + (result.error || 'canonical_hex + hash both mismatch');
         mismatches++;
       }
     }
 
-    results.push({ id, status, result, canonicalBytesMatch: canBytesMatch });
+    results.push({ id, status, result, canonicalHexMatch: canHexMatch });
     console.log('  ' + status.padEnd(50) + ' | ' + id + ' ← ' + avVec.vector_ref);
   }
 

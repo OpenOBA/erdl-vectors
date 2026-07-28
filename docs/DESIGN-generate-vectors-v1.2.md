@@ -1,7 +1,9 @@
 # DESIGN: generate-vectors.cjs — v1.2 向量生成器设计
 
+> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+
 > 版本: 2.0 (完全重写) · 2026-07-28
-> 状态: Design (待 Henry 确认后实现)
+> 状态: Released · 2026-07-28
 > 权威源: SPEC v1.1 §3.4 + 白皮书 Draft 3 §13
 > 策略: 从零构建，不继承 v1.0/v1.1 向量数据
 
@@ -143,7 +145,7 @@ exists   → DO-049 (DENY: context.high_risk_flag exists and is true)
 |------|--------|------|
 | `spec` | `"decision-object-v1.0"` | 白皮书 §12.2 不变量 #1 |
 | `compliance_profile` | 见 4.2 | 白皮书 §5.2 |
-| `execution_trace_id` | 每条 DO 独立 UUID v7 | 白皮书 §7.4 |
+| `execution_trace_id` | 每条 DO 独立 UUID v7 (RFC 9562, 确定性) | 白皮书 §7.4 |
 | `evaluation_duration_ms` | `12` | 常量 |
 | `agent.id` | `"did:erdl:sha256:test-runner-v1.2"` | — |
 | `agent.role` | `"guardian"` | — |

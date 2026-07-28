@@ -1,18 +1,36 @@
 {
   "name": "erdl-vectors",
-  "version": "1.0.0",
-  "description": "> **Version**: v1.2 (Draft)   > **Status**: Request for Comments   > **Maintainer**: OpenOBA   > **License**: MIT",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
+  "version": "1.2.0",
+  "description": "ERDL Decision Object v1.2 Cross-Implementation Test Vectors — 101 deterministic, tamper-evident audit vectors for AI Agent rule evaluation.",
+  "main": "scripts/verify.js",
+  "keywords": [
+    "erdl",
+    "decision-object",
+    "test-vectors",
+    "jcs",
+    "rfc-8785",
+    "sha-256",
+    "audit-trail",
+    "ai-agent",
+    "compliance",
+    "cross-implementation",
+    "deterministic"
+  ],
+  "author": "OpenOBA (https://openoba.com)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenOBA/erdl-vectors"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "generate": "node scripts/generate-vectors.cjs",
+    "verify": "node scripts/verify.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "json-canonicalize": "^2.0.0"
+    "json-canonicalize": "2.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10"
   }
 }

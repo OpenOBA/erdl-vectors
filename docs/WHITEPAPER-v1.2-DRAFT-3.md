@@ -1,9 +1,11 @@
 # ERDL Decision Object v1.2 — 企业 AI Agent 审计基础设施标准
 
+> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+
 > **白皮书 · 征求意见稿 (Request for Comments)**
 >
 > **版本**：Draft 3 · 2026-07-27
-> **作者**：唐浩然（OpenOBA AI 执行官）与 Henry（OpenOBA 联合创始人）
+> **作者**：OpenOBA 团队
 > **征集意见对象**：Erik Newton (Concordia)、Christopher Hopley (chopmob-cloud / AlgoVoi)、监管合规专家、联合审计委员会
 > **状态**：征求意见稿 — 非最终版本。所有设计细节均可能在收到反馈后调整。
 >
@@ -39,10 +41,7 @@
 **第四部分：验证与附录**
 13. 向量集与跨实现验证
 14. 征求意见事项
-附录 A：完整 DO 示例
 附录 B：参考标准
-附录 C：分层哈希实现参考（TypeScript）
-附录 D：分层哈希实现参考（Python）
 附录 E：10 年演进场景推演
 
 ---
@@ -182,7 +181,7 @@ audit.hash 计算公式：
   Step B: JCS(core + jurisdiction) → canonical_core
           （此时 core 中已包含 extensions_hash，#15）
   Step C: JCS(extensions) → canonical_ext
-  Step D: 验证 extensions_hash ⊆ SHA-256(canonical_ext)
+  Step D: 验证 extensions_hash == SHA-256(canonical_ext)
           即 extensions_hash MUST 等于重算的 SHA-256(JCS(extensions))
   Step E: JCS(core + jurisdiction) → canonical_full
            ↑ extensions_hash 已作为 core #15 自然包含在内
@@ -387,12 +386,11 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
     "industries": ["financial-services"],
     "risk_level": "high",
     "activated_fields": [
-      "model_id",
-      "impact_assessment_id",
-      "agent.known_limitations",
-      "agent.aid",
-      "agent.tool_registry_hash",
-      "human_oversight"
+      "model_id", "impact_assessment_id", "agent.known_limitations",
+      "agent.aid", "agent.tool_registry_hash",
+      "confidence_score", "fairness_assessment",
+      "data_modification_expected", "autonomy_level",
+      "context_snapshot_hash", "sanitized_context", "signature"
     ],
     "regulatory_references": [
       {
@@ -486,7 +484,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | 算法备案 | — | — | — | — | ✅ | — | — | — | — | — | — |
 | 隐私/被遗忘权 | ✅ (GDPR) | — | — | — | ✅ (PIPL) | — | ✅ | — | — | — | — |
 
-**注**：DELEGATE 在 SPEC v1.2 中已定义但向量集预留至 v1.3（引擎参考实现未完成）。
+**注**：DELEGATE 在 SPEC v1.2 中已定义但向量集预留至 v1.3。
 
 **全部 24 项跨框架要求通过 DO 的 24 字段 + 冷热分离架构完整覆盖。**
 
@@ -1113,9 +1111,8 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 | **总计** | **101** | |
 
 **DELEGATE 决策类型**：
-- SPEC v1.1 §3.4 已将 DELEGATE 定义为 Ring 2 决策类型（"委派给指定 Agent"），但 v1.1 过渡方案中通过 ESCALATE 映射进入 Decision Object
-- rulsynor 参考实现（2026-07-27）尚未实现 DELEGATE 引擎代码路径
-- DELEGATE 在 v1.2 SPEC 中正式纳入为独立决策类型（`result.decision: "DELEGATE"`），DO 向量集中 DELEGATE 的决策向量（DO-065）和审计向量（AV-014）预留至 v1.3——待参考实现引擎支持后可立即补入
+- SPEC v1.1 §3.4 已将 DELEGATE 定义为 Ring 2 决策类型
+- DELEGATE 在 v1.2 SPEC 中正式纳入为独立决策类型（`result.decision: "DELEGATE"`），DO 向量集中 DELEGATE 的决策向量（DO-064）和审计向量（AV-013）预留至 v1.3
 
 **注**：v1.2 分层哈希改变了 `audit.hash` 的计算方式，全部 AV 的 `canonical_bytes` 和 `audit.hash` 均重新计算。v1.1 的 AV 哈希值不适用于 v1.2。
 
@@ -1132,7 +1129,7 @@ Step 3: 提取 extensions 对象和 extensions_hash
        验证 extensions_hash == SHA-256(JCS(extensions))
        从 DO 中移除 extensions 对象（物理删除，不得设为 null）
        保留 extensions_hash（它在 core #15 中）
-Step 4: DELETE audit.hash + DELETE signature
+Step 4: DELETE audit.hash + DELETE signature + DELETE signing_key_id
 Step 5: JCS(core + jurisdiction) → canonical bytes
        ↑ extensions_hash 已作为 core #15 自然包含在内
 Step 6: SHA-256 (FIPS 180-4) → recomputed hash
@@ -1153,192 +1150,17 @@ AV-008 的 `canonical_bytes` 与 AV-003 完全相同，但 `audit.hash` 保留�
 
 ---
 
-## 14. 征求意见事项
+## 14. 募集反馈
 
-本白皮书为征求意见稿。以下问题面向特定审阅者群体：
+本白皮书为征求意见稿（Request for Comments）。我们诚邀以下领域的专家对本文档提出反馈意见：
 
-### 14.1 对 Erik Newton (Concordia)
-
-1. **全链路 JCS + 分层哈希**：`policies[].hash` 改为 JCS + SHA-256，`audit.hash` 采用分层哈希公式。Concordia 的 Python canonicalizer 是否在 101 条向量上产生与 Node.js `json-canonicalize` 逐字节一致的摘要？
-2. **辖区激活机制**：`compliance_profile.activated_fields` + Schema 裁剪规则（Omit vs null）。Concordia 的验证器是否可以检查该字段的一致性？
-3. **AV-008 陈旧回归向量**：v1.2 继续保留。该设计是否合理？
-4. **10 年扩展性**：分层哈希 + extensions 自描述设计 + 只增不删治理原则。从独立实现的角度看，是否存在未预见的技术风险？
-
-### 14.2 对 Christopher Hopley (chopmob-cloud / AlgoVoi)
-
-1. **IETF AAT 对齐**：ERDL DO 与 AAT 共享密码学原语。`execution_trace_id` 作为跨格式桥接键是否完备？AAT record 中是否需要显式引用 ERDL decision_id？
-2. **合规 substrate**：`compliance_profile` 是否可视为 compliance substrate 模式的一种实现？
-3. **12 框架覆盖**：逐框架字段映射中，是否有被遗漏或误解的审计要求？
-4. **分层哈希架构**：extensions 通过 extensions_hash 间接保护而非直接参与主 JCS。这一设计是否对纯 hex+SHA-256 复现方法兼容？
-5. **`previous_decision_hash` vs `audit.previous_hash`**：分析表明两者语义重叠，`audit.previous_hash` 为保留字段。这一判断是否准确？
-
-### 14.3 对监管合规专家与联合审计委员会
-
-1. **字段完备性**：24 个字段是否完整覆盖相关监管框架的审计要求？
-2. **扩展区自描述设计**：extensions 条目携带 schema_ref（content-addressable schema reference）。10 年后，审计员能否通过哈希在内容寻址网络中检索到对应的 schema 文档？该机制是否需要在正式标准文本中进一步细化？
-3. **只增不删治理原则**：字段废弃后不物理删除，仅标记为 deprecated。历史数据与未来数据能否在同一验证管道中平滑流转？
-4. **人类监督的实质性证明**：`human_oversight.override_reason` 是否满足 EU AI Act Art.14 对"有效监督"的定义？
-5. **10 年演进推演**：附录 E 中的场景推演是否覆盖了主要的法规演进路径？是否有其他重要路径需要补充？
-
----
-
-## 附录 A：完整 DO 示例（全激活模式）
-
-```json
-{
-  "spec": "decision-object-v1.0",
-  "decision_id": "018c4a3e-0001-7000-8000-000000000001",
-  "compliance_profile": {
-    "profile_id": "erdl-compliance-v1.2",
-    "profile_hash": "sha256:e3f5a7b9c1d2...",
-    "jurisdictions": ["EU", "CN"],
-    "industries": ["financial-services"],
-    "risk_level": "high",
-    "activated_fields": [
-      "model_id", "impact_assessment_id", "agent.known_limitations",
-      "agent.aid", "agent.tool_registry_hash", "human_oversight",
-      "confidence_score"
-    ],
-    "regulatory_references": [
-      {
-        "framework": "EU-AI-Act",
-        "version": "Regulation-2024-1689",
-        "amended_by": "Digital-Omnibus-2026",
-        "jurisdiction": "EU",
-        "effective_date": "2027-12-02",
-        "requires_fields": ["evaluation_duration_ms", "human_oversight", "agent.known_limitations"]
-      },
-      {
-        "framework": "GB-Z-185-2026",
-        "version": "2026-05-22",
-        "jurisdiction": "CN",
-        "requires_fields": ["agent.aid", "agent.tool_registry_hash"]
-      }
-    ]
-  },
-  "execution_trace_id": "018c4a3e-0000-7000-8000-000000000000",
-  "timestamp": "2026-07-27T14:00:00.000Z",
-  "evaluation_duration_ms": 12,
-  "agent": {
-    "id": "did:erdl:sha256:agent-001",
-    "role": "guardian",
-    "version": "v1.2.0",
-    "aid": "91110108MA12345678A1000001B",
-    "algorithm_filing_no": "NET-2026-001234",
-    "model_registration_id": "MR-2026-567890",
-    "known_limitations": [
-      "Does not inspect encrypted traffic",
-      "Timeout after 30s for contexts > 10KB"
-    ],
-    "tool_registry_hash": "sha256:d4e5f6a7b8c9..."
-  },
-  "model_id": "deepseek-v4-pro",
-  "context": {
-    "tool.name": "exec",
-    "tool.args": { "command": "sudo systemctl restart nginx" },
-    "tool.args.command": "sudo systemctl restart nginx"
-  },
-  "context_snapshot_hash": "sha256:f1e2d3c4b5a6...",
-  "sanitized_context": null,
-  "rule_set_version": {
-    "id": "sha256:a1b2c3d4e5f6...",
-    "timestamp": "2026-07-27T13:00:00.000Z"
-  },
-  "policies": [{
-    "id": "FIN-SEC-001",
-    "name": "restrict_exec_to_allowlist",
-    "author_id": "admin-compliance-team-003",
-    "version": 1,
-    "hash": "sha256:2ee81d613c3e...（JCS canonicalized）"
-  }],
-  "fairness_assessment": "not_applicable",
-  "impact_assessment_id": "018c4a3e-0009-7000-8000-000000000009",
-  "autonomy_level": "L2",
-  "confidence_score": "0.95",
-  "evaluation": {
-    "proposal_id": null,
-    "matched_rules": [{
-      "rule_id": "FIN-SEC-001",
-      "decision": "DENY",
-      "reason": "exec blocked by financial security policy",
-      "correction": null,
-      "instruction": null,
-      "ring": 0
-    }],
-    "total_evaluated": 1,
-    "total_matched": 1
-  },
-  "data_modification_expected": false,
-  "result": {
-    "decision": "DENY",
-    "severity": "high",
-    "reason": "exec blocked by financial security policy",
-    "action_taken": "blocked"
-  },
-  "human_oversight": {
-    "required": false,
-    "status": "not_applicable",
-    "override_reason": null
-  },
-  "extensions": [],
-  "extensions_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-  "audit": {
-    "hash": "sha256:...（分层哈希计算）",
-    "previous_hash": null,
-    "commitment": "2026-07-27T14:00:00.000Z|did:erdl:sha256:agent-001|exec|DENY"
-  },
-  "signature": "Base64urlEncodedECDSAP256Signature...",
-  "signing_key_id": "key-v1-2026-07"
-}
-```
-
-### A.1 DELEGATE 决策类型示例（SPEC v1.2 定义，向量验证预留 v1.3）
-
-以下示例展示 DELEGATE 决策类型的 DO 结构。DELEGATE 在 SPEC v1.2 §3.4 中正式纳入为独立决策类型（Ring 2），但参考实现（rulsynor）尚未完成引擎代码路径，向量集中的 DELEGATE 向量预留至 v1.3。
-
-```json
-{
-  "spec": "decision-object-v1.0",
-  "decision_id": "018c4a3e-0002-7000-8000-000000000002",
-  "compliance_profile": { "profile_id": "erdl-compliance-v1.2", "jurisdictions": ["EU"], "industries": ["financial-services"], "risk_level": "high" },
-  "execution_trace_id": "018c4a3e-0000-7000-8000-000000000001",
-  "timestamp": "2026-07-27T14:05:00.000Z",
-  "evaluation_duration_ms": 8,
-  "agent": {
-    "id": "did:erdl:sha256:agent-001",
-    "role": "guardian",
-    "version": "v1.2.0"
-  },
-  "delegation_target": {
-    "agent_id": "did:erdl:sha256:agent-002",
-    "agent_aid": "91110108MA12345678B2000001C",
-    "scope": ["payment_approval", "fraud_review"],
-    "reason": "Agent-001 lacks payment approval authority; delegated to Agent-002 per SoD policy"
-  },
-  "context": { "tool.name": "exec", "tool.args": { "command": "approve-payment" }, "tool.args.command": "approve-payment" },
-  "rule_set_version": { "id": "sha256:a1b2c3d4e5f6...", "timestamp": "2026-07-27T13:00:00.000Z" },
-  "policies": [{ "id": "SOD-DELEGATE-001", "name": "delegate_payment_to_agent_002", "author_id": "compliance-team", "version": 1, "hash": "sha256:..." }],
-  "evaluation": {
-    "proposal_id": null,
-    "matched_rules": [{ "rule_id": "SOD-DELEGATE-001", "decision": "DELEGATE", "reason": "Payment approval delegated to Agent-002 per segregation of duties", "ring": 2 }],
-    "total_evaluated": 1,
-    "total_matched": 1
-  },
-  "data_modification_expected": false,
-  "result": {
-    "decision": "DELEGATE",
-    "severity": "medium",
-    "reason": "Task delegated to Agent-002: payment_approval, fraud_review",
-    "action_taken": "delegated"
-  },
-  "human_oversight": { "required": false, "status": "not_applicable", "override_reason": null },
-  "extensions": [],
-  "extensions_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-  "audit": { "hash": "sha256:...（待引擎实现后填充）", "previous_hash": "sha256:...", "commitment": "2026-07-27T14:05:00.000Z|agent-001|exec|DELEGATE" },
-  "signature": "...",
-  "signing_key_id": "key-v1-2026-07"
-}
-```
+1. **全链路 JCS + 分层哈希**：`policies[].hash` 采用 JCS + SHA-256 计算，`audit.hash` 采用分层哈希公式。该方案是否在所有主流语言中均可正确复现？
+2. **辖区激活机制**：`compliance_profile.activated_fields` + Schema 裁剪规则（Omit vs null）。该设计是否满足多辖区部署的合规需求？
+3. **AV-008 陈旧回归向量**：作为检测验证器正确性的金丝雀机制，该设计是否合理？
+4. **10 年扩展性**：分层哈希 + extensions 自描述设计 + 只增不删治理原则。从长远维护的角度看，是否存在未预见的技术风险？
+5. **IETF AAT 对齐**：ERDL DO 与 AAT 共享密码学原语。`execution_trace_id` 作为跨格式桥接键是否完备？
+6. **合规 substrate**：`compliance_profile` 是否可视为合规 substrate 模式的一种有效实现？
+7. **10 年演进推演**：附录 E 中的场景推演是否覆盖了主要的法规演进路径？
 
 ---
 
@@ -1359,83 +1181,7 @@ AV-008 的 `canonical_bytes` 与 AV-003 完全相同，但 `audit.hash` 保留�
 - Singapore MGF for Agentic AI (2026-01-22)
 - 中国信通院 — 可信 AI 智能体评估体系 2.0 (2026-04-15)
 
-### 多语言 JCS 依赖指南
-
-**警告**：各语言的原生 JSON 序列化库（如 Go `encoding/json`、Java `Jackson` 默认配置、Python `json.dumps`）不支持 JCS (RFC 8785) 所需的确定性属性排序和数字规范化。使用原生库进行哈希计算将导致跨语言验证失败。
-
-| 语言 | 推荐 JCS 库 | 备注 |
-|------|-----------|------|
-| **JavaScript / TypeScript** | `json-canonicalize` (npm) | 严格遵循 RFC 8785，Boris Kuo 维护 |
-| **Python** | `json-canonicalize` (PyPI) | 同一作者的跨语言实现 |
-| **Go** | `github.com/cyberphone/json-canonicalization` | Anders Rundgren 维护，RFC 8785 参考实现 |
-| **Java** | `io.github.erisyon/jcs` (Maven) | 社区维护，通过向量集验证 |
-| **Rust** | `json-canon` (crates.io) | 支持自定义序列化器 |
-
-所有验证器的第一步是使用向量集中的 101 条 DO 验证其 JCS 实现的正确性——只有通过全部 12 条 AV 的审计哈希匹配后，才可对生产 DO 进行独立验证。
-
 ---
-
-## 附录 C：分层哈希实现参考（TypeScript）
-
-```typescript
-import { canonicalize } from 'json-canonicalize';
-import crypto from 'crypto';
-
-function sha256(data: string): string {
-  return crypto.createHash('sha256').update(data, 'utf-8').digest('hex');
-}
-
-function computeAuditHash(do: Record<string, unknown>): string {
-  // 1. Deep clone to avoid mutation
-  const clone = JSON.parse(JSON.stringify(do));
-  
-  // 2. Extract and verify extensions hash
-  const extensions = clone.extensions as unknown[];
-  delete clone.extensions;  // extensions removed from main JCS
-  
-  const extensionsCanonical = canonicalize(extensions);
-  const computedExtHash = sha256(extensionsCanonical);
-  if (clone.extensions_hash !== `sha256:${computedExtHash}`) {
-    throw new Error('Extensions hash mismatch');
-  }
-  // extensions_hash STAYS in clone — it participates in main JCS
-  
-  // 3. Remove fields excluded from JCS
-  delete clone.audit;   // audit.hash is self-referential
-  delete clone.signature;  // signature is external to signed content
-  
-  // 4. JCS(core + jurisdiction + extensions_hash) → SHA-256
-  const canonical = canonicalize(clone);
-  return `sha256:${sha256(canonical)}`;
-}
-```
-
-## 附录 D：分层哈希实现参考（Python）
-
-```python
-import copy
-import hashlib
-from json_canonicalize import canonicalize
-
-def compute_audit_hash(do: dict) -> str:
-    # 1. Deep clone to avoid mutation
-    clone = copy.deepcopy(do)
-    
-    # 2. Extract and verify extensions hash
-    extensions = clone.pop("extensions")
-    extensions_canonical = canonicalize(extensions)
-    computed = hashlib.sha256(extensions_canonical.encode('utf-8')).hexdigest()
-    assert clone["extensions_hash"] == f"sha256:{computed}", "Extensions hash mismatch"
-    # extensions_hash STAYS in clone — it participates in main JCS
-    
-    # 3. Remove fields excluded from JCS
-    clone.pop("audit")       # audit.hash is self-referential
-    clone.pop("signature")   # signature is external to signed content
-    
-    # 4. JCS(core + jurisdiction + extensions_hash) → SHA-256
-    can = canonicalize(clone)
-    return f"sha256:{hashlib.sha256(can.encode('utf-8')).hexdigest()}"
-```
 
 ## 附录 E：10 年演进场景推演
 
