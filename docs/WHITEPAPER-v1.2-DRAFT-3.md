@@ -334,7 +334,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | `human_oversight.required` | boolean | ✅ | 该决策是否法定要求人类介入 |
 | `human_oversight.status` | string | ✅ | approved / rejected / overridden / pending / not_applicable |
 | `human_oversight.human_actor_id` | string | 条件 | 介入的人类操作员 ID |
-| `human_oversight.timestamp` | string | 条件 | 人类操作时间（ISO 8601 UTC ms） |
+| `human_oversight.timestamp` | string | 条件 | 人类操作时间（ISO 8601 UTC ms）。MUST ≥ `timestamp`——人类监督行为必须发生在 Agent 决策之后。若 status 为 not_applicable，此字段 MUST 被物理省略（Omit） |
 | `human_oversight.reason` | string | 可选 | 人类操作理由 |
 | `human_oversight.override_reason` | string | 条件 | 当 status 为 overridden 时 MUST — 人类推翻 Agent 决策的具体理由（EU AI Act Art.14 "有效监督" 合规） |
 
