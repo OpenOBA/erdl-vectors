@@ -156,6 +156,8 @@ JCS (RFC 8785 §3.2.2.3) 基于 IEEE 754 双精度规范序列化 JSON number。
 4. **字符串格式约束**：参与 JCS 的字符串数值 MUST 使用规范表示——禁止前后空格（`" 0.95"`）、禁止科学计数法（`"1e-3"`）、禁止前导零（`"00.95"`）
 5. **Omit over Null**：所有值为 `null`、`undefined` 或空数组 `[]` 的可选字段，在传入 JCS 序列化器之前 MUST 从 JSON 树中物理删除（Omit），不得保留键名。`{"a": null}` 和 `{}` 在 JCS 下产生不同的 canonical bytes
 
+> 各语言实现 JCS 的具体预处理指南（Python 整数精度、Go `json.Marshal` 尾部 `.0`、Java `BigDecimal`、Rust `serde_json` 等）详见 [Runner's Guide](docs/RUNNERS-GUIDE.md) §X "语言绑定注意事项"。
+
 ### 3.2 全链路 JCS
 
 v1.1 中 `policies[].hash` 使用了 `JSON.stringify`。`JSON.stringify` 不保证 key 顺序——ES2015+ 在实际实现中按插入顺序序列化，但该行为不在规范中保证。不同 Node.js 版本或不同语言实现可能产生不同的字节序列。v1.2 将全部哈希统一为 JCS：

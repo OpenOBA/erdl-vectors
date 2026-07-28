@@ -324,6 +324,59 @@ If your runner reports all 12 audit vectors as MATCH, your five-step verificatio
 
 The vector set uses `'2026-07-28T00:00:00.000Z'`. Your engine should use ISO 8601 with milliseconds and `Z` suffix.
 
+## 9. Language-Specific JCS Notes
+
+The JCS constraints in Whitepaper §3.1 apply across all languages. Below are known pitfalls and recommended practices for common implementation languages.
+
+### Python
+
+| Pitfall | Fix |
+|---------|-----|
+| `json.dumps(12)` → `"12"` but `json.dumps(12.0)` → `"12.0"` (trailing `.0`) | Use `int` only for integer fields; never let `float` near integer keys |
+| Large ints beyond JS safe range silently output | Validate all integer fields are within ±2^53-1 before JCS |
+| `None` serialized as `null` by default | Implement Omit-over-Null: remove keys with `None`/`[]` values before JCS (see §3.1(5)) |
+
+**Recommended JCS library**: `rfc8785` (pip install algovoi-substrate, wraps Trail of Bits' implementation) or `json-canonicalize`
+
+### JavaScript / TypeScript
+
+| Pitfall | Fix |
+|---------|-----|
+| `JSON.stringify` does NOT guarantee key order (ES2015+ de facto insertion order, but not spec-guaranteed) | Use `json-canonicalize` (npm) — RFC 8785 compliant |
+| `typeof 1.0 === typeof 1` → both `"number"`; no distinction | Use `Number.isInteger()` to validate; reject non-integer values for integer fields |
+| `null` and `undefined` behave differently in `JSON.stringify` | Implement explicit Omit-over-Null pre-processing |
+
+**Recommended JCS library**: `canonicalize` (npm install canonicalize@^3.0.0) — byte-identical with Python rfc8785, validated across 8 implementations
+
+### Go
+
+| Pitfall | Fix |
+|---------|-----|
+| `json.Marshal` may output `12.0` for `float64(12)` | Use `int64` for integer fields; cast explicitly; never round-trip through `float64` |
+| Map key ordering not guaranteed | Use `gowebpki/jcs` (v1.0.1) — RFC 8785 compliant |
+
+**Recommended JCS library**: `gowebpki/jcs` v1.0.1
+
+### Java
+
+| Pitfall | Fix |
+|---------|-----|
+| `BigDecimal` canonical form varies (`"1.0"` vs `"1.00"`) | Use `int`/`long` for integer fields; for string-encoded decimals, strip trailing zeros per spec regex |
+| `null` fields in Jackson/Gson | Implement Omit-over-Null: configure serializers to skip nulls |
+
+**Recommended JCS library**: `io.github.erdtman:java-json-canonicalization` v1.1 (by RFC 8785 author Anders Rundgren)
+
+### Rust
+
+| Pitfall | Fix |
+|---------|-----|
+| `serde_json::to_string(&12.0)` → `"12.0"` | Use `i64`/`u64` for integer fields; avoid `f64` |
+| `Option::None` serialized as `null` by default | Use `#[serde(skip_serializing_if = "Option::is_none")]` or manual pre-processing |
+
+**Recommended JCS library**: `serde_jcs` 0.2.0
+
+> **Cross-validation**: The libraries recommended above have been byte-for-byte cross-validated across 8 languages on 24 canonicalisation vectors (see AlgoVoi's [8-impl attestation](https://github.com/chopmob-cloud/algovoi-jcs-conformance-vectors/blob/main/_attestations/2026-05-24-8-impl-cross-validation.md)). Your implementation should produce identical bytes on the same input. If it doesn't, the bug is in your pre-processing, not in the JCS library.
+
 ## 8. Compatibility Levels
 
 | Level | Vectors | Requirement |
