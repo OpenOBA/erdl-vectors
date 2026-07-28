@@ -158,6 +158,8 @@ JCS (RFC 8785 §3.2.2.3) 基于 IEEE 754 双精度规范序列化 JSON number。
 
 6. ⚠️ **原始数据原样加载（财务/审计关键约束）**：ERDL 不执行财务计算——不进行金额加法、汇率换算、舍入或精度规范化。extensions 中的字符串数值（如金额、税率、数量）MUST 保留业务层输出的**完整精度和原始形式**，包括尾部零（如 `"100.500"` 不得简化为 `"100.5"`）。这一约束有三重保护：(a) ERDL 作为公证人——任何写入 extensions 的字节不可被 ERDL 自身修改，篡改会被 JCS+SHA-256 检测；(b) 审计可追溯——若业务层因浮点精度或舍入规则导致金额偏差，可通过 DO 中的原始值定位错误源头（业务层而非记录层）；(c) 精度规范责任归属——ISO 4217 货币代码、Decimal128 精度基准、银行家舍入等规则属于业务层职责，业务层应在 extensions 条目中通过 `schema_ref` 引用对应的精度规范文档
 
+7. ⚠️ **资源边界（DoS 防护）**：为防止恶意构造的 DO 耗尽验证器资源，规定以下硬性上限：(a) 单个 DO JSON 序列化后不超过 **1 MB**（含 extensions）；(b) extensions 数组不超过 **100 个条目**；(c) JSON 嵌套深度不超过 **10 层**。验证器 SHOULD 在解析前检查这些边界，超出任一上限的 DO MUST 被拒绝并标记为 `resource_limit_exceeded`
+
 > 各语言实现 JCS 的具体预处理指南（Python 整数精度、Go `json.Marshal` 尾部 `.0`、Java `BigDecimal`、Rust `serde_json` 等）详见 [Runner's Guide](docs/RUNNERS-GUIDE.md) §9 "语言绑定注意事项"。
 
 ### 3.2 全链路 JCS
