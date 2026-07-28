@@ -68,7 +68,6 @@ const TIMESTAMP = '2026-07-28T00:00:00.000Z';
 
 // Empty extensions → JCS([]) → canonical bytes → sha256
 const EMPTY_EXTENSIONS_JCS = jcs([]);
-const EMPTY_EXTENSIONS_HASH = 'sha256:' + sha256(EMPTY_EXTENSIONS_JCS);
 
 // Virtual hashes
 const VIRTUAL_SHA256 = 'sha256:0000000000000000000000000000000000000000000000000000000000000000';
@@ -89,7 +88,7 @@ const AGENT_ALGORITHM_FILING_NO = 'NET-2026-000000';
 const AGENT_MODEL_REGISTRATION_ID = 'MR-2026-000000';
 
 const MODEL_ID = 'test-model-v1.2';
-const CONFIDENCE_SCORE = '0.95';
+const CONFIDENCE_SCORE = 95;
 const FAIRNESS_ASSESSMENT = 'not_applicable';
 const IMPACT_ASSESSMENT_ID = '018c4a3e-0009-7000-8000-000000000009';
 const DATA_MODIFICATION_EXPECTED = false;
@@ -214,32 +213,24 @@ function buildDO({ id, decision_type, rules, context, expected, description, cat
     },
     human_oversight: expected.human_oversight || (decision_type === 'REQUEST_HUMAN' ? true : false),
     extensions: [],
-    extensions_hash: EMPTY_EXTENSIONS_HASH,
-    audit: { hash: '' }, // placeholder — computed via hierarchical hashing
+    audit: { hash: '' }, // placeholder — computed via flat hashing
     signature: TEST_SIGNATURE,
     signing_key_id: TEST_SIGNING_KEY_ID
   };
 
-  // ── Hierarchical Hashing (§3.3) ──
+  // ── Flat Hashing (§3.3) ──
 
-  // Step A: Extract extensions (clone = deep copy)
+  // Step 1: Deep clone
   const clone = JSON.parse(JSON.stringify(doObj));
-  const exts = clone.extensions;
 
-  // Step B: Verify extensions_hash
-  const computedExtHash = 'sha256:' + sha256(jcs(exts));
-  if (clone.extensions_hash !== computedExtHash) {
-    throw new Error(`extensions_hash mismatch for ${id}: expected ${clone.extensions_hash}, computed ${computedExtHash}`);
-  }
-
-  // Step C: Delete self-referencing / external fields
-  delete clone.extensions;        // extracted to exts, must be deleted for JCS
+  // Step 2: Delete self-referencing / external fields
+  // (extensions STAYS in the tree — participates directly in main JCS)
   delete clone.audit;
   delete clone.signature;
   delete clone.signing_key_id;
   delete clone.extensions_validation; // defensive
 
-  // Step D: Main JCS + SHA-256
+  // Step 3-4: JCS + SHA-256
   const canonicalFull = jcs(clone);
   // canonical_hex: hex encoding of UTF-8 bytes of JCS canonical form
   // Named 'hex' not 'bytes' because the stored value is hex-encoded, not raw bytes.
@@ -1134,7 +1125,7 @@ for (const avm of avMapping) {
     purpose: avm.purpose,
     canonical_hex: srcVector.canonical_hex,
     decision_object: JSON.parse(JSON.stringify(srcVector.decision_object)),
-    verification_method: 'seven-step' // Whitepaper §13.3
+    verification_method: 'five-step' // Whitepaper §13.3
   };
   auditVectors.push(av);
   console.log(`  ✓ ${avm.av} ← ${avm.src} — ${avm.purpose}`);
@@ -1184,7 +1175,7 @@ const output = {
   created: GENERATION_DATE,
   updated: GENERATION_DATE,
   maintainer: 'OpenOBA (https://openoba.com)',
-  description: '101 cross-implementation test vectors for ERDL Decision Object v1.2. 63 static DOs + 26 dynamic (Temporal 10 / Seeded 8 / Stateful 8) + 12 audit hash vectors. Hierarchical hashing: JCS(extensions) + JCS(core+jurisdiction+extensions_hash).',
+  description: '101 cross-implementation test vectors for ERDL Decision Object v1.2. 63 static DOs + 26 dynamic (Temporal 10 / Seeded 8 / Stateful 8) + 12 audit hash vectors. Flat hashing: JCS(core+jurisdiction+extensions) → SHA-256.',
   vectors: staticVectors,
   dynamic_vectors: {
     temporal: temporalVectors,

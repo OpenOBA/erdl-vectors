@@ -83,7 +83,7 @@ describe('63 DO 向量 — 结构', () => {
       'policies', 'fairness_assessment', 'impact_assessment_id',
       'autonomy_level', 'confidence_score', 'evaluation',
       'data_modification_expected', 'result', 'human_oversight',
-      'extensions', 'extensions_hash', 'audit', 'signature', 'signing_key_id'
+      'extensions', 'audit', 'signature', 'signing_key_id'
     ]
     for (const vec of vectors) {
       const doObj = vec.decision_object
@@ -125,24 +125,17 @@ describe('63 DO 向量 — 结构', () => {
 // ═══════════════════════════════════════════════
 // 层级哈希
 // ═══════════════════════════════════════════════
-describe('层级哈希 (Hierarchical Hashing)', () => {
+describe('平面哈希 (Flat Hashing)', () => {
   it('audit.hash 格式正确 (sha256:64hex)', () => {
     for (const vec of data.vectors) {
       expect(vec.decision_object.audit.hash).toMatch(/^sha256:[a-f0-9]{64}$/)
     }
   })
 
-  it('extensions_hash 格式正确', () => {
+  it('extensions is an empty array in all DOs', () => {
     for (const vec of data.vectors) {
-      expect(vec.decision_object.extensions_hash).toMatch(/^sha256:[a-f0-9]{64}$/)
+      expect(vec.decision_object.extensions).toEqual([])
     }
-  })
-
-  it('extensions 为空数组时 extensions_hash 为已知常量', () => {
-    // All DOs have empty extensions → same extensions_hash
-    const extHashes = new Set(data.vectors.map((v: any) => v.decision_object.extensions_hash))
-    // All extensions are empty → all extensions_hash should be identical
-    expect(extHashes.size).toBe(1)
   })
 
   it('audit hash 不包含 extensions/signature/signing_key_id', () => {
@@ -560,9 +553,9 @@ describe('跨向量一致性', () => {
     }
   })
 
-  it('所有 DO 的 confidence_score 为 0.95', () => {
+  it('所有 DO 的 confidence_score 为 95（整数，表示 95%）', () => {
     for (const vec of data.vectors) {
-      expect(vec.decision_object.confidence_score).toBe('0.95')
+      expect(vec.decision_object.confidence_score).toBe(95)
     }
   })
 
