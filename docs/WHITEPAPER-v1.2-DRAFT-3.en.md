@@ -334,7 +334,7 @@ Self-describing structure of each extension entry:
 | `human_oversight.required` | boolean | ✓ | Whether human intervention is legally required for this decision |
 | `human_oversight.status` | string | ✓ | approved / rejected / overridden / pending / not_applicable |
 | `human_oversight.human_actor_id` | string | Conditional | ID of the human operator who intervened |
-| `human_oversight.timestamp` | string | Conditional | Timestamp of human action (ISO 8601 UTC ms) |
+| `human_oversight.timestamp` | string | Conditional | Timestamp of human action (ISO 8601 UTC ms). **MUST be ≥ `timestamp`** — human oversight must occur after the Agent decision. **MUST be physically omitted (Omit) if status is `not_applicable`** |
 | `human_oversight.reason` | string | Optional | Reason for human action |
 | `human_oversight.override_reason` | string | Conditional | MUST when status is overridden — the specific reason why a human overrode the Agent's decision (EU AI Act Art.14 "effective oversight" compliance) |
 
