@@ -9,12 +9,11 @@
  *
  * Verification steps (Whitepaper §13.3):
  *   1. Parse JSON → deep clone decision_object
- *   2. Extract extensions → Step A
- *   3. Compute extensions_hash → Step B → compare
- *   4. DELETE audit / signature / signing_key_id → Step C
- *   5. JCS serialize remaining fields → Step D
- *   6. SHA-256 → Step E
- *   7. Compare with stored audit.hash → Step F
+ *   2. Delete audit / signature / signing_key_id
+ *      (extensions stays — participates directly in main JCS)
+ *   3. JCS serialize remaining fields
+ *   4. SHA-256
+ *   5. Compare with stored audit.hash
  *
  * Special: AV-008 EXPECTED_MISMATCH — canonical_hex matches AV-003
  *          but audit.hash is a hardcoded v1.1 legacy value.
@@ -122,31 +121,15 @@ function jcsCanonicalize(value) {
 }
 
 // ═══════════════════════════════════════════════════
-//  Seven-Step Verification (Whitepaper §13.3)
+//  Five-Step Verification (Whitepaper §13.3)
 // ═══════════════════════════════════════════════════
 
 function verifyDO(vectorId, decisionObject) {
   // Step 1: Deep clone
   const clone = JSON.parse(JSON.stringify(decisionObject));
 
-  // Step 2: Extract extensions (Step A)
-  const exts = clone.extensions;
-
-  // Step 3: Compute extensions_hash (Step B) — compare
-  const computedExtJcs = jcsCanonicalize(exts);
-  const computedExtHash = 'sha256:' + sha256(computedExtJcs);
-
-  if (clone.extensions_hash !== computedExtHash) {
-    return {
-      passed: false,
-      step: 'Step B: extensions_hash mismatch',
-      error: `expected ${clone.extensions_hash}, computed ${computedExtHash}`,
-      computedExtHash
-    };
-  }
-
-  // Step 4: Delete self-referencing / external fields (Step C)
-  delete clone.extensions;
+  // Step 2: Delete self-referencing / external fields
+  // (extensions STAYS in the tree — participates directly in main JCS)
   delete clone.audit;
   delete clone.signature;
   delete clone.signing_key_id;
@@ -155,22 +138,21 @@ function verifyDO(vectorId, decisionObject) {
   delete clone.extensions_validation;
   delete clone.canonical_hex;
 
-  // Step 5: JCS Serialize (Step D)
+  // Step 3: JCS Serialize
   const canonicalFull = jcsCanonicalize(clone);
   const canonicalHex = Buffer.from(canonicalFull, 'utf8').toString('hex');
 
-  // Step 6: SHA-256 (Step E)
+  // Step 4: SHA-256
   const computedHash = 'sha256:' + sha256(canonicalFull);
 
-  // Step 7: Compare (Step F)
+  // Step 5: Compare
   const storedHash = decisionObject.audit.hash;
 
   return {
     passed: computedHash === storedHash,
     canonical_hex: canonicalHex,
     computedHash,
-    storedHash,
-    extensions_hash: clone.extensions_hash || computedExtHash
+    storedHash
   };
 }
 
@@ -281,7 +263,6 @@ function main() {
   for (const vec of data.vectors) {
     // Verify that DO's canonical_hex matches self-JCS
     const clone = JSON.parse(JSON.stringify(vec.decision_object));
-    delete clone.extensions;
     delete clone.audit;
     delete clone.signature;
     delete clone.signing_key_id;
@@ -305,8 +286,8 @@ function main() {
   }
   console.log('');
 
-  // ── Verify Audit Hash Vectors (Seven-Step) ──
-  console.log('── Audit Hash Vector Verification (Seven-Step) ──');
+  // ── Verify Audit Hash Vectors (Five-Step) ──
+  console.log('── Audit Hash Vector Verification (Five-Step) ──');
   const av = data.audit_vectors || [];
   let passes = 0;
   let mismatches = 0;
