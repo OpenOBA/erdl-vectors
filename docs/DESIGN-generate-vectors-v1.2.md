@@ -13,7 +13,7 @@
 
 ### 为什么不继承 v1.0/v1.1？
 
-1. **v1.2 是破坏性变更** — `policies[].hash` 升级为 JCS，`rule_set_version` 参与 JCS，分层哈希改变了 `audit.hash` 公式。直接升级旧向量再重算的复杂度和从零构建一样。
+1. **v1.2 是破坏性变更** — `policies[].hash` 升级为 JCS，`rule_set_version` 参与 JCS，平面哈希改变了 `audit.hash` 公式。直接升级旧向量再重算的复杂度和从零构建一样。
 2. **v1.1 向量覆盖不完整** — 37 条 DO 只覆盖 7/13 种决策类型，运算符测试分散在 all-operators 类别中但不系统。
 3. **新版应自证完整性** — 63 条静态向量应有明确的映射表证明每种决策类型 × 每种运算符都被覆盖。
 
@@ -156,7 +156,7 @@ exists   → DO-049 (DENY: context.high_risk_flag exists and is true)
 | `agent.algorithm_filing_no` | `"NET-2026-000000"` | 虚拟 |
 | `agent.model_registration_id` | `"MR-2026-000000"` | 虚拟 |
 | `model_id` | `"test-model-v1.2"` | — |
-| `confidence_score` | `"0.95"` | 固定 |
+| `confidence_score` | `95` | 固定（整数，表示 95%） |
 | `fairness_assessment` | `"not_applicable"` | 测试场景 |
 | `impact_assessment_id` | `"018c4a3e-0009-7000-8000-000000000009"` | 固定 UUID |
 | `data_modification_expected` | `false` | — |
@@ -200,7 +200,7 @@ exists   → DO-049 (DENY: context.high_risk_flag exists and is true)
 
 ---
 
-## 5. 分层哈希计算流程
+## 5. 平面哈希计算流程
 
 对应白皮书 §3.3 的定义，在生成器中按以下顺序执行：
 
@@ -284,7 +284,7 @@ const av008 = JSON.parse(JSON.stringify(av003)); // av003 = AV derived from DO-0
 av008.id = 'AV-008';
 // canonical_bytes 不变（与 AV-003 相同）
 // audit.hash 使用硬编码的旧值——该值在 commit c3f22df 的旧算法下计算
-//（JSON.stringify 而非 JCS + 无分层哈希），与 v1.2 分层哈希必然不同
+//（JSON.stringify 而非 JCS + 无平面哈希），与 v1.2 平面哈希必然不同
 av008.decision_object.audit.hash = 'sha256:342b4e9652101d0b75ef39bed7f5a7e6de4d890618ec6eeafe3a9a3490ddb64d';
 av008.vector_ref = 'AV-003';
 av008.source_commit = 'c3f22df';
@@ -371,7 +371,7 @@ av008.note = 'STALE REGRESSION VECTOR: canonical_bytes identical to AV-003, audi
 1. 搭建脚本骨架 — 常量子对象、JCS/SHA-256 封装
 2. 编写 DO Builder — 接收 (decision, rules, context, expected) → 输出完整 DO JSON
 3. 编写 63 条向量的 rules/context/expected 定义
-4. 注入 v1.2 元数据 + 分层哈希计算
+4. 注入 v1.2 元数据 + 平面哈希计算
 5. 生成 12 条 AV
 6. 动态向量生成器（Temporal/Seeded/Stateful）
 7. 组装 JSON → 输出 `decision-object-vectors-v1.2.json`

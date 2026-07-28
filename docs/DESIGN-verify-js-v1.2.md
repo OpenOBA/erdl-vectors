@@ -18,7 +18,7 @@
 | **可移植** | 纯算法实现，可翻译为 Python/Go/Rust |
 | **自文档** | `--help` 输出完整的验证方法说明 |
 
-## 2. 核心算法: 七步验证法
+## 2. 核心算法: 五步验证法
 
 ### 2.1 自建 JCS (不依赖外部库)
 
@@ -294,7 +294,7 @@ function jcsCanonicalize(value) → string
 // SHA-256 哈希
 function sha256(data) → string (hex)
 
-// 分层哈希验证 (对单个 DO)
+// 平面哈希验证 (对单个 DO)
 function computeAuditHash(decisionObject) → { hash, canonicalBytes }
 
 // 七步验证
@@ -360,7 +360,7 @@ diff python-result.txt go-result.txt    # should be empty
 ### 10.3 回归检测
 
 ```bash
-# v1.2 的 canonical_bytes 与 v1.1 不同是预期的 (分层哈希变更)
+# v1.2 的 canonical_bytes 与 v1.1 不同是预期的 (平面哈希变更)
 # 但 v1.1 的旧向量在 v1.2 下重算应有明确的差异记录
 node scripts/verify.js --vectors=../erdl-vectors-v1.1/decision-object-vectors-v1.1.json 2>&1
 # 期望: JCS 方法不同 → 大部分 audit.hash 不匹配 → 记录为"v1.1 legacy"
