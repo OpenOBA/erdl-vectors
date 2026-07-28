@@ -83,7 +83,7 @@ v1.0 和 v1.1 已被三个独立实现验证通过（Rulsynor/TypeScript [OpenOB
 | v1.1 DO 覆盖 7/10 决策类型，AV 覆盖 6/10（NOTIFY/ROLLBACK/QUARANTINE 的审计哈希向量缺失；DELEGATE 在 v1.2 SPEC 中已定义，向量集预留至 v1.3） | 内部审计 | DO+AV 覆盖 13 种外部决策类型（10+3 WORKFLOW），DELEGATE 预留 v1.3 |
 | `expected_sha256` 作为答案密钥被移除，但没有替代机制确保验证完整性 | Erik Newton, A2A #2031 | AV-008 陈旧回归向量 + 五步验证法 |
 | 缺少法规版本化与辖区适配机制 | ERDL v1.2 设计 | `compliance_profile` + CORE × JURISDICTION 分层 |
-| 缺少 Schema 冻结与合规演进的长期架构保障 | ERDL v1.2 设计 | 平面哈希 + content-addressable schema refference |
+| 缺少 Schema 冻结与合规演进的长期架构保障 | ERDL v1.2 设计 | 平面哈希 + content-addressable schema reference |
 | v1.0/v1.1 → v1.2 迁移路径 | ERDL v1.2 设计 | 破坏性变更范围声明 + 跨版本审计链锚定（见 §1.4） |
 
 ### 1.4 v1.0/v1.1 向后兼容声明
