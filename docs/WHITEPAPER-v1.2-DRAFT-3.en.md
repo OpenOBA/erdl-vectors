@@ -323,7 +323,9 @@ Self-describing structure of each extension entry:
 | `evaluation.matched_rules[].ring` | integer | Execution ring level (0-3) |
 | `evaluation.total_evaluated` | integer | Total number of rules evaluated |
 | `evaluation.total_matched` | integer | Total number of rules matched |
-| `evaluation.confidence_score` | integer | LLM-provided decision confidence (integer, 0~100, representing percentage; e.g., 95 means 95%) |
+| `evaluation.confidence_score` | integer | Raw LLM-provided confidence (integer, 0~100, representing percentage; e.g., 95 means 95%) |
+
+> ⚠️ **Distinction from top-level `confidence_score`**: `evaluation.llm_raw_confidence` is the raw confidence value returned by the LLM during this specific evaluation (may vary per evaluation) — this is part of the rule engine execution record. The top-level JURISDICTION `confidence_score` is a configurable confidence baseline required by NIST AI RMF (activatable/configurable in JURISDICTION) — this is a compliance declaration. The two are independently populated and do not substitute for each other.
 
 **human_oversight object**:
 
