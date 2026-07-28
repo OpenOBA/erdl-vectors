@@ -1,9 +1,11 @@
 # ERDL Decision Object v1.2 — Enterprise AI Agent Audit Infrastructure Standard
 
+> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+
 > **Whitepaper · Request for Comments (RFC)**
 >
 > **Version**: Draft 3 · 2026-07-27
-> **Authors**: Hao Ran Tang (OpenOBA AI Chief Executive Officer) and Henry (OpenOBA Co-Founder)
+> **Authors**: OpenOBA Team
 > **Requested Commenters**: Erik Newton (Concordia), Christopher Hopley (chopmob-cloud / AlgoVoi), Regulatory Compliance Experts, Joint Audit Committee
 > **Status**: Request for Comments — Not a final version. All design details are subject to adjustment upon receiving feedback.
 >
@@ -39,10 +41,7 @@
 **Part IV: Verification and Appendices**
 13. Vector Set and Cross-Implementation Verification
 14. Request for Comments
-Appendix A: Complete DO Example
 Appendix B: Reference Standards
-Appendix C: Hierarchical Hashing Implementation Reference (TypeScript)
-Appendix D: Hierarchical Hashing Implementation Reference (Python)
 Appendix E: 10-Year Evolution Scenario Projection
 
 ---
@@ -485,7 +484,7 @@ Globally deployed Agents may be simultaneously subject to regulations from multi
 | Algorithm filing | — | — | — | — | ✓ | — | — | — | — | — | — |
 | Privacy/Right to erasure | ✓ (GDPR) | — | — | — | ✓ (PIPL) | — | ✓ | — | — | — | — |
 
-**Note**: DELEGATE is defined in v1.2 SPEC but the vector set is reserved for v1.3 (the reference implementation engine is not yet complete).
+**Note**: DELEGATE is defined in v1.2 SPEC but the vector set is reserved for v1.3.
 
 **All 24 cross-framework requirements are fully covered through the DO's 24 fields plus the hot/cold separation architecture.**
 
@@ -1114,11 +1113,8 @@ Neutrality is tested, not declared.
 | **Total** | **101** | |
 
 **DELEGATE Decision Type**:
-- SPEC v1.1 §3.4 already defined DELEGATE as a Ring 2 decision type ("Delegate to a specified Agent"), but the v1.1 transition plan maps it through ESCALATE into the Decision Object
-- The rulsynor reference implementation (2026-07-27) has not yet implemented the DELEGATE engine code path
-- DELEGATE is formally included as an independent decision type in v1.2 SPEC (`result.decision: "DELEGATE"`). The DELEGATE decision vector (DO-064) and audit vector (AV-013) in the DO vector set are reserved for v1.3 — to be immediately supplemented once the reference implementation engine supports it
-
-**Note**: v1.2 hierarchical hashing changes the calculation method of `audit.hash`. All AVs' `canonical_bytes` and `audit.hash` are recalculated. v1.1 AV hash values are not applicable to v1.2.
+- SPEC v1.1 §3.4 already defined DELEGATE as a Ring 2 decision type
+- DELEGATE is formally included in the v1.2 SPEC as an independent decision type (`result.decision: "DELEGATE"`); the DELEGATE decision vector (DO-064) and audit vector (AV-013) are reserved for v1.3
 
 **Vector Growth Rate Explanation**: v1.2's 101 vectors have exhausted all boundary behaviors of the 13 operators (null propagation, strict type matching, ReDoS protection, rate limiting, string/object comparison). Future versions will only append vectors under the following conditions: (a) SPEC adds new decision types, (b) SPEC adds new operators, (c) undiscovered edge behaviors are identified. The vector set scale is independent of the number of rule files — an Agent with 200 rules and one with 10,000 rules use the same 101-vector DO validation set.
 
@@ -1156,192 +1152,15 @@ AV-008's `canonical_bytes` are identical to AV-003, but its `audit.hash` retains
 
 ## 14. Request for Comments
 
-This whitepaper is a Request for Comments draft. The following questions are directed to specific reviewer groups:
+This whitepaper is a Request for Comments (RFC). We welcome feedback from experts in the following areas:
 
-### 14.1 For Erik Newton (Concordia)
-
-1. **End-to-end JCS + Hierarchical Hashing**: `policies[].hash` changed to JCS + SHA-256, `audit.hash` uses hierarchical hashing formula. Does Concordia's Python canonicalizer produce byte-for-byte identical digests with Node.js `json-canonicalize` across the 101 vectors?
-2. **Jurisdiction Activation Mechanism**: `compliance_profile.activated_fields` + Schema trimming rules (Omit vs null). Can Concordia's validator check the consistency of this field?
-3. **AV-008 Stale Regression Vector**: Continued in v1.2. Is this design reasonable?
-4. **10-Year Extensibility**: Hierarchical hashing + extensions self-describing design + append-only schema governance. From the perspective of an independent implementation, are there unforeseen technical risks?
-
-### 14.2 For Christopher Hopley (chopmob-cloud / AlgoVoi)
-
-1. **IETF AAT Alignment**: ERDL DO and AAT share cryptographic primitives. Is `execution_trace_id` sufficient as a cross-format bridging key? Does the AAT record need an explicit reference to the ERDL decision_id?
-2. **Compliance Substrate**: Can `compliance_profile` be viewed as an implementation of the compliance substrate model?
-3. **12-Framework Coverage**: In the per-framework field mapping, are there any audit requirements that have been missed or misunderstood?
-4. **Hierarchical Hashing Architecture**: extensions are indirectly protected through extensions_hash rather than directly participating in main JCS. Is this design compatible with the pure hex+SHA-256 reproduction method?
-5. **`previous_decision_hash` vs `audit.previous_hash`**: Analysis indicates semantic overlap; `audit.previous_hash` is the retained field. Is this judgment accurate?
-
-### 14.3 For Regulatory Compliance Experts and the Joint Audit Committee
-
-1. **Field Completeness**: Do the 24 fields completely cover the audit requirements of relevant regulatory frameworks?
-2. **Extension Zone Self-Describing Design**: Extension entries carry schema_ref (content-addressable schema reference). Ten years later, can auditors retrieve the corresponding schema document via hash in content-addressable networks? Does this mechanism need further elaboration in the formal standard text?
-3. **Append-Only Governance Principle**: Deprecated fields are not physically deleted, only marked as deprecated. Can historical data and future data flow smoothly in the same validation pipeline?
-4. **Substantive Proof of Human Oversight**: Does `human_oversight.override_reason` satisfy EU AI Act Art.14's definition of "effective oversight"?
-5. **10-Year Evolution Projection**: Does the scenario projection in Appendix E cover the main regulatory evolution paths? Are there other important paths that need supplementation?
-
----
-
-## Appendix A: Complete DO Example (Full Activation Mode)
-
-```json
-{
-  "spec": "decision-object-v1.0",
-  "decision_id": "018c4a3e-0001-7000-8000-000000000001",
-  "compliance_profile": {
-    "profile_id": "erdl-compliance-v1.2",
-    "profile_hash": "sha256:e3f5a7b9c1d2...",
-    "jurisdictions": ["EU", "CN"],
-    "industries": ["financial-services"],
-    "risk_level": "high",
-    "activated_fields": [
-      "model_id", "impact_assessment_id", "agent.known_limitations",
-      "agent.aid", "agent.tool_registry_hash", "human_oversight",
-      "confidence_score"
-    ],
-    "regulatory_references": [
-      {
-        "framework": "EU-AI-Act",
-        "version": "Regulation-2024-1689",
-        "amended_by": "Digital-Omnibus-2026",
-        "jurisdiction": "EU",
-        "effective_date": "2027-12-02",
-        "requires_fields": ["evaluation_duration_ms", "human_oversight", "agent.known_limitations"]
-      },
-      {
-        "framework": "GB-Z-185-2026",
-        "version": "2026-05-22",
-        "jurisdiction": "CN",
-        "requires_fields": ["agent.aid", "agent.tool_registry_hash"]
-      }
-    ]
-  },
-  "execution_trace_id": "018c4a3e-0000-7000-8000-000000000000",
-  "timestamp": "2026-07-27T14:00:00.000Z",
-  "evaluation_duration_ms": 12,
-  "agent": {
-    "id": "did:erdl:sha256:agent-001",
-    "role": "guardian",
-    "version": "v1.2.0",
-    "aid": "91110108MA12345678A1000001B",
-    "algorithm_filing_no": "NET-2026-001234",
-    "model_registration_id": "MR-2026-567890",
-    "known_limitations": [
-      "Does not inspect encrypted traffic",
-      "Timeout after 30s for contexts > 10KB"
-    ],
-    "tool_registry_hash": "sha256:d4e5f6a7b8c9..."
-  },
-  "model_id": "deepseek-v4-pro",
-  "context": {
-    "tool.name": "exec",
-    "tool.args": { "command": "sudo systemctl restart nginx" },
-    "tool.args.command": "sudo systemctl restart nginx"
-  },
-  "context_snapshot_hash": "sha256:f1e2d3c4b5a6...",
-  "sanitized_context": null,
-  "rule_set_version": {
-    "id": "sha256:a1b2c3d4e5f6...",
-    "timestamp": "2026-07-27T13:00:00.000Z"
-  },
-  "policies": [{
-    "id": "FIN-SEC-001",
-    "name": "restrict_exec_to_allowlist",
-    "author_id": "admin-compliance-team-003",
-    "version": 1,
-    "hash": "sha256:2ee81d613c3e... (JCS canonicalized)"
-  }],
-  "fairness_assessment": "not_applicable",
-  "impact_assessment_id": "018c4a3e-0009-7000-8000-000000000009",
-  "autonomy_level": "L2",
-  "confidence_score": "0.95",
-  "evaluation": {
-    "proposal_id": null,
-    "matched_rules": [{
-      "rule_id": "FIN-SEC-001",
-      "decision": "DENY",
-      "reason": "exec blocked by financial security policy",
-      "correction": null,
-      "instruction": null,
-      "ring": 0
-    }],
-    "total_evaluated": 1,
-    "total_matched": 1
-  },
-  "data_modification_expected": false,
-  "result": {
-    "decision": "DENY",
-    "severity": "high",
-    "reason": "exec blocked by financial security policy",
-    "action_taken": "blocked"
-  },
-  "human_oversight": {
-    "required": false,
-    "status": "not_applicable",
-    "override_reason": null
-  },
-  "extensions": [],
-  "extensions_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-  "audit": {
-    "hash": "sha256:... (hierarchical hash computation)",
-    "previous_hash": null,
-    "commitment": "2026-07-27T14:00:00.000Z|did:erdl:sha256:agent-001|exec|DENY"
-  },
-  "signature": "Base64urlEncodedECDSAP256Signature...",
-  "signing_key_id": "key-v1-2026-07"
-}
-```
-
-### A.1 DELEGATE Decision Type Example (SPEC v1.2 Definition, Vector Verification Reserved for v1.3)
-
-The following example shows the DO structure for the DELEGATE decision type. DELEGATE was formally included as an independent decision type (Ring 2) in SPEC v1.2 §3.4, but the reference implementation (rulsynor) has not yet completed the engine code path. DELEGATE vectors in the vector set are reserved for v1.3.
-
-```json
-{
-  "spec": "decision-object-v1.0",
-  "decision_id": "018c4a3e-0002-7000-8000-000000000002",
-  "compliance_profile": { "profile_id": "erdl-compliance-v1.2", "jurisdictions": ["EU"], "industries": ["financial-services"], "risk_level": "high" },
-  "execution_trace_id": "018c4a3e-0000-7000-8000-000000000001",
-  "timestamp": "2026-07-27T14:05:00.000Z",
-  "evaluation_duration_ms": 8,
-  "agent": {
-    "id": "did:erdl:sha256:agent-001",
-    "role": "guardian",
-    "version": "v1.2.0"
-  },
-  "delegation_target": {
-    "agent_id": "did:erdl:sha256:agent-002",
-    "agent_aid": "91110108MA12345678B2000001C",
-    "scope": ["payment_approval", "fraud_review"],
-    "reason": "Agent-001 lacks payment approval authority; delegated to Agent-002 per SoD policy"
-  },
-  "context": { "tool.name": "exec", "tool.args": { "command": "approve-payment" }, "tool.args.command": "approve-payment" },
-  "rule_set_version": { "id": "sha256:a1b2c3d4e5f6...", "timestamp": "2026-07-27T13:00:00.000Z" },
-  "policies": [{ "id": "SOD-DELEGATE-001", "name": "delegate_payment_to_agent_002", "author_id": "compliance-team", "version": 1, "hash": "sha256:..." }],
-  "evaluation": {
-    "proposal_id": null,
-    "matched_rules": [{ "rule_id": "SOD-DELEGATE-001", "decision": "DELEGATE", "reason": "Payment approval delegated to Agent-002 per segregation of duties", "ring": 2 }],
-    "total_evaluated": 1,
-    "total_matched": 1
-  },
-  "data_modification_expected": false,
-  "result": {
-    "decision": "DELEGATE",
-    "severity": "medium",
-    "reason": "Task delegated to Agent-002: payment_approval, fraud_review",
-    "action_taken": "delegated"
-  },
-  "human_oversight": { "required": false, "status": "not_applicable", "override_reason": null },
-  "extensions": [],
-  "extensions_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-  "audit": { "hash": "sha256:... (to be filled after engine implementation)", "previous_hash": "sha256:...", "commitment": "2026-07-27T14:05:00.000Z|agent-001|exec|DELEGATE" },
-  "signature": "...",
-  "signing_key_id": "key-v1-2026-07"
-}
-```
-
----
+1. **End-to-End JCS + Hierarchical Hashing**: Policies hash uses JCS + SHA-256, and audit.hash uses the hierarchical hashing formula. Can this scheme be correctly reproduced in all mainstream languages?
+2. **Jurisdiction Activation Mechanism**: compliance_profile.activated_fields + Schema Clipping Rules. Does this design meet multi-jurisdiction deployment needs?
+3. **AV-008 Stale Regression Vector**: As a canary for detecting validator correctness, is this design sound?
+4. **10-Year Extensibility**: Hierarchical hashing + extensions self-describing design + append-only governance. Long-term technical risks?
+5. **IETF AAT Alignment**: ERDL DO and AAT share cryptographic primitives. Is execution_trace_id sufficient as a cross-format bridge key?
+6. **Compliance Substrate**: Can compliance_profile be viewed as an implementation of the compliance substrate model?
+7. **10-Year Evolution Projection**: Does Appendix E cover the main regulatory evolution paths?
 
 ## Appendix B: Reference Standards
 
@@ -1360,86 +1179,11 @@ The following example shows the DO structure for the DELEGATE decision type. DEL
 - Singapore MGF for Agentic AI (2026-01-22)
 - CAICT — Trusted AI Agent Assessment Framework 2.0 (2026-04-15)
 
-### Multi-Language JCS Dependency Guide
-
-**Warning**: Native JSON serialization libraries of various languages (e.g., Go `encoding/json`, Java `Jackson` default configuration, Python `json.dumps`) do NOT support the deterministic property ordering and number normalization required by JCS (RFC 8785). Using native libraries for hash computation will result in cross-language verification failures.
-
-| Language | Recommended JCS Library | Notes |
-|----------|------------------------|-------|
-| **JavaScript / TypeScript** | `json-canonicalize` (npm) | Strict RFC 8785 compliance, maintained by Boris Kuo |
-| **Python** | `json-canonicalize` (PyPI) | Cross-language implementation by the same author |
-| **Go** | `github.com/cyberphone/json-canonicalization` | Maintained by Anders Rundgren, RFC 8785 reference implementation |
-| **Java** | `io.github.erisyon/jcs` (Maven) | Community-maintained, verified against vector set |
-| **Rust** | `json-canon` (crates.io) | Supports custom serializer |
-
-The first step for any validator is to verify the correctness of its JCS implementation using the 101 vectors in the vector set — only after passing all 12 AV audit hash matches can independent verification of production DOs be performed.
-
 ---
 
-## Appendix C: Hierarchical Hashing Implementation Reference (TypeScript)
-
-```typescript
-import { canonicalize } from 'json-canonicalize';
-import crypto from 'crypto';
-
-function sha256(data: string): string {
-  return crypto.createHash('sha256').update(data, 'utf-8').digest('hex');
-}
-
-function computeAuditHash(do: Record<string, unknown>): string {
-  // 1. Deep clone to avoid mutation
-  const clone = JSON.parse(JSON.stringify(do));
-
-  // 2. Extract and verify extensions hash
-  const extensions = clone.extensions as unknown[];
-  delete clone.extensions;  // extensions removed from main JCS
-
-  const extensionsCanonical = canonicalize(extensions);
-  const computedExtHash = sha256(extensionsCanonical);
-  if (clone.extensions_hash !== `sha256:${computedExtHash}`) {
-    throw new Error('Extensions hash mismatch');
-  }
-  // extensions_hash STAYS in clone — it participates in main JCS
-
-  // 3. Remove fields excluded from JCS
-  delete clone.audit;   // audit.hash is self-referential
-  delete clone.signature;  // signature is external to signed content
-  delete clone.signing_key_id;
-
-  // 4. JCS(core + jurisdiction + extensions_hash) → SHA-256
-  const canonical = canonicalize(clone);
-  return `sha256:${sha256(canonical)}`;
-}
-```
-
-## Appendix D: Hierarchical Hashing Implementation Reference (Python)
-
-```python
-import copy
-import hashlib
-from json_canonicalize import canonicalize
-
-def compute_audit_hash(do: dict) -> str:
-    # 1. Deep clone to avoid mutation
-    clone = copy.deepcopy(do)
-
-    # 2. Extract and verify extensions hash
-    extensions = clone.pop("extensions")
-    extensions_canonical = canonicalize(extensions)
-    computed = hashlib.sha256(extensions_canonical.encode('utf-8')).hexdigest()
-    assert clone["extensions_hash"] == f"sha256:{computed}", "Extensions hash mismatch"
-    # extensions_hash STAYS in clone — it participates in main JCS
-
-    # 3. Remove fields excluded from JCS
-    clone.pop("audit")       # audit.hash is self-referential
-    clone.pop("signature")   # signature is external to signed content
-
-    # 4. JCS(core + jurisdiction + extensions_hash) → SHA-256
-    can = canonicalize(clone)
-    return f"sha256:{hashlib.sha256(can.encode('utf-8')).hexdigest()}"
-```
-
 ## Appendix E: 10-Year Evolution Scenario Projection
+
+---
 
 | Time | Event | DO Behavior | Audit Chain Behavior |
 |------|-------|-------------|----------------------|

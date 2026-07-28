@@ -10,6 +10,7 @@
  *
  * Authority: SPEC v1.1 §3.4, Whitepaper Draft 3 §13
  * Strategy: From scratch — no data inheritance from v1.0/v1.1
+ * Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
  * Author: Tang Haoran — OpenOBA AI Executive
  * Date: 2026-07-28
  */
@@ -40,14 +41,20 @@ function jcs(obj) {
 // ═══════════════════════════════════════════════════
 //  UUID v7 (simplified: timestamp-based prefix)
 // ═══════════════════════════════════════════════════
+//  Deterministic UUID generator
+//  Uses frozen real timestamp (2026-07-28T00:00:00.000Z) for full RFC 9562 UUIDv7 compliance.
+//  timestamp_hi=019fa605, timestamp_mid=6800, version=7, variant=10xx(8).
+//  RFC 9562 §5.7: UUIDv7 = Unix ts ms (48 bits) + version (4 bits) + rand_a (12 bits) + variant (2 bits) + rand_b (62 bits).
+//  Our rand_b embeds a deterministic 48-bit counter → byte-identical output every run.
+// ═══════════════════════════════════════════════════
 
-let uuidCounter = 0;
-function uuidv7() {
-  const ms = Date.now();
-  const hi = ms.toString(16).padStart(12, '0');
-  const lo = (uuidCounter++ % 0xffff).toString(16).padStart(4, '0');
-  const rand = crypto.randomBytes(6).toString('hex');
-  return `${hi.slice(0, 8)}-${hi.slice(8)}-7${rand.slice(0, 3)}-${lo}${rand.slice(3)}`;
+const UUID_TIMESTAMP_MS = Date.UTC(2026, 6, 28, 0, 0, 0, 0) // 1785196800000 → hex 019fa6056800
+const UUID_BASE = '019fa605-6800-7000-8000-'  // RFC 9562 UUIDv7: version=7, variant=10xx
+let uuidIndex = 0
+
+function deterministicUuid() {
+  const idx = (++uuidIndex).toString(16).padStart(12, '0')
+  return UUID_BASE + idx
 }
 
 // ═══════════════════════════════════════════════════
@@ -131,7 +138,7 @@ const COMPLIANCE_PROFILE = finalizeComplianceProfile(buildComplianceProfile());
 // ═══════════════════════════════════════════════════
 
 function buildDO({ id, decision_type, rules, context, expected, description, category }) {
-  const doId = uuidv7();
+  const doId = deterministicUuid();
 
   // Policies from rules array
   const policies = rules.map((r, i) => {
@@ -166,7 +173,7 @@ function buildDO({ id, decision_type, rules, context, expected, description, cat
     spec: SPEC,
     decision_id: doId,
     compliance_profile: COMPLIANCE_PROFILE,
-    execution_trace_id: uuidv7(),
+    execution_trace_id: deterministicUuid(),
     timestamp: TIMESTAMP,
     evaluation_duration_ms: EVALUATION_DURATION_MS,
     agent: {
@@ -234,12 +241,15 @@ function buildDO({ id, decision_type, rules, context, expected, description, cat
 
   // Step D: Main JCS + SHA-256
   const canonicalFull = jcs(clone);
-  const canonicalBytes = Buffer.from(canonicalFull, 'utf8').toString('hex');
+  // canonical_hex: hex encoding of UTF-8 bytes of JCS canonical form
+  // Named 'hex' not 'bytes' because the stored value is hex-encoded, not raw bytes.
+  // Cross-implementation note: other languages should compute hex(JCS_utf8_bytes).
+  const canonicalHex = Buffer.from(canonicalFull, 'utf8').toString('hex');
   const auditHash = 'sha256:' + sha256(canonicalFull);
 
   // Step E: Write back
   doObj.audit.hash = auditHash;
-  doObj.canonical_bytes = canonicalBytes;
+  doObj.canonical_hex = canonicalHex;
 
   return doObj;
 }
@@ -654,7 +664,7 @@ const vectorDefinitions = [
       Rule({ id: 'rule-hipaa-human', name: 'HIPAA Medical Data Guard', description: 'Request human for access to PHI (Protected Health Information)', when: { 'context.data_category': { eq: 'PHI' } }, then: 'REQUEST_HUMAN', priority: 700, ring: 2 })
     ],
     context: { data_category: 'PHI', patient_id: 'P12345', operation: 'view_record' },
-    expected: { matched_rules: ['rule-hipaa-human'], triggered_rules: ['rule-hipaa-human'], applied_rule: 'rule-hipaa-human', reason: 'PHI access requires human oversight per HIPAA', human_oversight: true }
+    expected: { matched_rules: ['rule-hipaa-human'], triggered_rules: ['rule-hipaa-human'], applied_rule: 'rule-hipaa-human', reason: 'PHI access requires human oversight per HIPAA (1996) / HITECH Act (2009) / 21st Century Cures Act (2016)', human_oversight: true }
   }),
 
   V({
@@ -1002,9 +1012,9 @@ for (const def of vectorDefinitions) {
     context: def.context,
     expected: def.expected,
     decision_object: doObj,
-    canonical_bytes: doObj.canonical_bytes
+    canonical_hex: doObj.canonical_hex
   };
-  delete vector.decision_object.canonical_bytes;
+  delete vector.decision_object.canonical_hex;
   staticVectors.push(vector);
   console.log(`  ✓ ${def.id} (${def.category}) — ${def.scenario}`);
 }
@@ -1122,7 +1132,7 @@ for (const avm of avMapping) {
     vector_ref: avm.src,
     category: 'audit-hash',
     purpose: avm.purpose,
-    canonical_bytes: srcVector.canonical_bytes,
+    canonical_hex: srcVector.canonical_hex,
     decision_object: JSON.parse(JSON.stringify(srcVector.decision_object)),
     verification_method: 'seven-step' // Whitepaper §13.3
   };
@@ -1137,11 +1147,11 @@ const av008 = {
   id: 'AV-008',
   vector_ref: 'AV-003',
   category: 'audit-hash',
-  purpose: 'Stale regression vector — canonical_bytes identical to AV-003, audit.hash uses v1.1 legacy value',
-  canonical_bytes: av003.canonical_bytes,
+  purpose: 'Stale regression vector — canonical_hex identical to AV-003, audit.hash uses v1.1 legacy value',
+  canonical_hex: av003.canonical_hex,
   decision_object: JSON.parse(JSON.stringify(av003.decision_object)),
   source_commit: 'c3f22df',
-  note: 'STALE REGRESSION VECTOR: canonical_bytes identical to AV-003, audit.hash intentionally stale (v1.1 legacy value). Any validator that recomputes from first principles will detect MISMATCH; cached/shorthand validators will falsely PASS.',
+  note: 'STALE REGRESSION VECTOR: canonical_hex identical to AV-003, audit.hash intentionally stale (v1.1 legacy value). Any validator that recomputes from first principles will detect MISMATCH; cached/shorthand validators will falsely PASS.',
   expected_result: 'MISMATCH'
 };
 // Override audit.hash with v1.1 legacy value
