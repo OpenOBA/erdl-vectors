@@ -325,7 +325,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 
 | 部署场景 | 激活字段数 | DO 大小 |
 |----------|:---:|------|
-| 基础（无辖区要求，仅 CORE 14 字段） | 15 | ~1050 bytes |
+| 基础（无辖区要求，仅 CORE 14 字段） | 14 | ~1050 bytes |
 | 中国（GB/Z 185 + 信通院） | 18（+ agent.aid, agent.tool_registry_hash, agent.algorithm_filing_no, agent.model_registration_id） | ~1120 bytes |
 | 欧盟高风险（EU AI Act） | 17（+ agent.known_limitations, confidence_score） | ~1080 bytes |
 | 美国医疗（HIPAA） | 18（+ data_modification_expected, context_snapshot_hash, sanitized_context, signature, fairness_assessment） | ~1150 bytes |
