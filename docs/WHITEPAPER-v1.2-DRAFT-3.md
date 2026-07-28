@@ -565,12 +565,30 @@ DO 本身即为审计工作底稿（Audit Working Paper）。第三方审计师�
 
 两者使用完全相同的密码学原语（JCS + SHA-256 + ECDSA P-256），通过 `execution_trace_id` 串联。
 
-**职责边界**：ERDL DO 记录的是规则引擎的确定性评估结果（13 种决策类型）。以下运行时异常类型不属于 ERDL 规则评估的范畴，由 IETF AAT 覆盖：
-- **ERROR**（Agent 运行时错误，如 LLM 调用失败、工具超时）→ AAT `action_type: "error"`
-- **TIMEOUT**（操作超出时间预算）→ AAT `action_type: "error"`, `outcome: "timeout"`
-- **FALLBACK**（降级/兜底决策）→ AAT `action_type: "decision"` with detail
+**职责边界**：ERDL DO 记录的是规则引擎的确定性评估结果（13 种决策类型）。以下运行时异常类型不属于 ERDL 规则评估的范畴，不在 DO 覆盖范围内：
+- **ERROR**（Agent 运行时错误，如 LLM 调用失败、工具超时）
+- **TIMEOUT**（操作超出时间预算）
+- **FALLBACK**（降级/兜底决策）
 
-三者通过 `execution_trace_id` 与对应的 ERDL DO（如有）串联，形成完整的审计证据链。
+这些事件可由传输层或运维层的审计协议（如 IETF AAT、OpenTelemetry span 等）独立记录。
+
+**桥接预留**：DO 的 extensions 支持一个可选条目 `referenced_transport_events`，用于在两条连续 DO 之间记录传输层发生的关键事件（错误、超时等）的引用标识。条目格式：
+
+```json
+{
+  "type": "referenced_transport_events",
+  "events": [
+    {
+      "event_type": "ERROR",
+      "event_id": "evt-xxxx",
+      "timestamp": "2026-07-28T12:00:01.000Z",
+      "summary": "LLM call to model X timed out after 30s"
+    }
+  ]
+}
+```
+
+该条目为可选——不引用任何特定的传输层审计协议，仅提供通用的事件引用容器。审计员可通过 `event_id` 在对应传输层审计系统中检索详细记录，确保决策链的时间连续性不被非决策事件打断。
 
 ```
 ┌─────────────────────────────────────────┐
