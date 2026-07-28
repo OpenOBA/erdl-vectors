@@ -314,6 +314,25 @@ If your DO has `sanitized_context: null`, your JCS will include `"sanitized_cont
 
 Keys containing spaces, colons, or Unicode require proper JSON string escaping in both the key AND the JCS output. Most JSON libraries handle this, but hand-rolled implementations often miss it.
 
+### P1: Schema pruning — field removal differs by language
+
+Whitepaper §5.4 requires removing non-activated JURISDICTION fields from the DO before JCS. The meaning of "remove" varies by language, and inconsistent removal produces different canonical bytes:
+
+**Correct**: physically delete the key from the object, so the key does not appear in the JCS output at all.
+**Wrong**: set the key to `null` / `undefined` / empty string (these all produce different JCS output than omitting the key).
+
+Language-specific recommendations:
+
+| Language | Correct | Wrong |
+|----------|---------|-------|
+| JavaScript | `delete obj[key]` | `obj[key] = null` or `obj[key] = undefined` |
+| Python | `del d[key]` or `d.pop(key, None)` | `d[key] = None` |
+| Go | Use `map[string]interface{}` — delete with `delete(m, key)`; for structs, build a new map excluding the field | Setting a struct field to zero value |
+| Java | `map.remove(key)` (if using Map) or build a new Jackson ObjectNode without the field | `node.putNull(key)` |
+| Rust | `map.remove(key)` (if using serde_json::Map) or use `#[serde(skip_serializing_if)]` on Option fields | `map[key] = Value::Null` |
+
+**Verification**: after pruning, serialize the DO to JSON and confirm the pruned keys do NOT appear in the output. Then run JCS on the pruned object.
+
 ### P2: All 12 audit vectors report MATCH
 
 If your runner reports all 12 audit vectors as MATCH, your five-step verification is NOT computing from scratch — you're comparing pre-computed hashes. The vector set includes one intentionally stale audit vector where `audit.hash` does not match the independently computed hash. Only a runner that recalculates the hash (not just reads stored values) will detect the MISMATCH.
