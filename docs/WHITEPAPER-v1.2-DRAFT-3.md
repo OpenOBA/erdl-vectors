@@ -1090,6 +1090,8 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 
 **前置原则**：验证器在提取 `claimed_hash` 后，MUST 对 DO 进行深拷贝（Deep Clone）。后续所有物理删除（pop/delete）操作 MUST 在克隆体上进行，严禁污染原始 DO 内存实例。
 
+> **Schema 裁剪已由 DO 生成器完成**：根据 §5.4 的规定，DO 在构建时已完成 Schema 裁剪——未在 `activated_fields` 中声明的 JURISDICTION 字段已从 DO 对象中物理移除（Omit）。五步验证法接收的是已裁剪的 DO，不重复执行裁剪操作。若生成器未正确裁剪，`audit.hash` 将因包含不应存在的字段而与参考值不匹配，该错误会被 Step 5 自动检测到。
+
 ```
 Step 1: Deep clone the decision_object
 Step 2: 物理删除自引用/外部字段
