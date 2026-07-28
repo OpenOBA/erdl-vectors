@@ -30,9 +30,9 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 | 保证 | 机制 |
 |------|------|
 | **确定性生成** | `node scripts/generate-vectors.cjs` 每次运行产出字节级完全相同的输出 |
-| **防篡改** | JCS（RFC 8785）+ SHA-256 层级哈希——任何字段变更都会改变审计哈希 |
+| **防篡改** | JCS（RFC 8785）+ SHA-256 平面哈希——任何字段变更都会改变审计哈希 |
 | **跨实现可验证** | `node scripts/verify.js` 零依赖运行——实现者可以验证自己的引擎 |
-| **陈旧回归检测** | 12 个审计向量中包含一个故意 stale 的金丝雀——跳过完整哈希重算的验证器将**失败** |
+| **陈旧回归检测** | AV-008 作为金丝雀——跳过完整哈希重算的验证器将**失败** |
 | **RFC 9562 UUIDv7** | 所有 `decision_id`/`execution_trace_id` 完全符合 RFC 9562（冻结时间戳） |
 
 ### 确定性架构
@@ -44,7 +44,7 @@ $ sha256sum decision-object-vectors-v1.2.json
 
 $ node scripts/generate-vectors.cjs  # 第二次运行
 $ sha256sum decision-object-vectors-v1.2.json
-700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca  # 完全一致
+a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369  # 完全一致
 ```
 
 不使用 `Date.now()`，不使用 `crypto.randomBytes()`。冻结时间戳（`2026-07-28T00:00:00.000Z`）+ 确定性计数器 → **精确可复现**。
@@ -66,14 +66,14 @@ node scripts/verify.js path/to/vectors.json
 ```bash
 npm install
 node scripts/generate-vectors.cjs
-# → 输出 decision-object-vectors-v1.2.json（~830 KB）
+# → 输出 decision-object-vectors-v1.2.json（~813 KB）
 ```
 
 ### 运行测试套件
 
 ```bash
 npm test
-# → 156 个测试覆盖 JCS、SHA-256、五步验证及全量向量完整性
+# → 154 个测试覆盖 JCS、SHA-256、五步验证及全量向量完整性
 ```
 
 ## 向量集组成
@@ -82,14 +82,14 @@ npm test
 
 | 决策类型 | 数量 | 覆盖内容 |
 |----------|:----:|----------|
-| ALLOW | 11 | 常规操作、override 安全方向、unless 豁免、运算符覆盖 |
+| ALLOW | 12 | 常规操作、override 安全方向、unless 豁免、运算符覆盖 |
 | DENY | 12 | 安全基线、危险命令、关键路径、边界情况 |
 | PASS | 10 | 选择性匹配、安全命令、空规则、空值安全、严格类型 |
 | REQUEST_HUMAN | 4 | PII/HIPAA 合规、非营业时间、风险阈值 |
 | EMERGENCY_HALT | 1 | Ring 0 短路 |
 | CORRECT | 3 | 大小写规范化、单位转换、路径规范化 |
 | ESCALATE | 3 | 低信誉 Agent、跨域操作、未知工具 |
-| NOTIFY | 3 | 异常检测、审计记录、阈值告警 |
+| NOTIFY | 4 | 异常检测、审计记录、阈值告警、伴随 DENY |
 | QUARANTINE | 3 | 可疑文件、异常行为、速率限制 |
 | ROLLBACK | 3 | 快照恢复、部分失败、交易回滚 |
 | WORKFLOW | 4 | 多步工作流、条件分支、审批节点 |
@@ -145,7 +145,7 @@ npm test
 步骤 5：将计算哈希与存储的 audit.hash 比较
 ```
 
-任何走捷径的验证器（如直接比较预计算哈希）将**通过全部 12 个审计向量但被陈旧回归金丝雀捕获**——专门用于检测偷懒的实现。
+任何走捷径的验证器（如直接比较预计算哈希）将**通过 AV-001~AV-007、AV-009~AV-012 但被 AV-008 金丝雀捕获**——专门用于检测偷懒的实现。
 
 ## 合规配置
 
@@ -164,7 +164,7 @@ npm test
 
 ```
 erdl-vectors/
-├── decision-object-vectors-v1.2.json   # 101 条向量（~830 KB）
+├── decision-object-vectors-v1.2.json   # 101 条向量（~813 KB）
 ├── scripts/
 │   ├── generate-vectors.cjs            # 确定性向量生成器
 │   └── verify.js                       # 零依赖五步验证器
@@ -198,7 +198,7 @@ erdl-vectors/
 
 ## Runner 实现指南
 
-如果你正在构建 ERDL 规则引擎并希望实现跨实现兼容，请从 **[Runner's Guide](docs/RUNNERS-GUIDE.md)** 开始。它涵盖了七步验证算法、JCS 实现细节、常见陷阱和测试策略——附带了可翻译为任意语言的伪代码。
+如果你正在构建 ERDL 规则引擎并希望实现跨实现兼容，请从 **[Runner's Guide](docs/RUNNERS-GUIDE.md)** 开始。它涵盖了五步验证算法、JCS 实现细节、常见陷阱和测试策略——附带了可翻译为任意语言的伪代码。
 
 ## 安全
 
