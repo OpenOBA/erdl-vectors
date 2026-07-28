@@ -42,7 +42,7 @@ npm run generate && sha256sum decision-object-vectors-v1.2.json  # same hash
 - `verify.js` is **zero-dependency** — do not add npm imports
 - The self-built JCS implementation must remain byte-compatible with `json-canonicalize@2.0.0`
 - Any change to JCS logic must pass both the inline self-consistency checks AND the full test suite
-- Seven-step verification must not be altered without updating the whitepaper (§13.3)
+- Five-step verification must not be altered without updating the whitepaper (§13.3)
 
 ## Test Guidelines
 

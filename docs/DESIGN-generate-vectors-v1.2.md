@@ -165,8 +165,7 @@ exists   → DO-049 (DENY: context.high_risk_flag exists and is true)
 | `sanitized_context` | `null` | 无 PII |
 | `signature` | `"TEST_SIGNATURE_BASE64URL_PLACEHOLDER"` | 测试占位 |
 | `signing_key_id` | `"key-v1-test-2026-07"` | 测试密钥 |
-| `extensions` | `[]` | 空数组 |
-| `extensions_hash` | `"sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"` | 常量（空数组 JCS+SHA-256） |
+| `extensions` | `[]` | 空数组（直接参与主 JCS，平面哈希架构） |
 | `rule_set_version.id` | SHA-256(JCS(policies)) | 每条 DO 独立计算 |
 | `rule_set_version.timestamp` | `"2026-07-28T00:00:00.000Z"` | 固定 |
 
@@ -212,7 +211,7 @@ Step 0: 构建 compliance_profile（不含 profile_hash）
 
 Step 1: 组装完整 v1.2 DO JSON (24 字段 + 子对象)
         包括: context, policies, evaluation, result,
-              human_oversight, audit(占位), extensions, extensions_hash
+              human_oversight, audit(占位), extensions
 
 Step 2: 计算 rule_set_version.id
         rule_set_version.id = 'sha256:' + SHA-256(JCS(policies))
@@ -222,35 +221,26 @@ Step 3: 计算 policies[].hash (JCS 升级)
 
 Step 4: 深拷贝 → 以下在拷贝上操作
 
-Step 5: Step A — 提取 extensions
-        const exts = clone.extensions
-        delete clone.extensions  // 物理删除
-
-Step 6: Step B — 验证 extensions_hash
-        const computedExtHash = SHA-256(JCS(exts))
-        assert clone.extensions_hash === 'sha256:' + computedExtHash
-        // 生成模式下 extensions_hash 是预计算的常量值，应始终一致
-        // 若不一致则生成器有 bug——立即抛出错误终止
-
-Step 7: Step C — 自引用/外部字段
+Step 5: 删除自引用/外部字段
         delete clone.audit
         delete clone.signature
         delete clone.signing_key_id
+        // extensions 保留在对象中，直接参与后续 JCS
         // signing_key_id 与 signature 配对但不参与 JCS（白皮书 §4.2）
 
-Step 8: Step D — 主 JCS + SHA-256
+Step 6: 主 JCS + SHA-256
         const canonicalFull = JCS(clone)
-        // canonicalFull = JCS(core+jurisdiction+extensions_hash)
+        // canonicalFull = JCS(CORE + JURISDICTION + EXTENSIONS)
         const auditHash = 'sha256:' + SHA-256(canonicalFull)
 
-Step 9: Step E — 写回
+Step 7: 写回
         clone.audit.hash = auditHash
         clone.signature = originalSignature
 
-Step 10: 记录 canonical_bytes
-         canonical_bytes = hex(JCS(core+jurisdiction+extensions_hash))
-         // 不含: extensions / audit / signature
-         // 含: extensions_hash (作为 core #15)
+Step 8: 记录 canonical_hex
+         canonical_hex = hex(JCS(CORE + JURISDICTION + EXTENSIONS))
+         // 不含: audit / signature / signing_key_id
+         // 含: extensions（直接参与主 JCS）
 ```
 
 ---
@@ -306,7 +296,7 @@ av008.note = 'STALE REGRESSION VECTOR: canonical_bytes identical to AV-003, audi
   "created": "2026-07-28",
   "updated": "2026-07-28",
   "maintainer": "OpenOBA (https://openoba.com)",
-  "description": "101 cross-implementation test vectors for ERDL Decision Object v1.2. 63 static DOs + 26 dynamic (Temporal 10 / Seeded 8 / Stateful 8) + 12 audit hash vectors. Hierarchical hashing: JCS(extensions) + JCS(core+jurisdiction+extensions_hash).",
+  "description": "101 cross-implementation test vectors for ERDL Decision Object v1.2. 63 static DOs + 26 dynamic (Temporal 10 / Seeded 8 / Stateful 8) + 12 audit hash vectors. Flat hashing: JCS(CORE+JURISDICTION+EXTENSIONS) → SHA-256.",
   "vectors": [
     { "id": "DO-001", "category": "...", "scenario": "...", "rules": [...], "context": {...}, "expected": {...} },
     ... 63 entries
@@ -375,7 +365,7 @@ av008.note = 'STALE REGRESSION VECTOR: canonical_bytes identical to AV-003, audi
 5. 生成 12 条 AV
 6. 动态向量生成器（Temporal/Seeded/Stateful）
 7. 组装 JSON → 输出 `decision-object-vectors-v1.2.json`
-8. 自验证 — 遍历所有 AV，七步法重算，11/12 MATCH + AV-008 MISMATCH
+8. 自验证 — 遍历所有 AV，五步法重算，11/12 MATCH + AV-008 MISMATCH
 
 ---
 
