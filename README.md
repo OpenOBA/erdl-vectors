@@ -15,8 +15,8 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 
 本项目能够顺利完成，离不开以下合作者的鼎力支持：
 
-- **Christopher Hopley（chopmob-cloud / AlgoVoi）** — 合规 substrate 模型与跨实现验证愿景的提出者。他独立审计了 ERDL Decision Object v1.1，发现了 c3f22df 事故（em-dash 空格修复导致 3/7 审计向量的 audit.hash 不匹配），推动 v1.2 建立了分层哈希架构和严格的确定性生成标准。他对监管合规与密码学审计的深刻理解，贯穿了 Decision Object 的设计全程。
-- **Erik Newton（Concordia）** — 首个独立 Runner 实现者。他用 Python 构建了 Decision Object 验证引擎，在 Node.js 实现之外首次逐字节验证了前 5 个审计向量（AV-001~AV-005），以实践证明了 JCS+SHA-256 跨实现验证的技术可行性。他还率先指出了 `expected_sha256` 答案密钥的结构性风险，直接推动了 v1.2 中七步验证法的确立。
+- **Christopher Hopley（chopmob-cloud / AlgoVoi）** — 独立技术审阅者。他对 ERDL Decision Object v1.2 白皮书草案提出了深入的技术批评，发现了自引用哈希排除规则缺位、字符串小数跨引擎不一致、分层完整性缺口等关键问题，推动了平面哈希架构的确立和安全加固。他对 JCS RFC 8785 规范化与合规审计的深刻理解，对协议设计的严谨性产生了重要影响。
+- **Erik Newton（Concordia）** — 首个独立 Runner 实现者。他用 Python 构建了 Decision Object 验证引擎，在 Node.js 实现之外首次逐字节验证了前 5 个审计向量（AV-001~AV-005），以实践证明了 JCS+SHA-256 跨实现验证的技术可行性。
 - **Rulsynor 团队** — 作为 ERDL 规则引擎的参考实现，Rulsynor 是所有测试向量生成与验证的基准。其生产级引擎为 Decision Object 的字段设计提供了真实世界的约束输入——从 Agent 身份元数据到合规配置结构——确保协议定义经得起工程实践的检验。
 
 我们对此深表感谢。正是他们的贡献，将一份规范转化为经过多方独立验证的跨实现标准。
@@ -32,7 +32,7 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 | **确定性生成** | `node scripts/generate-vectors.cjs` 每次运行产出字节级完全相同的输出 |
 | **防篡改** | JCS（RFC 8785）+ SHA-256 层级哈希——任何字段变更都会改变审计哈希 |
 | **跨实现可验证** | `node scripts/verify.js` 零依赖运行——实现者可以验证自己的引擎 |
-| **陈旧回归检测** | AV-008 充当金丝雀——跳过七步验证的验证器将**失败** |
+| **陈旧回归检测** | 12 个审计向量中包含一个故意 stale 的金丝雀——跳过完整哈希重算的验证器将**失败** |
 | **RFC 9562 UUIDv7** | 所有 `decision_id`/`execution_trace_id` 完全符合 RFC 9562（冻结时间戳） |
 
 ### 确定性架构
@@ -59,7 +59,7 @@ node scripts/verify.js                    # 默认：./decision-object-vectors-v
 node scripts/verify.js path/to/vectors.json
 ```
 
-预期输出：`ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-008 STALE DETECTED`
+预期输出：`ALL VERIFICATIONS PASSED · 11/11 MATCH + STALE DETECTED`
 
 ### 从零生成向量（维护者使用）
 
@@ -73,7 +73,7 @@ node scripts/generate-vectors.cjs
 
 ```bash
 npm test
-# → 156 个测试覆盖 JCS、SHA-256、七步验证及全量向量完整性
+# → 156 个测试覆盖 JCS、SHA-256、五步验证及全量向量完整性
 ```
 
 ## 向量集组成
@@ -119,7 +119,7 @@ npm test
 | AV-005 | DO-017 | 低信誉 Agent 升级（ESCALATE） |
 | AV-006 | DO-024 | Unless 豁免触发（ALLOW） |
 | AV-007 | DO-027 | 空值安全字段访问（PASS） |
-| AV-008 | AV-003 | ⚠️ **陈旧回归金丝雀**——必须不匹配 |
+| AV-008 | AV-003 | ⚠️ **陈旧回归金丝雀**——必须不匹配（不点名，由实现自行发现） |
 | AV-009 | DO-021 | 自动修正（CORRECT） |
 | AV-010 | DO-031 | 异常通知（NOTIFY） |
 | AV-011 | DO-038 | 快照回滚（ROLLBACK） |
@@ -132,20 +132,20 @@ npm test
 | DO-064 | DELEGATE | v1.3 预留 |
 | AV-013 | DELEGATE（审计） | v1.3 预留 |
 
-## 七步审计哈希验证
+## 五步审计哈希验证
 
-验证算法（白皮书 §13.3）遵循七个确定性步骤：
+验证算法（白皮书 §13.3）遵循五个确定性步骤：
 
 ```
-步骤 A：从 decision_object 中提取 extensions
-步骤 B：计算 extensions_hash → 与存储值比较
-步骤 C：删除自引用字段（extensions、audit、signature、signing_key_id）
-步骤 D：对剩余字段进行 JCS（RFC 8785）规范化
-步骤 E：对规范化表示进行 SHA-256
-步骤 F：将计算哈希与存储的 audit.hash 比较
+步骤 1：深拷贝 decision_object
+步骤 2：删除自引用字段（audit、signature、signing_key_id）
+        （extensions 保留在对象中，直接参与 JCS）
+步骤 3：对全部剩余字段进行 JCS（RFC 8785）规范化
+步骤 4：对规范化表示进行 SHA-256
+步骤 5：将计算哈希与存储的 audit.hash 比较
 ```
 
-任何走捷径的验证器（如直接比较预计算哈希）将**通过 AV-001~AV-012 但失败于 AV-008**——陈旧回归金丝雀专门捕获偷懒的实现。
+任何走捷径的验证器（如直接比较预计算哈希）将**通过全部 12 个审计向量但被陈旧回归金丝雀捕获**——专门用于检测偷懒的实现。
 
 ## 合规配置
 
@@ -167,7 +167,7 @@ erdl-vectors/
 ├── decision-object-vectors-v1.2.json   # 101 条向量（~830 KB）
 ├── scripts/
 │   ├── generate-vectors.cjs            # 确定性向量生成器
-│   └── verify.js                       # 零依赖七步验证器
+│   └── verify.js                       # 零依赖五步验证器
 ├── test/
 │   ├── generate-comprehensive.test.ts  # 68 项生成器完整性测试
 │   └── verify-comprehensive.test.ts    # 88 项 JCS/验证/审计测试
