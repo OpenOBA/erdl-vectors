@@ -282,7 +282,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
       },
       "value": "actual data"
     }
-  ],
+  ]
 }
 ```
 
@@ -1048,7 +1048,7 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
       },
       "value": "0.042"
     }
-  ],
+  ]
 }
 ```
 
