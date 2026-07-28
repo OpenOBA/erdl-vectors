@@ -575,11 +575,11 @@ DO 本身即为审计工作底稿（Audit Working Paper）。第三方审计师�
 
 ### 7.5 与 MCP (Model Context Protocol) 的关系
 
-MCP 是 Anthropic 推动的 Agent 与外部工具连接标准。ERDL DO 与 MCP 通过以下路径集成：
+MCP 是模型与外部工具/数据源之间的开放连接标准（Anthropic 主导，2026-07-28 修订为无状态架构）。ERDL DO 与 MCP 通过以下路径集成：
 
 **代理模式（协议层拦截）**：将危险 Tool 的 MCP 端点指向 ERDL 代理。Agent 调用 MCP Tool → ERDL Guard 拦截 → 规则评估（when/then）→ 生成 Decision Object → 放行或拦截。Agent 无法绕过——它调不到原始 MCP Tool 端点。
 
-**`execution_trace_id` 生成规则**：`execution_trace_id` 由 ERDL Engine 独立生成（UUID v7），不依赖外部系统的标识符。MCP 的 `request_id`（由 Agent 客户端生成）可通过 DO 的 `context` 字段中的 `mcp_request_id` 记录，与 `execution_trace_id` 并存以支持双向追溯。
+**`execution_trace_id` 生成规则**：`execution_trace_id` 由 ERDL Engine 独立生成（UUID v7），作为本次决策的全局唯一标识。MCP 2026-07-28 修订已废弃 session ID，请求级标识由 Agent 客户端自行管理。DO 的 `context` 字段中可记录 `mcp_request_id` 等辅助标识，与 `execution_trace_id` 并存以支持双向追溯。`execution_trace_id` 始终为权威主键——所有外部标识符仅作为辅助索引，不参与 JCS 完整性计算。
 
 **MCP Tool 声明**：ERDL 规则文件通过 MCP Server 暴露为 MCP Tool。Agent 在 MCP 工具列表中看到 ERDL 规则验证能力，通过标准 MCP 协议调用。
 
