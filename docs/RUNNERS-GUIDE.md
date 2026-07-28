@@ -261,9 +261,9 @@ Note: `audit`, `signature`, and `signing_key_id` are NOT included in the hash. `
 node scripts/verify.js --vectors=decision-object-vectors-v1.2.json
 ```
 
-Expected output: `ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-008 STALE DETECTED`
+Expected reference output (from our verify.js): `ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-008 STALE DETECTED`
 
-With your runner, do the same: for each of the 12 audit hash vectors, run the five-step verification. You should get 11 MATCH + 1 MISMATCH (AV-008, the intentional stale regression).
+With your runner, do the same: for each of the 12 audit hash vectors, run the five-step verification. You should get 11 MATCH + 1 MISMATCH. If all 12 report MATCH, your verifier is not independently computing the hash — it is comparing pre-computed values.
 
 ### Step 2: Verify your engine's DO output
 
@@ -314,11 +314,11 @@ If your DO has `sanitized_context: null`, your JCS will include `"sanitized_cont
 
 Keys containing spaces, colons, or Unicode require proper JSON string escaping in both the key AND the JCS output. Most JSON libraries handle this, but hand-rolled implementations often miss it.
 
-### P2: AV-008 passed when it should fail
+### P2: All 12 audit vectors report MATCH
 
-If your runner reports AV-008 as a MATCH, your five-step verification is NOT computing from scratch — you're comparing pre-computed hashes. This is the exact shortcut that AV-008 exists to catch.
+If your runner reports all 12 audit vectors as MATCH, your five-step verification is NOT computing from scratch — you're comparing pre-computed hashes. The vector set includes one intentionally stale audit vector where `audit.hash` does not match the independently computed hash. Only a runner that recalculates the hash (not just reads stored values) will detect the MISMATCH.
 
-> ⚠️ **Important**: AV-008 is a self-consistency check, not a structural independence guarantee. A runner should NEVER special-case any vector by id. All 12 audit vectors go through the same five-step pipeline. AV-008 has `canonical_hex` identical to AV-003 but with a deliberately stale `audit.hash` — only a runner that independently recalculates the hash (not just reads stored values) will detect this MISMATCH.
+> ⚠️ **Important**: A runner should NEVER special-case any vector by id. All 12 audit vectors go through the same five-step pipeline regardless of their identity. The stale vector's `canonical_hex` matches another valid vector's — if you skip the hash computation and look up pre-computed values, you'll report MATCH where you should report MISMATCH.
 
 ### P2: Timestamp format
 
