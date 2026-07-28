@@ -112,7 +112,18 @@ npm test
 
 | 向量 | 引用 | 用途 |
 |------|------|------|
-| AV-001~AV-012 | — | 12 条审计哈希向量，其中 11 条引用对应的决策向量，1 条为故意 stale 的金丝雀（用于检测跳过哈希重算的验证器） |
+| AV-001 | DO-001 | Ring 0 安全拦截（DENY） |
+| AV-002 | DO-013 | PII 合规审批（REQUEST_HUMAN，GDPR Art.22） |
+| AV-003 | DO-011 | Override 安全方向（ALLOW，多规则） |
+| AV-004 | DO-009 | Ring 0 紧急停止（EMERGENCY_HALT） |
+| AV-005 | DO-017 | 低信誉 Agent 升级（ESCALATE） |
+| AV-006 | DO-024 | Unless 豁免触发（ALLOW） |
+| AV-007 | DO-027 | 空值安全字段访问（PASS） |
+| AV-008 | — | 故意 stale 的金丝雀，引用另一个向量的 canonical_hex 但存储了不匹配的 audit.hash |
+| AV-009 | DO-021 | 自动修正（CORRECT） |
+| AV-010 | DO-031 | 异常通知（NOTIFY） |
+| AV-011 | DO-038 | 快照回滚（ROLLBACK） |
+| AV-012 | DO-051 | 多步工作流（WORKFLOW） |
 
 ### v1.3 预留
 
