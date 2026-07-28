@@ -125,6 +125,17 @@ function jcsCanonicalize(value) {
 // ═══════════════════════════════════════════════════
 
 function verifyDO(vectorId, decisionObject) {
+  // ══ DoS Protection (Whitepaper §3.1 constraint 7) ══
+  // Check before clone to avoid allocating memory for oversized DO
+  const doJson = JSON.stringify(decisionObject);
+  if (doJson.length > 1024 * 1024) {  // 1 MB
+    return { passed: false, error: 'resource_limit_exceeded: DO exceeds 1 MB' };
+  }
+  const extCount = Array.isArray(decisionObject.extensions) ? decisionObject.extensions.length : 0;
+  if (extCount > 100) {
+    return { passed: false, error: 'resource_limit_exceeded: extensions > 100 entries' };
+  }
+
   // Step 1: Deep clone
   const clone = JSON.parse(JSON.stringify(decisionObject));
 
@@ -176,7 +187,14 @@ function main() {
   console.log('  File: ' + vectorsPath);
   console.log('');
 
-  const data = JSON.parse(fs.readFileSync(vectorsPath, 'utf8'));
+  // ── DoS Protection (Whitepaper §3.1 constraint 7) ──
+  const raw = fs.readFileSync(vectorsPath, 'utf8');
+  if (raw.length > 100 * 1024 * 1024) {  // 100MB vector set limit
+    console.error('ERROR: Vectors file exceeds 100MB limit');
+    process.exit(1);
+  }
+
+  const data = JSON.parse(raw);
 
   // ── Schema validation ──
   if (!data.vectors || !Array.isArray(data.vectors)) {
