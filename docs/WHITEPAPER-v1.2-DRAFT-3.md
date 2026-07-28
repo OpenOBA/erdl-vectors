@@ -153,7 +153,7 @@ JCS (RFC 8785 §3.2.2.3) 基于 IEEE 754 双精度规范序列化 JSON number。
 1. **整数类型**（`evaluation.total_evaluated`、`total_matched`、`evaluation_duration_ms`、`policies[].version`、`ring` 等）MUST 由各实现保证输出为不带小数点的整数形式，且值域 MUST 在 JavaScript 安全整数范围（-(2^53-1) 至 2^53-1）内
 2. **浮点/金额类型**（如 extensions 中的财务相关字段）MUST 使用字符串表达（如 `"100.50"`），禁止使用原生 number 类型
 3. **禁止 NaN/Infinity**：任何参与 JCS 序列化的数值 MUST NOT 为 NaN 或 Infinity（RFC 8785 强制要求）
-（如 `"100.50"`），禁止前后空格、科学计数法（`"1e-3"`）、前导零（`"00.95"`）
+4. **字符串格式约束**：参与 JCS 的字符串数值 MUST 使用规范表示——禁止前后空格（`" 0.95"`）、禁止科学计数法（`"1e-3"`）、禁止前导零（`"00.95"`）
 5. **Omit over Null**：所有值为 `null`、`undefined` 或空数组 `[]` 的可选字段，在传入 JCS 序列化器之前 MUST 从 JSON 树中物理删除（Omit），不得保留键名。`{"a": null}` 和 `{}` 在 JCS 下产生不同的 canonical bytes
 
 ### 3.2 全链路 JCS
