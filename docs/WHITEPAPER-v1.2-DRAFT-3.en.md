@@ -9,12 +9,14 @@
 > **Requested Commenters**: Erik Newton (Concordia), Christopher Hopley (chopmob-cloud / AlgoVoi), Regulatory Compliance Experts, Joint Audit Committee
 > **Status**: Request for Comments — Not a final version. All design details are subject to adjustment upon receiving feedback.
 >
+> **Keyword Interpretation**: The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/rfc2119/) and [RFC 8174](https://datatracker.ietf.org/doc/rfc8174/).
+>
 > **Revision History**:
 > - Draft 1 (2026-07-27): Initial version, 23-field design
 > - Draft 2 (2026-07-27): Revised per Joint Audit Committee feedback, expanded to 24 fields, added JCS numeric constraints, hot/cold separation privacy scheme, cross-version audit chain anchoring
 > - Draft 3 (2026-07-27): Introduced flat hashing architecture — extensions participate directly in main JCS, reinforcing extension-zone tamper resistance
 >
-> **Abstract**: This whitepaper presents the ERDL Decision Object v1.2 design — a cross-implementation, tamper-proof, multi-jurisdiction-compatible audit decision record standard for enterprise AI Agents. The design is built on JCS (RFC 8785) + SHA-256 cryptographic foundations, technically aligned with IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00), and covers audit requirements across 12 major global regulatory frameworks including EU AI Act, GB/Z 185 (Chinese National Standard for Intelligent Agent Interconnection), NIST AI RMF, and COSO 2026. The DO contains 24 top-level fields (CORE 14 + JURISDICTION 10), achieves on-demand adaptation through a jurisdiction activation mechanism, and implements flat hashing for cryptographic integrity — core fields are never modified, and future regulatory extensions are carried by a self-describing extensions layer without affecting the continuity of existing audit chains.
+> **Abstract**: This whitepaper presents the ERDL Decision Object v1.2 design — a cross-implementation, tamper-proof, multi-jurisdiction-compatible audit decision record standard for enterprise AI Agents. The design is built on JCS (RFC 8785) + SHA-256 cryptographic foundations, technically aligned with IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00), and covers audit requirements across 12 major global regulatory frameworks including EU AI Act, GB/Z 185, NIST AI RMF, and COSO 2026. The DO contains 24 top-level fields (CORE 14 + JURISDICTION 10), achieves on-demand adaptation through a jurisdiction activation mechanism, and ensures integrity through flat hashing architecture — all fields uniformly participate in JCS, and any tampering directly changes audit.hash.
 
 ---
 
@@ -33,7 +35,8 @@
 8. Privacy and Data Minimization Design
 9. Regulatory Versioning and Upgrade Path
 
-10. Schema Stability and Compliance Evolution
+**Part III: Governance and Evolution**
+10. Long-Term Maintenance and Compliance Evolution
 11. Extension Zone Self-Describing Design
 12. Field Governance Principles
 
@@ -128,7 +131,7 @@ These "facts" remain stable across jurisdictions and regulatory frameworks — r
 
 1. **Self-Contained DO**: A regulator opening any single DO can find all compliance-required information within that JSON, without needing to jump to external systems. Self-containment boundary: the DO contains "decision metadata and hash evidence." For very large Contexts (e.g., file contents > 4KB), MUST use the `context_snapshot_hash` + `context_ref` reference pattern; large files MUST NOT be inlined
 2. **Separation of Facts from Compliance**: The DO records facts; external engines determine compliance. Regulatory evolution is absorbed by updating external rules; core fields are permanently frozen
-3. **CORE × JURISDICTION × EXTENSIONS**: The 15 CORE fields are permanently immutable; the 9 JURISDICTION fields are activated per jurisdiction; the extensions layer carries future regulatory extensions
+3. **CORE × JURISDICTION × EXTENSIONS**: The 14 CORE fields are permanently immutable; the 10 JURISDICTION fields are activated per jurisdiction; the extensions layer carries future regulatory extensions
 4. **Cryptographic Integrity**: Flat hashing — CORE+JURISDICTION+EXTENSIONS participate in a single JCS; any field tampering directly changes audit.hash
 5. **Append-Only Schema**: Once a field is published, it can only be marked `deprecated`, never physically deleted. All historical DOs remain verifiable by any version of the validator
 
@@ -151,8 +154,14 @@ JCS (RFC 8785 §3.2.2.3) serializes JSON numbers based on the IEEE 754 double-pr
 1. **Integer types** (`evaluation.total_evaluated`, `total_matched`, `evaluation_duration_ms`, `policies[].version`, `ring`, etc.) MUST be guaranteed by each implementation to output as integers without decimal points, and their value ranges MUST fall within JavaScript's safe integer range (-(2^53-1) to 2^53-1)
 2. **Float/monetary types** (e.g., finance-related fields in extensions) MUST use string representation (e.g., `"100.50"`); native number types are forbidden
 3. **NaN/Infinity forbidden**: No numeric value participating in JCS serialization MUST be NaN or Infinity (RFC 8785 mandatory requirement)
-4. **Numeric string constraint**: All numeric values expressed as strings (e.g., `confidence_score`) MUST match the regex `^\d+(\.\d+)?$` (e.g., `"0.95"`); leading/trailing whitespace, scientific notation (`"1e-3"`), and leading zeros (`"00.95"`) are forbidden
+4. **String format constraint**: Numeric string values participating in JCS MUST use canonical representation — no leading/trailing whitespace (`" 0.95"`), no scientific notation (`"1e-3"`), no leading zeros (`"00.95"`)
 5. **Omit over Null**: All optional fields whose value is `null`, `undefined`, or empty array `[]` MUST be physically deleted (Omit) from the JSON tree before being passed to the JCS serializer; key names MUST NOT be preserved. `{"a": null}` and `{}` produce different canonical bytes under JCS
+
+6. ⚠️ **Raw Data Pass-Through (Critical for Finance/Audit)**: ERDL does not perform financial calculations — no amount addition, currency conversion, rounding, or precision normalization. Numeric string values in extensions (e.g., amounts, tax rates, quantities) MUST preserve the **full precision and original form** as output by the business layer, including trailing zeros (e.g., `"100.500"` MUST NOT be simplified to `"100.5"`). This constraint has triple protection: (a) ERDL as notary — any bytes written to extensions cannot be modified by ERDL itself; tampering is detected by JCS+SHA-256; (b) Audit traceability — if the business layer introduces amount discrepancies due to floating-point precision or rounding rules, the error source (business layer, not record layer) can be located via the original values in the DO; (c) Precision specification ownership — ISO 4217 currency codes, Decimal128 precision baselines, banker's rounding, etc. are business-layer responsibilities; the business layer should reference the corresponding precision specification document via `schema_ref` in the extension entry
+
+7. ⚠️ **Resource Boundaries (DoS Protection)**: To prevent maliciously constructed DOs from exhausting validator resources, the following hard limits are specified: (a) a single DO JSON serialization MUST NOT exceed **1 MB** (including extensions); (b) the extensions array MUST NOT exceed **100 entries**; (c) JSON nesting depth MUST NOT exceed **10 levels**. Validators MUST check these boundaries before parsing. DOs exceeding any limit MUST be rejected and flagged as `resource_limit_exceeded`
+
+> Language-specific JCS preprocessing guidelines (Python integer precision, Go `json.Marshal` trailing `.0`, Java `BigDecimal`, Rust `serde_json`, etc.) are detailed in the [Runner's Guide](docs/RUNNERS-GUIDE.md) §9 "Language Binding Considerations".
 
 ### 3.2 End-to-End JCS
 
@@ -161,11 +170,14 @@ In v1.1, `policies[].hash` used `JSON.stringify`. `JSON.stringify` does not guar
 ```
 policies[].hash = SHA-256(JCS(policy))
 ```
+
+**Self-Referencing Exclusion Convention**: When computing `policies[].hash`, the `hash` key MUST be temporarily removed from the policy object before JCS. The actual computation is `SHA-256(JCS(policy_without_hash_key))`, and the hash value is written back after computation. This convention applies to all hash fields in the Decision Object that depend on their own JCS — including `policies[].hash` and `compliance_profile.profile_hash` — ensuring hashes do not form self-referencing loops. `audit.hash` follows the same principle, implemented via physical deletion in Step 2 of the five-step verification method.
+
 ### 3.3 Flat Hashing Architecture
 
-v1.2's udit.hash adopts a flat hashing architecture — all Decision Object fields (CORE + JURISDICTION + EXTENSIONS) participate in a single JCS serialization, producing a single cryptographic digest. Any field tampering directly changes udit.hash. Integrity is guaranteed at the cryptographic level, not the procedural level.
+v1.2's `audit.hash` adopts a flat hashing architecture — all Decision Object fields (CORE + JURISDICTION + EXTENSIONS) participate in a single JCS serialization, producing a single cryptographic digest. Any field tampering directly changes `audit.hash`. Integrity is guaranteed at the cryptographic level, not the procedural level.
 
-`
+```
 audit.hash calculation formula (Five-Step Verification):
 
   Step 1: Deep clone the decision_object
@@ -175,13 +187,22 @@ audit.hash calculation formula (Five-Step Verification):
   Step 3: JCS(CORE + JURISDICTION + EXTENSIONS) → canonical_full
   Step 4: SHA-256(canonical_full) → recomputed hash
   Step 5: Compare recomputed hash with stored audit.hash
-`
+```
 
-**Design Principle**: The flat architecture ensures integrity depends on cryptography, not process. Unlike v1.1's layered approach, v1.2 eliminates the intermediary hashing layer (extensions now participate directly) — extensions participate directly in the main JCS. Tampering with any field (including data inside extensions) changes udit.hash. The same applies to signatures — signature is stripped in Step 2, but extensions remain in the signature preimage, ensuring the non-repudiation required by HIPAA/PCI DSS covers all decision data.
+**Design Principle**: The flat architecture ensures integrity depends on cryptography, not process. Extensions participate directly in the main JCS. Tampering with any field (including data inside extensions) changes `audit.hash`. The same applies to signatures — signature is stripped in Step 2, but extensions remain in the signature preimage, ensuring the non-repudiation required by HIPAA/PCI DSS covers all decision data.
 
 ### 3.4 Chain Anchoring
 
-Each DO is linked to the previous DO's `audit.hash` via `audit.previous_hash`. Any tampering with any record in the chain breaks the hash consistency of all subsequent records.
+Each DO is linked to the previous DO's `audit.hash` via `audit.previous_hash`, forming a unidirectional incrementing audit hash chain (similar to lightweight blockchain linking — storing only hash references, not redundantly storing preceding content). Any tampering with any record in the chain breaks the hash consistency of all subsequent records.
+
+**Chain Break Detection**: When a validator detects any of the following conditions, the audit chain is deemed broken at that position —
+1. A DO's `audit.hash` does not match the independently recomputed result (single record tampering)
+2. A DO's `audit.previous_hash` does not match the preceding DO's `audit.hash` (inter-chain break)
+3. A DO in the chain is missing (audit record physically deleted)
+
+**Post-Break Behavior**: The validator MUST mark the break position (DO ID + break type), locate the tampered/deleted record, and group DOs before and after the break point for reporting. The chain segment before the break point maintains audit integrity (tampering does not propagate backward); the chain segment after the break point MUST be marked as `chain_invalid` and cannot be used for compliance evidence.
+
+> Chain breakage does not equal full-chain invalidation. Single-point tampering should be precisely located rather than causing the entire audit chain to be voided — this is the core advantage of lightweight linking: allowing auditors to independently verify the integrity on each side of the break point.
 
 ### 3.5 Technical Alignment with IETF AAT
 
@@ -198,7 +219,7 @@ IETF draft-sharif-agent-audit-trail-00 uses exactly the same cryptographic primi
 
 ## 4. Decision Object Schema: 24-Field Design (CORE 14 + JURISDICTION 10)
 
-### 4.1 CORE Fields (15 — All DOs MUST include, permanently frozen)
+### 4.1 CORE Fields (14 — All DOs MUST include, permanently frozen)
 
 | # | Field | Type | Description |
 |---|-------|------|-------------|
@@ -218,19 +239,22 @@ IETF draft-sharif-agent-audit-trail-00 uses exactly the same cryptographic primi
 | 14 | `audit` | object | Tamper-proof audit (hash/previous_hash/commitment) |
 
 
-### 4.2 JURISDICTION Fields (9 — Activated on demand by compliance_profile)
+### 4.2 JURISDICTION Fields (10 — Activated on demand by compliance_profile)
 
 | # | Field | Type | Activation Condition |
 |---|-------|------|---------------------|
-| 16 | `model_id` | string | NIST / COSO / Colorado compliance |
-| 17 | `fairness_assessment` | string | NIST / Colorado (high-risk decisions) |
-| 18 | `impact_assessment_id` | UUID | Colorado / ISO 42001 compliance |
-| 19 | `autonomy_level` | string | Singapore MGF / COSO compliance |
-| 20 | `data_modification_expected` | boolean | HIPAA / PCI DSS / CAICT compliance |
-| 21 | `context_snapshot_hash` | string | PII-containing scenarios / cross-Agent verification |
-| 22 | `sanitized_context` | string | PII-containing scenarios / GDPR compliance |
-| 23 | `confidence_score` | float (string) | NIST AI RMF compliance (0.0~1.0, string format `"0.95"`; strict regex `^\d+(\.\d+)?$`, no whitespace, scientific notation, or leading zeros) |
-| 24 | `signature` | string (Base64url) | HIPAA / PCI DSS (critical decisions). Companion field `signing_key_id` (does not participate in JCS) identifies the public key version used for signing, enabling auditors to retrieve the correct public key from KMS for verification |
+| 15 | `model_id` | string | NIST / COSO / Colorado compliance |
+| 16 | `fairness_assessment` | string | NIST / Colorado (high-risk decisions) |
+| 17 | `impact_assessment_id` | UUID | Colorado / ISO 42001 compliance |
+| 18 | `autonomy_level` | string | Singapore MGF / COSO compliance |
+| 19 | `data_modification_expected` | boolean | HIPAA / PCI DSS / CAICT compliance |
+| 20 | `context_snapshot_hash` | string | PII-containing scenarios / cross-Agent verification |
+| 21 | `sanitized_context` | string | PII-containing scenarios / GDPR compliance |
+| 22 | `confidence_score` | integer | NIST AI RMF compliance (0~100, integer, representing percentage; e.g., 95 means 95%) |
+| 23 | `signature` | string (Base64url) | HIPAA / PCI DSS (critical decisions). ECDSA P-256 signature covering all DO content except audit/signature/signing_key_id |
+| 24 | `signing_key_id` | string | Companion to `signature` field, identifies the public key version used for signature verification. Auditors use this ID to retrieve the corresponding public key from KMS. Does not participate in JCS serialization, does not participate in signature preimage — its role is purely key metadata; changing key_id does not affect the signature value |
+
+> **Numbering Rule**: CORE #1–#14 (permanently frozen), JURISDICTION #15–#24 (activated on demand), EXTENSIONS is an open-ended extension zone and is not numbered.
 
 ### 4.3 extensions Field (Open-Ended Extension Zone — Directly Participates in Main JCS)
 
@@ -258,7 +282,7 @@ Self-describing structure of each extension entry:
 }
 ```
 
-**Role of `schema_ref`**: Points to the complete schema definition document of the extension field (type, value domain, source, example), retrievable content-addressably via hash. Ten years from now, even if the ERDL committee has disbanded, as long as that hash value can be retrieved from a content-addressable network to the corresponding schema document, auditors can fully understand the semantics of the extension field.
+**Role of `schema_ref`**: Points to the complete schema definition document of the extension field (type, value domain, source, example), retrievable content-addressably via hash. Even if the ERDL committee has disbanded, as long as that hash value can be retrieved from a content-addressable network to the corresponding schema document, auditors can fully understand the semantics of the extension field.
 
 ### 4.4 Sub-Object Extension Fields
 
@@ -299,7 +323,7 @@ Self-describing structure of each extension entry:
 | `evaluation.matched_rules[].ring` | integer | Execution ring level (0-3) |
 | `evaluation.total_evaluated` | integer | Total number of rules evaluated |
 | `evaluation.total_matched` | integer | Total number of rules matched |
-| `evaluation.confidence_score` | float (string) | LLM-provided decision confidence (string format `"0.95"`) |
+| `evaluation.confidence_score` | integer | LLM-provided decision confidence (integer, 0~100, representing percentage; e.g., 95 means 95%) |
 
 **human_oversight object**:
 
@@ -316,7 +340,7 @@ Self-describing structure of each extension entry:
 
 | Deployment Scenario | Activated Fields | DO Size |
 |---------------------|:---:|---------|
-| Baseline (no jurisdiction requirements, CORE 14 only) | 15 | ~1050 bytes |
+| Baseline (no jurisdiction requirements, CORE 14 fields only) | 14 | ~1050 bytes |
 | China (GB/Z 185 + CAICT) | 18 (+ agent.aid, agent.tool_registry_hash, agent.algorithm_filing_no, agent.model_registration_id) | ~1120 bytes |
 | EU High-Risk (EU AI Act) | 17 (+ agent.known_limitations, confidence_score) | ~1080 bytes |
 | US Healthcare (HIPAA) | 18 (+ data_modification_expected, context_snapshot_hash, sanitized_context, signature, fairness_assessment) | ~1150 bytes |
@@ -539,12 +563,30 @@ Third-party auditors can verify DOs using a **completely different technology st
 
 Both use identical cryptographic primitives (JCS + SHA-256 + ECDSA P-256), linked via `execution_trace_id`.
 
-**Responsibility Boundary**: The ERDL DO records the deterministic evaluation results of the rule engine (13 decision types). The following runtime exception types fall outside the ERDL rule evaluation scope and are covered by IETF AAT:
-- **ERROR** (Agent runtime errors, e.g., LLM call failures, tool timeouts) → AAT `action_type: "error"`
-- **TIMEOUT** (Operation exceeded time budget) → AAT `action_type: "error"`, `outcome: "timeout"`
-- **FALLBACK** (Degradation/fallback decisions) → AAT `action_type: "decision"` with detail
+**Responsibility Boundary**: The ERDL DO records the deterministic evaluation results of the rule engine (13 decision types). The following runtime exception types fall outside the ERDL rule evaluation scope and are not covered by DO:
+- **ERROR** (Agent runtime errors, e.g., LLM call failures, tool timeouts)
+- **TIMEOUT** (Operation exceeded time budget)
+- **FALLBACK** (Degradation/fallback decisions)
 
-All three are linked via `execution_trace_id` with their corresponding ERDL DO (if any), forming a complete audit evidence chain.
+These events can be independently recorded by transport-layer or operations-layer audit protocols (e.g., IETF AAT, OpenTelemetry spans, etc.).
+
+**Bridge Reservation**: The DO's extensions support an optional entry `referenced_transport_events` for recording reference identifiers of key transport-layer events (errors, timeouts, etc.) that occur between two consecutive DOs. Entry format:
+
+```json
+{
+  "type": "referenced_transport_events",
+  "events": [
+    {
+      "event_type": "ERROR",
+      "event_id": "evt-xxxx",
+      "timestamp": "2026-07-28T12:00:01.000Z",
+      "summary": "LLM call to model X timed out after 30s"
+    }
+  ]
+}
+```
+
+This entry is optional — it does not reference any specific transport-layer audit protocol, only providing a generic event reference container. Auditors can retrieve detailed records in the corresponding transport-layer audit system via `event_id`, ensuring the temporal continuity of the decision chain is not interrupted by non-decision events.
 
 ```
 ┌─────────────────────────────────────────┐
@@ -564,11 +606,11 @@ All three are linked via `execution_trace_id` with their corresponding ERDL DO (
 
 ### 7.5 Relationship with MCP (Model Context Protocol)
 
-MCP is the Agent-to-external-tool connection standard promoted by Anthropic. ERDL DO integrates with MCP through the following paths:
+MCP is the open connection standard between models and external tools/data sources (led by Anthropic, revised to stateless architecture on 2026-07-28). ERDL DO integrates with MCP through the following paths:
 
 **Proxy Mode (Protocol-Level Interception)**: Point the MCP endpoint of dangerous Tools to an ERDL proxy. Agent calls MCP Tool → ERDL Guard intercepts → Rule evaluation (when/then) → Generate Decision Object → Allow or block. The Agent cannot bypass — it cannot reach the original MCP Tool endpoint.
 
-**`execution_trace_id` Generation Rule**: `execution_trace_id` is independently generated by the ERDL Engine (UUID v7), not dependent on external system identifiers. The MCP `request_id` (generated by the Agent client) can be recorded in the DO's `context` field as `mcp_request_id`, coexisting with `execution_trace_id` to support bidirectional traceability.
+**`execution_trace_id` Generation Rule**: `execution_trace_id` is independently generated by the ERDL Engine (UUID v7), serving as the globally unique identifier for this decision. The MCP 2026-07-28 revision has deprecated session IDs; request-level identifiers are managed by the Agent client itself. Auxiliary identifiers such as `mcp_request_id` can be recorded in the DO's `context` field, coexisting with `execution_trace_id` to support bidirectional traceability. `execution_trace_id` remains the authoritative primary key — all external identifiers serve only as auxiliary indexes and do not participate in JCS integrity calculation.
 
 **MCP Tool Declaration**: ERDL rule files are exposed as MCP Tools through an MCP Server. Agents see the ERDL rule verification capability in the MCP tool list and invoke it via standard MCP protocol.
 
@@ -824,6 +866,18 @@ GDPR Article 17 grants data subjects the right to delete their personal data. Ho
 2. Original Context falls into cold storage — supports physical deletion
 3. GDPR deletion = Delete original records in cold storage
 4. Cold storage retention policy follows each jurisdiction's statutory minimum retention period
+5. The boundary between hot/cold storage is defined by the `context_snapshot_hash` and `sanitized_context` fields
+
+**Storage Layer Behavior Contract (for cold storage implementers)**:
+
+ERDL does not prescribe specific cold storage implementations (S3 Glacier, Azure Cool Blob, local tape, etc. are all acceptable), but requires the cold storage layer to satisfy the following behavior contract to ensure audit chain integrity:
+
+1. **Write Immutability**: Records in cold storage cannot be modified once written. Any "update" operation MUST generate a new version record, linking to the original record via `previous_hash`.
+2. **Read Verification**: Cold storage SHOULD support retrieval of the complete DO record via `audit.hash`, and SHOULD attach the SHA-256 checksum from storage time when returning, to detect silent data corruption.
+3. **Retention Period Governance**: Cold storage MUST maintain a `retention_until` timestamp for each record (calculated based on jurisdiction statutory minimum retention period); physical deletion is forbidden before expiration. Deleted records MUST retain a deletion log at the storage layer (record ID + deletion time + operator).
+4. **Storage Location Traceability**: Each cold record SHOULD record its storage location (URI, ARN, or physical archive number), so auditors can locate the corresponding original data in the DO's `context` or extensions.
+
+> The above contract does not prescribe specific CRUD APIs — storage vendors may freely implement within the behavioral constraints. Core requirements: no tampering after write, verifiable on read, no deletion before expiration, logging on deletion.
 
 ---
 
@@ -856,7 +910,7 @@ Do not add fields to CORE or JURISDICTION. Carry them through self-describing en
 ]
 ```
 
-**Core advantage**: Extension entries directly participate in the main JCS serialization. Legacy validators only need JCS+SHA-256 to verify the integrity of all fields (including extensions).
+**Core advantage**: Extension entries directly participate in the main JCS serialization. Any compliance requirement change — whether adding new fields or modifying existing ones — is directly reflected in `audit.hash`, ensuring audit chain integrity is guaranteed by cryptography.
 
 ### 9.3 Cross-Version Audit Chain Anchoring (v1.1 → v1.2)
 
@@ -908,16 +962,16 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 }
 ```
 
-- **Legacy validator**: Reads `hash_sha256` for verification → PASS
-- **New validator**: Reads `hash_sha512` for verification → PASS
-- **During dual-hash coexistence**: Validators MUST verify all hashes present. The strongest algorithm supported by the validator MUST be among the verified hashes. Omitting or garbling a weaker hash while providing a valid stronger hash takes precedence—an attacker cannot downgrade by dropping a hash. Both passing → highest security level
-- **After SHA-256 full deprecation**: Remove the `hash_sha256` field (following §12 Deprecation governance as a deprecated field)
+- **During transition**: Validators MUST verify all existing hash values. Both passing → highest security level
+- **After SHA-256 full deprecation**: Remove the `hash_sha256` field (as a deprecated field following §12 Deprecation governance principles)
 
 ---
 
 ---
 
-## 10. Schema Stability and Compliance Evolution
+## Part III: Governance and Evolution
+
+## 10. Long-Term Maintenance and Compliance Evolution
 
 ### 10.1 CORE Field Freeze Guarantee
 
@@ -926,12 +980,12 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 │                    Decision Object                       │
 │                                                          │
 │  ┌─────────────────────────────┐                         │
-│  │      CORE (15 fields)       │  ← Permanently frozen    │
+│  │      CORE (14 fields)       │  ← Permanently frozen    │
 │  │      Never modified          │  Participates in main JCS│
 │  └─────────────┬───────────────┘                         │
 │                │                                          │
 │  ┌─────────────┴───────────────┐                         │
-│  │   JURISDICTION (9 fields)   │  ← Activated per jurisdiction│
+│  │   JURISDICTION (10 fields)  │  ← Activated per jurisdiction│
 │  │     Controlled by activated_fields│  Participates in main JCS│
 │  │     Omit rules apply        │                         │
 │  └─────────────┬───────────────┘                         │
@@ -944,17 +998,15 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 │  │     Directly participates in main JCS   │  JCS serialization includes all fields    │
 │  └─────────────┬───────────────┘                         │
 │                │                                          │
-│           JCS(extensions)                                 │
-│                │                                          │
 │           JCS(core + jurisdiction + extensions)           │
 │                │                                          │
 │  ┌─────────────┴───────────────┐                         │
 │  │  audit.hash = SHA-256(      │                         │
 │  │    JCS(core + jurisdiction  │                         │
 │  │      + extensions)           │                         │
-│  │    ↑ extensions included     │                         │                         │
-│  │      participates naturally  │                         │
-│  │      as core #15             │                         │
+│  │    ↑ extensions directly     │                         │
+│  │      participate in         │                         │
+│  │      JCS serialization      │                         │
 │  │  )                          │                         │
 │  └─────────────────────────────┘                         │
 └──────────────────────────────────────────────────────────┘
@@ -965,9 +1017,9 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 | Year | Event | Impact on DO | Validator Behavior |
 |------|-------|-------------|--------------------|
 | 2026 | v1.2 released | CORE 14 + JURISDICTION 10 released | Full validation |
-| 2028 | New EU AI Act Amendment requires carbon footprint recording | Append entry to extensions zone | Legacy validator: JCS+SHA-256 → pass (extensions automatically included in hash) |
-| 2030 | Quantum computing threatens SHA-256 | Append `hash_algorithm: "sha-512"` entry to extensions zone | New validator re-verifies with updated algorithm; Legacy validator still verifiable with SHA-256 |
-| 2032 | New international treaty requires Agent decision records to include human rights impact assessment | Append entry to extensions zone | Flat hashing means every extensions change alters audit.hash; new validators understand new semantics |
+| 2028 | New EU AI Act Amendment requires carbon footprint recording | Append entry to extensions zone | audit.hash automatically covers new fields |
+| 2030 | Quantum computing threatens SHA-256 | Activate dual-hash transition scheme | See §9.6 |
+| 2032 | New international treaty requires Agent decision records to include human rights impact assessment | Append entry to extensions zone | audit.hash automatically covers all fields |
 
 ---
 
@@ -1017,6 +1069,8 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 **Long-term applicability**: An auditor does not need to depend on the ERDL committee's continued existence. As long as the hash value `sha256:e3f5a7b9c1d2...` can be retrieved from any content-addressable network (IPFS, Git, object storage, regulatory archive system) to the corresponding schema document, the semantics of the `carbon_footprint_kg` field can be fully understood.
 
 > ⚠️ **Security Constraint**: Verifiers/audit tools MUST NOT automatically initiate external network fetches for schema resolution during verification. `schema_ref` resolution MUST follow an offline-first principle: (1) use a locally preloaded allowlist schema library; (2) if external retrieval is required, the target address must be in a configured allowlist; (3) response payload MUST NOT exceed 1MB. Automatic fetch of arbitrary URLs is an SSRF attack surface and MUST be disabled in production verification paths.
+>
+> **Local Cache and Expiration Strategy**: Content-addressable network (IPFS, Git, etc.) availability does not constitute a cryptographic guarantee. To ensure schemas remain resolvable within statutory periods, it is recommended: (a) validators pre-load a complete schema cache copy at deployment time (including mappings for all known schema_ref); (b) cache entries carry a `last_fetched` timestamp and `valid_until` expiration — expired entries trigger background refresh rather than blocking verification; (c) if a `schema_ref` is missing from cache and the external network is unreachable, the validator SHOULD mark that extension field as `semantics_unresolved` but MUST NOT block the entire DO's hash verification — hash correctness does not depend on schema resolution.
 
 ---
 
@@ -1077,20 +1131,25 @@ Neutrality is tested, not declared.
 
 ### 13.3 Five-Step Verification Method
 
-**Pre-Principle**: After extracting the `claimed_hash`, the validator MUST perform a Deep Clone of the DO. All subsequent physical deletion operations (pop/delete) MUST be performed on the clone; the original DO in-memory instance MUST NOT be polluted. This ensures downstream business logic (such as storage, display) receives the complete DO.
+**Pre-Principle**: After extracting the `claimed_hash`, the validator MUST perform a Deep Clone of the DO. All subsequent physical deletion operations (pop/delete) MUST be performed on the clone; the original DO in-memory instance MUST NOT be polluted.
+
+> **Schema trimming is already completed by the DO generator**: Per §5.4, the DO has already undergone Schema trimming at construction time — JURISDICTION fields not declared in `activated_fields` have been physically removed (Omit) from the DO object. The five-step verification method receives an already-trimmed DO and does not repeat the trimming operation. If the generator did not trim correctly, `audit.hash` will contain fields that should not exist and will mismatch the reference value, which will be automatically detected by Step 5.
 
 ```
-Step 1: Load DO from vector set
-Step 2: Deep clone → delete audit.hash + signature + signing_key_id
-       (extensions stays in the tree — participates directly in main JCS)
-Step 3: JCS(core + jurisdiction + extensions) → canonical bytes
+Step 1: Deep clone the decision_object
+Step 2: Physically delete self-referencing / external fields
+        DELETE audit.hash + DELETE signature + DELETE signing_key_id
+        (extensions preserved, participating in subsequent JCS)
+Step 3: JCS(CORE + JURISDICTION + EXTENSIONS) → canonical bytes
 Step 4: SHA-256 (FIPS 180-4) → recomputed hash
 Step 5: Compare recomputed hash with stored audit.hash
 ```
 
-### 13.4 AV-008 Stale Regression Vector
+### 13.4 Stale Regression Vector
 
-AV-008's `canonical_bytes` are identical to AV-003, but its `audit.hash` retains the v1.1.0 old value. Any runner that recalculates JCS+SHA-256 from first principles will detect a MISMATCH — shorthand runners will be exposed.
+The vector set's 12 audit hash vectors include a deliberately stale canary vector: its `canonical_bytes` are identical to another valid vector, but its `audit.hash` retains the old version's hash value. Any runner that recalculates JCS+SHA-256 from first principles will detect a MISMATCH — shorthand runners (that only compare pre-computed hashes without recalculating) will be exposed.
+
+> Validators MUST NOT special-case this vector by hardcoding vector IDs. All 12 audit vectors MUST go through the same five-step verification process.
 
 ### 13.5 Compatibility Levels
 
@@ -1106,12 +1165,12 @@ AV-008's `canonical_bytes` are identical to AV-003, but its `audit.hash` retains
 
 This whitepaper is a Request for Comments (RFC). We welcome feedback from experts in the following areas:
 
-1. **End-to-End JCS + Flat Hashing**: Policies hash uses JCS + SHA-256, and audit.hash uses the flat hashing formula. Can this scheme be correctly reproduced in all mainstream languages?
-2. **Jurisdiction Activation Mechanism**: compliance_profile.activated_fields + Schema Clipping Rules. Does this design meet multi-jurisdiction deployment needs?
-3. **AV-008 Stale Regression Vector**: As a canary for detecting validator correctness, is this design sound?
-4. **Flat Hashing Extensibility**: Flat hashing + extensions self-describing design + append-only governance — does the extensions content integrity hold up under this model?
-5. **IETF AAT Alignment**: ERDL DO and AAT share cryptographic primitives. Is execution_trace_id sufficient as a cross-format bridge key?
-6. **Compliance Substrate**: Can compliance_profile be viewed as an implementation of the compliance substrate model?
+1. **End-to-End JCS + Flat Hashing**: `policies[].hash` uses JCS + SHA-256, and `audit.hash` uses the flat hashing formula. Can this scheme be correctly reproduced in all mainstream languages?
+2. **Jurisdiction Activation Mechanism**: `compliance_profile.activated_fields` + Schema trimming rules (Omit vs null). Does this design meet multi-jurisdiction deployment compliance needs?
+3. **Audit Hash Regression Detection**: The vector set includes regression vectors retaining old version hash values, for detecting validator implementations that skip independent hash recalculation. Is this design sound?
+4. **Flat Hashing Extensibility**: Under the extensions self-describing design + append-only governance principle, is the extension zone's content integrity sufficiently guaranteed?
+5. **IETF AAT Alignment**: ERDL DO and AAT share cryptographic primitives. Is `execution_trace_id` sufficient as a cross-format bridge key?
+6. **Compliance Substrate**: Can `compliance_profile` be viewed as an effective implementation of the compliance substrate model?
 
 ## Appendix B: Reference Standards
 
