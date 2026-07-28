@@ -996,8 +996,8 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 │                │                                          │
 │  ┌─────────────┴───────────────┐                         │
 │  │   EXTENSIONS (open-ended)   │  ← Independent self-describing│
-│  │     Each entry carries schema_ref│  Removed to free core+JCS space│
-│  │     Directly participates in main JCS   │  JCS serialization includes all fields    │
+│  │     Each entry carries schema_ref│  Directly participates in main JCS, preserves full semantics│
+│  │     Directly participates in main JCS   │  MUST NOT be modified by ERDL itself    │
 │  └─────────────┬───────────────┘                         │
 │                │                                          │
 │           JCS(core + jurisdiction + extensions)           │
