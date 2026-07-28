@@ -327,7 +327,9 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | `evaluation.matched_rules[].ring` | integer | 执行环级别（0-3） |
 | `evaluation.total_evaluated` | integer | 评估的规则总数 |
 | `evaluation.total_matched` | integer | 命中的规则总数 |
-| `evaluation.confidence_score` | integer | LLM 提供的决策置信度（整数，0~100，表示百分比；如 95 表示 95%） |
+| `evaluation.confidence_score` | integer | LLM 提供的原始置信度（整数，0~100，表示百分比；如 95 表示 95%） | 
+
+> ⚠️ **与顶层 `confidence_score` 的区别**：`evaluation.llm_raw_confidence` 是 LLM 在本次评估中返回的原始置信度值（每次评估可能不同），属于规则引擎执行记录。顶层 JURISDICTION 的 `confidence_score` 是 NIST AI RMF 要求的可配置置信度基准（可在 JURISDICTION 中激活/配置），属于合规声明。两者独立填充，互不替代。
 
 **human_oversight 对象**：
 
