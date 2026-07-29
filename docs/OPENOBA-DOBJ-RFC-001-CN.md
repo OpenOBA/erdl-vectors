@@ -1178,7 +1178,7 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 | 审计哈希向量 | 12 | AV-001~AV-012 + AV-013（链完整性金丝雀） |
 | **总计** | **101** | |
 
-**注**：v1.3 将 `canonical_hex` 从向量文件中移入独立的答案文件（`decision-object-answers-v1.3.json`），以消除"仅校验 SHA-256 不实现 JCS"的捷径攻击。合规运行 MUST NOT 读取答案文件。
+**注**：v1.3.1 从向量文件中完全移除了 `canonical_hex`（JCS 直接输出的十六进制编码）。AV 向量改用 `diag_hash`（`audit.hash` 前 14 字符，即 `"sha256:" + 8 位十六进制）作为调试锚点——SHA-256 是单向函数，`diag_hash` 不能反推 JCS 输出，无法用于绕过 JCS 实现的作弊。完整 `canonical_hex` 答案集保存在独立答案文件 `decision-object-answers-v1.3.json` 中，仅供开发诊断使用。合规运行 MUST NOT 读取答案文件。
 
 ### 13.3 五步验证法
 
@@ -1204,7 +1204,7 @@ Step 5: Compare recomputed hash with stored audit.hash
 
 向量集包含一条**链位置篡改金丝雀**：AV-013 的 `audit.previous_hash` 被篡改指向链外地址，但 `audit.hash` 是用篡改前的 `previous_hash` 计算的。任何从第一原理独立重算 JCS(含 previous_hash)+SHA-256 的 runner 都会检测到 MISMATCH——因为 DO 体内携带的 previous_hash 与计算 stored hash 时用的不同。
 
-- 仅验证 SHA-256（使用 canonical_hex 捷径）的 runner 无法区分——hash 匹配两个 body 可能一致
+- 未正确实现 JCS 的 runner 无法产生相同的 `audit.hash`
 - 不将 `previous_hash` 纳入 JCS 原像的 runner 会错误地报告 MATCH
 - 正确实现"只删 audit.hash"的 runner 会检测到 MISMATCH
 
@@ -1218,13 +1218,21 @@ Step 5: Compare recomputed hash with stored audit.hash
 | L2 Verified | v1.1 全部 45 条 | 45 |
 | L3 Full | v1.3 全部 101 条（含 AV-013 链完整性金丝雀） | 101 |
 
-### 13.6 答案文件
+### 13.6 答案文件与诊断锚点
 
-`decision-object-answers-v1.3.json` 包含所有向量的 `canonical_hex` 预计算值，用于调试和开发便利。**合规运行 MUST NOT 读取答案文件**——读取正确答案绕过 JCS 实现，违反独立验证承诺。
+**答案文件**：`decision-object-answers-v1.3.json` 包含所有 75 条向量的完整 `canonical_hex` 预计算值，用于开发调试。**合规运行 MUST NOT 读取答案文件**——读取正确答案绕过 JCS 实现，违反独立验证承诺。
 
 - 答案文件与向量文件分离管理
-- 向量文件中不含任何 canonical_hex 字段
 - CI/CD 合规管道应配置答案文件为不可访问
+- 建议的获取流程：开发者提交初步实现 → 通过邮件/工单申请 → 获取答案文件用于本地调试
+
+**诊断锚点**：v1.3.1 在 AV 向量中提供 `diag_hash` 字段（`audit.hash` 前 14 字符，即 `"sha256:" + 8 位十六进制）作为调试定位锚点。`diag_hash` 是 SHA-256 的单向输出前缀——不能反推 JCS 输出，不能用于绕过 JCS 实现，不能用于计算 SHA-256 的输入原像。它仅用于快速定位问题："我的结果以 `x` 开头，答案以 `y` 开头"。
+
+| 字段 | 位置 | 可逆？ | 可用于作弊？ |
+|------|------|:---:|:---:|
+| `diag_hash` | AV 向量文件 | ❌ SHA-256 单向 | ❌ 仅 8 字符 hex，无 JCS 信息 |
+| `canonical_hex` | 独立答案文件 | ✅ JCS 直接输出 | ✅ 可直接复制（已隔离） |
+| `audit.hash` | DO body | ❌ SHA-256 单向 | ❌ 仅可比较，不可逆推 |
 
 ---
 
@@ -1238,7 +1246,7 @@ Step 5: Compare recomputed hash with stored audit.hash
 4. **平面哈希扩展性**：extensions 的自描述设计 + 只增不删治理原则下，扩展区的内容完整性是否得到充分保证？
 5. **IETF AAT 对齐**：ERDL DO 与 AAT 共享密码学原语。`execution_trace_id` 作为跨格式桥接键是否完备？
 6. **链完整性金丝雀**：AV-013（链位置篡改金丝雀）是否充分测试了 `previous_hash` 纳入 JCS 原像的验证逻辑？
-7. **答案文件分离**：canonical_hex 独立存放于答案文件的设计是否能有效阻止"仅校验 SHA-256 不实现 JCS"的合规作弊？
+7. **诊断锚点与答案文件分离**：`diag_hash`（AV 向量中的 SHA-256 前缀）仅用于调试定位，`canonical_hex`（独立答案文件）物理隔离于向量文件——这种分层设计是否能有效阻止"绕过 JCS 实现"的合规作弊？
 8. **双哈希过渡安全性**：§9.6 的"验证所有存在哈希"策略是否能防御算法降级攻击？
 9. **威胁模型完整性**：附录 C 的威胁模型是否遗漏了在生产环境中实际存在的攻击向量？哪些风险接受声明在您的合规场景中无法接受？
 10. **中小企业部署**：§9.5 的最小部署模式（NATIVE + JSONL）是否满足小团队的实际需求？渐进式升级路径（单进程 → Redis → Worker 集群）的瓶颈阈值（50/500 Tool Call/s）是否合理？

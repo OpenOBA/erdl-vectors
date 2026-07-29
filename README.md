@@ -23,7 +23,7 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 
 ## 概述
 
-> **v1.3 关键变更**：audit 对象现包含 `hash` + `previous_hash` + `commitment` 三字段。`canonical_hex` 从向量移入独立答案文件。AV-008 被 AV-013 替代——链位置篡改金丝雀。见 [CHANGELOG.md](CHANGELOG.md)。
+> **v1.3.1 关键变更**：audit 对象现包含 `hash` + `previous_hash` + `commitment` 三字段。`canonical_hex` 从向量文件完全移除，替换为 `diag_hash`（audit.hash 前 14 字符 SHA-256 前缀），仅用于调试锚定——无法用于绕过 JCS 实现。AV-008 被 AV-013 替代——链位置篡改金丝雀。见 [CHANGELOG.md](CHANGELOG.md)。
 本仓库包含 ERDL（Entity-Rule Definition Language）Decision Object v1.3 协议的标准**101 条跨实现测试向量**。每条向量是一个完整的、可自验证的 Decision Object——AI Agent 规则评估决策的标准化、防篡改审计格式。
 
 ### 核心保证
@@ -41,7 +41,7 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 ```
 $ node scripts/generate-vectors.cjs
 $ sha256sum decision-object-vectors-v1.3.json
-├── decision-object-answers-v1.3.json      # 答案文件（调试用，合规运行不可读） / Answers file (debug only; conformance runners MUST NOT read)
+├── decision-object-answers-v1.3.json      # 答案文件（开发调试，合规运行不可读） / Answers file (development debug; conformance runners MUST NOT read)
 700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca
 
 $ node scripts/generate-vectors.cjs  # 第二次运行
@@ -146,7 +146,7 @@ npm test
 步骤 5：将计算哈希与存储的 audit.hash 比较
 ```
 
-任何走捷径的验证器（如直接比较预计算哈希）将**通过 AV-001 – AV-007、AV-009 – AV-012 但被 AV-013 金丝雀捕获**——专门用于检测偷懒的实现。
+任何未正确实现 JCS 的验证器将**通过 AV-001 – AV-007、AV-009 – AV-012 但被 AV-013 金丝雀捕获**——专门用于检测未将 `previous_hash` 纳入 JCS 原像的实现。
 
 ## 合规配置
 
@@ -166,7 +166,7 @@ npm test
 ```
 erdl-vectors/
 ├── decision-object-vectors-v1.3.json   # 101 条向量（~495 KB）
-├── decision-object-answers-v1.3.json   # 答案文件（调试用，合规运行不可读）
+├── decision-object-answers-v1.3.json   # 答案文件（开发调试，合规运行不可读）
 ├── scripts/
 │   ├── generate-vectors.cjs            # 确定性向量生成器
 │   ├── verify.js                       # 零依赖五步验证器
