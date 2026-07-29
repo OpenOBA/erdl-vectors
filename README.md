@@ -41,7 +41,7 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 ```
 $ node scripts/generate-vectors.cjs
 $ sha256sum decision-object-vectors-v1.3.json
-├── decision-object-answers-v1.3.json      # 答案文件（调试用，合规运行不可读）
+├── decision-object-answers-v1.3.json      # 答案文件（调试用，合规运行不可读） / Answers file (debug only; conformance runners MUST NOT read)
 700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca
 
 $ node scripts/generate-vectors.cjs  # 第二次运行
