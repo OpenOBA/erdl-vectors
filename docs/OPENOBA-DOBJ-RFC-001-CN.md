@@ -190,7 +190,7 @@ policies[].hash = SHA-256(JCS(policy))
 
 v1.2 的 `audit.hash` 采用平面哈希架构——Decision Object 的所有字段（CORE + JURISDICTION + EXTENSIONS）统一参与 JCS 序列化，形成单一的密码学摘要。任何字段的篡改都会直接改变 `audit.hash`，完整性保障在密码学层面而非流程层面。
 
-> **extensions 空数组保留**：§3.1 约束 5（Omit over Null）规定空数组 `[]` MUST 在 JCS 前物理删除。**extensions 字段不适用此规则**——当 DO 无扩展数据时，extensions MUST 保留为 `[]` 并参与后续 JCS。§3.3 对 extensions 字段的规定优先于 §3.1(5)。`extensions_hash` 绝不会被省略。
+> **extensions 空数组保留**：§3.1 约束 5（Omit over Null）规定空数组 `[]` MUST 在 JCS 前物理删除。**extensions 字段不适用此规则**——当 DO 无扩展数据时，extensions MUST 保留为 `[]` 并参与后续 JCS 序列化。§3.3 对 extensions 字段的规定优先于 §3.1(5)。
 
 ```
 audit.hash 计算公式（五步验证法）：

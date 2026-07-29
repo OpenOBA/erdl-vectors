@@ -187,7 +187,7 @@ policies[].hash = SHA-256(JCS(policy))
 
 ### 3.3 Flat Hashing Architecture
 
-> **Extensions empty array retention**: §3.1 Constraint 5 (Omit over Null) requires empty arrays `[]` to be physically deleted before JCS. **This does not apply to the extensions field** — when a DO has no extension data, extensions MUST be retained as `[]` and participate in subsequent JCS. §3.3 governs the `extensions` field regardless of §3.1(5). `extensions_hash` is never omitted.
+> **Extensions empty array retention**: §3.1 Constraint 5 (Omit over Null) requires empty arrays `[]` to be physically deleted before JCS. **This does not apply to the extensions field** — when a DO has no extension data, extensions MUST be retained as `[]` and participate in subsequent JCS serialization. §3.3 governs the `extensions` field regardless of §3.1(5).
 
 v1.2's `audit.hash` adopts a flat hashing architecture — all Decision Object fields (CORE + JURISDICTION + EXTENSIONS) participate in a single JCS serialization, producing a single cryptographic digest. Any field tampering directly changes `audit.hash`. Integrity is guaranteed at the cryptographic level, not the procedural level.
 
