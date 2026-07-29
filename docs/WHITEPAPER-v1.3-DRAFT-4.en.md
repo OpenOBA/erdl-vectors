@@ -45,6 +45,7 @@
 13. Vector Set and Cross-Implementation Verification
 14. Request for Comments
 Appendix B: Reference Standards
+Appendix C: Threat Model and Security Statement
 
 ---
 
@@ -960,7 +961,30 @@ The Agent main thread only generates the DO plain JSON and pushes it to an in-me
 > 4. **Worker Crash Recovery**: After a Worker crash and restart, unfinished batches MUST be replayed. This can be implemented via the message queue's consumer group offset tracking or completion markers in the WAL
 > 5. **Missing DO Alert**: When consecutive DO gaps are detected (e.g., `audit.previous_hash` chain break), an alert MUST be triggered — missing evidence may have been maliciously deleted rather than lost to queue failure
 
+> **Performance Benchmark Reference** (Node.js v24.18.0 · Intel i7-9700 @ 3.0GHz · measured 2026-07-29):
+>
+> | Deployment Mode | Single DO Latency | 75 DO Full Verify | Suitable Scale |
+> |---------|:---:|:---:|------|
+> | NATIVE co-located (minimal) | **~110 µs** | ~8 ms | < 50 Tool Calls/s |
+> | NATIVE + local JSONL | ~120 µs (incl. disk write) | ~9 ms | < 50 Tool Calls/s |
+> | Async Worker cluster | main thread <1ms (enqueue) + Worker ~110µs | — | > 50 Tool Calls/s |
+>
+> Single DO ~3 KB JSON. Verification path: deep clone → JCS → SHA-256 → compare. Latency bottleneck is JSON deep clone (`JSON.parse(JSON.stringify(...))`, ~60%), JCS serialization ~25%, SHA-256 ~15%. Cross-language latency differences are noted in §7.7 integration performance notes.
+
 ### 9.5 Storage Optimization Guide
+
+#### Minimal Deployment Mode (SMB / Small Teams)
+
+The async Worker cluster architecture (§9.4) is an optional performance optimization path, not a deployment prerequisite. For scenarios with < 50 Tool Calls/second (the majority of SMB deployments), the following minimal deployment is recommended:
+
+1. **NATIVE co-located mode**: ERDL Engine embedded in the Agent process; DO generation runs on the main thread. Node.js v24 measured: single DO (~3 KB) full verification (deep clone → JCS → SHA-256 → compare) takes **~110 µs** — even at 10 Tool Calls/second, DO generation uses only 0.1% of CPU
+2. **Local JSONL storage**: DOs written in append-only mode to a single file (`erdl_audit.jsonl`), one DO per line — no Kafka, Redis, or Worker cluster required
+3. **Progressive upgrade path**: at 50 Tool Calls/s → add local message queue (Redis Stream); at 500 Tool Calls/s → add dedicated Worker cluster + WORM storage
+4. **Minimum hardware**: NATIVE + JSONL mode runs in a lightweight container with 1 vCPU / 512 MB RAM
+
+> **Principle**: Start with single-process JSONL. Only add infrastructure when you hit bottlenecks — do not design enterprise deployment architecture on day one.
+
+#### Enterprise Deployment Mode
 
 - **Online hot queries**: Use Elasticsearch/ClickHouse to store parsed structured fields (such as decision, severity, timestamp) for real-time monitoring and rapid retrieval
 - **Cold archive storage**: DO JSON used for tamper-proof verification can be archived after Brotli or Zstandard compression (saving 60%+ storage costs). Compression does not affect JCS verification — decompress first, then recalculate `audit.hash`
@@ -1188,6 +1212,67 @@ The vector set includes one **chain position tampering canary**: AV-013's `audit
 - Answers file is managed separately from the vector file
 - The vector file contains no `canonical_hex` fields
 - CI/CD compliance pipelines should configure the answers file as inaccessible
+
+---
+
+## 14. Request for Comments
+
+This whitepaper is a Request for Comments (RFC). We invite experts in the following areas to provide feedback:
+
+1. **End-to-End JCS + Flat Hashing**: `policies[].hash` uses JCS + SHA-256, and `audit.hash` uses the flat hashing formula. Can this be correctly reproduced in all mainstream languages?
+2. **Jurisdiction Activation Mechanism**: `compliance_profile.activated_fields` + Schema trimming rules (Omit vs null). Does this design meet multi-jurisdiction compliance needs?
+3. **Audit Hash Regression Detection**: The vector set includes regression vectors with retained old-version hashes to detect verifier implementations that skip independent hash recalculation. Is this design reasonable?
+4. **Flat Hashing Extensibility**: Under the self-describing extensions design + append-only governance principles, is the content integrity of the extensions zone adequately protected?
+5. **IETF AAT Alignment**: ERDL DO and AAT share cryptographic primitives. Is `execution_trace_id` adequate as a cross-format bridge key?
+6. **Chain Integrity Canary**: Does AV-013 (chain position tampering canary) adequately test the verification logic that includes `previous_hash` in the JCS preimage?
+7. **Answers File Separation**: Does storing `canonical_hex` in a separate answers file effectively prevent the "SHA-256-only without JCS implementation" compliance shortcut?
+8. **Dual Hash Transition Security**: Does §9.6's "verify every hash present" strategy adequately defend against algorithm downgrade attacks?
+9. **Threat Model Completeness**: Does Appendix C's threat model omit any attack vectors actually encountered in production environments? Which risk acceptance statements are unacceptable in your compliance context?
+10. **SMB Deployment**: Does the minimal deployment mode in §9.5 (NATIVE + JSONL) meet the actual needs of small teams? Are the bottleneck thresholds (50/500 Tool Calls/s) for the progressive upgrade path (single-process → Redis → Worker cluster) reasonable?
+
+---
+
+## Appendix C: Threat Model and Security Statement
+
+> This appendix applies the STRIDE framework to model threats to the ERDL Decision Object system. STRIDE covers six threat categories: Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege.
+
+### C.1 Threat Overview
+
+| Threat | STRIDE | Existing Mitigation | Risk Acceptance |
+|------|:---:|------|------|
+| DO content tampering (modifying result/context fields then replaying) | T | Flat hashing (§3.3): all fields participate in JCS → any tampering changes audit.hash. Five-step verification (§13.3) detects via independent recalculation | — |
+| Chain position tampering (swapping/reordering/deleting chain records) | T | chain.previous_hash (§3.4) + AV-013 canary (§13.4): chain position changes alter all subsequent audit.hash values | — |
+| Signature forgery (forging Agent signature to claim authorization) | S | ECDSA P-256 signature (§4.2 #23): covers all DO content except audit.hash/signature/signing_key_id | — |
+| Auditor repudiation (Agent claims "did not make this decision") | R | Signature + hash chain dual non-repudiation (§3.4): signature binds Agent identity, hash chain prevents selective deletion | — |
+| PII leakage (DO context contains user sensitive data) | I | Hot/cold separation (§8): audit chain stores only hash; raw PII falls to physically deletable cold storage | — |
+| schema_ref SSRF (verifier auto-fetches external URLs) | I | Offline-first + allowlist + 1MB cap (§11.2): automatic external retrieval prohibited in production verification paths | — |
+| Hash algorithm downgrade (verifier only checks SHA-256, ignores stronger algorithms) | T | Dual hash transition (§9.6): "verify every hash present" replaces "at least one" (CWE-757 fix) | — |
+| ReDoS (malicious regex input exhausts CPU) | D | SafeExpr regex engine (§3.4.1) + vector DO-044 (ReDoS protection test) | — |
+| Oversized DO exhausting verifier resources | D | Resource boundaries (§3.1 constraint 7): 1MB/100 ext/10 nesting levels; MUST reject on exceed | — |
+| Queue loss causing missing DOs | D/T | WAL safeguard + at-least-once delivery + missing DO alert (§9.4 reliability constraints) | — |
+| **Signing key compromise** | S | — | ⚠️ Accepted: private key management is beyond DO protocol scope — the whitepaper requires but does not prescribe KMS solutions. Enterprises MUST use Hardware Security Modules (HSM) or cloud KMS to manage private keys |
+| **Time rollback attack** (attacker rewinds system clock to forge "earlier" DOs) | T | — | ⚠️ Accepted: timestamp is self-declared — an attacker controlling the Agent clock can falsify it. Mitigation relies on external trusted timestamps (RFC 3161 TSA) or distributed consensus clocks, both beyond DO protocol scope |
+| **Sybil attack** (attacker registers fake Agents en masse, generating large volumes of legitimately signed fake DOs to overwhelm auditing) | S | agent.aid (§4.4) provides identity anchoring but depends on registration-layer trust | ⚠️ Partially accepted: DO itself does not solve identity registration trust. Requires complementary CA/PKI or decentralized identity (DID) infrastructure. The DO's agent.id field provides an anchor point for identity verification — identity system selection is a deployer decision |
+
+### C.2 Risk Acceptance Statement
+
+The ERDL Decision Object is an **audit record protocol**, not a comprehensive enterprise security framework. The following threats are outside protocol scope and require supplementary protection at the application layer, infrastructure layer, or organizational process layer by the deployer:
+
+1. **Agent process integrity**: If an attacker gains memory access to the Agent process, they can tamper with context before DO generation — the DO then records "the tampered decision" and the protocol itself cannot defend against this
+2. **LLM prompt injection**: Crafting malicious context to induce the Agent to make an unsafe decision — the DO will faithfully record that decision. Prompt injection defense is the ERDL rule engine's responsibility (Guard rules), not the DO record's responsibility
+3. **Physical security**: Attacker gains physical access to hardware storing DO records
+4. **Rogue compliance auditor**: An auditor holding valid verification keys acts maliciously (selective verification, deliberate false reporting)
+
+### C.3 Security Default Principles
+
+The DO protocol adheres to the following security-by-default principles:
+
+- **Fail-Safe**: On verification failure, default to deny (mark DO as `invalid`), never default to accept
+- **Least Privilege**: DO generation requires only Agent process memory access — no network, no root privileges
+- **Defense in Depth**: Cryptographic hashing (JCS+SHA-256) + chain anchoring (previous_hash) + digital signature (ECDSA P-256) — triple protection; single-layer failure does not cause total failure
+- **Open Verification**: Anyone (including regulators) can independently recalculate audit.hash — no trust in the Agent vendor's closed verification tools required
+
+> *"Cryptography provides guarantees; process fills the gaps. The DO protocol solves 'record tamper-proofing.' Identity systems solve 'who did it.' Threat intelligence solves 'when to act.' The boundaries between the three must be clear — do not confuse guarantees within protocol scope with issues outside scope of responsibility."*
 
 ---
 
