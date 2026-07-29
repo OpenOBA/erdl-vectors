@@ -1,9 +1,16 @@
 'use strict';
 
 /**
- * ERDL Decision Object v1.3 — Multi-Dimensional Conformance Runner
+ * ERDL Decision Object v1.3 — Reference Conformance Runner
  * Implements JCS (RFC 8785) from scratch + SHA-256 via Node crypto.
  * No external JCS libraries used.
+ *
+ * This is a third-party reference implementation provided for
+ * cross-implementation verification purposes.
+ *
+ * Usage: node scripts/reference-runner.js
+ *
+ * Copyright (c) 2026 — Licensed under MIT.
  */
 
 const crypto = require('crypto');
@@ -336,7 +343,7 @@ function mode5AV013Target() {
 
 console.log('╔═══════════════════════════════════════════════════════╗');
 console.log('║  ERDL Decision Object v1.3 Conformance Runner       ║');
-console.log('║  Qwen Implementation (JCS from scratch, SHA-256)    ║');
+console.log('║  Reference Implementation (JCS from scratch, SHA-256) ║');
 console.log('╚═══════════════════════════════════════════════════════╝');
 console.log('');
 
