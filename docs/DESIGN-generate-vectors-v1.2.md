@@ -196,7 +196,7 @@ Step 5: 删除自引�?外部字段（v1.3 修正：仅�?audit.hash，保�?pre
         // signing_key_id �?signature 配对但不参与 JCS（白皮书 §4.2�?
 Step 6: �?JCS + SHA-256
         const canonicalFull = JCS(clone)
-        // canonicalFull = JCS(CORE + JURISDICTION + EXTENSIONS)
+        // canonicalFull = JCS(CORE + JURISDICTION + EXTENSIONS + previous_hash + commitment)
         const auditHash = 'sha256:' + SHA-256(canonicalFull)
 
 Step 7: 写回
@@ -204,7 +204,7 @@ Step 7: 写回
         clone.signature = originalSignature
 
 Step 8: 记录 canonical_hex
-         canonical_hex = hex(JCS(CORE + JURISDICTION + EXTENSIONS))
+         canonical_hex = hex(JCS(CORE + JURISDICTION + EXTENSIONS + previous_hash + commitment))
          // 不含: audit / signature / signing_key_id
          // �? extensions（直接参与主 JCS�?```
 
@@ -257,7 +257,7 @@ av008.note = 'STALE REGRESSION VECTOR: canonical_bytes identical to AV-003, audi
   "created": "2026-07-28",
   "updated": "2026-07-28",
   "maintainer": "OpenOBA (https://openoba.com)",
-  "description": "101 cross-implementation test vectors for ERDL Decision Object v1.2. 63 static DOs + 26 dynamic (Temporal 10 / Seeded 8 / Stateful 8) + 12 audit hash vectors. Flat hashing: JCS(CORE+JURISDICTION+EXTENSIONS) �?SHA-256.",
+  "description": "101 cross-implementation test vectors for ERDL Decision Object v1.2. 63 static DOs + 26 dynamic (Temporal 10 / Seeded 8 / Stateful 8) + 12 audit hash vectors. Flat hashing: JCS(CORE+JURISDICTION+EXTENSIONS+previous_hash+commitment) �?SHA-256.",
   "vectors": [
     { "id": "DO-001", "category": "...", "scenario": "...", "rules": [...], "context": {...}, "expected": {...} },
     ... 63 entries
