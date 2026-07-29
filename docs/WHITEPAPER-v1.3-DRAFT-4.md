@@ -34,7 +34,7 @@
 5. 全向兼容 × 按需适配：辖区激活机制
 6. 12 监管框架兼容性
 7. 生态兼容性（三方审计视角 / IETF AAT / MCP / A2A / Agent 框架 / OpenTelemetry / 审计报告输出）
-8. 隐私与数据最小化设计
+8. 隐私与数据最小化设计（GDPR / LGPD / DPDP）
 9. 法规版本化与升级路径
 
 **第三部分：治理与演进**
@@ -447,6 +447,8 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | PCI DSS v4.0.1 | Global | 合同强制 |
 | Colorado SB 205 | US-CO | 强制 |
 | 新加坡 MGF for Agentic AI | SG | 最佳实践 |
+| LGPD (Lei Geral de Proteção de Dados) | BR | 强制 |
+| DPDP (Digital Personal Data Protection Act) 2023 | IN | 强制 |
 | 中国信通院评估 2.0 | CN | 行业权威 |
 
 ### 6.2 逐框架关键要求覆盖
@@ -842,9 +844,9 @@ GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
 
 ---
 
-## 8. 隐私与数据最小化设计
+## 8. 隐私与数据最小化设计（GDPR / LGPD / DPDP）
 
-**场景：GDPR 被遗忘权与防篡改 Hash 链的共存**
+**场景：数据被遗忘权（GDPR Art.17 / LGPD Art.18 / DPDP §12）与防篡改 Hash 链的共存**
 
 GDPR Article 17 赋予数据主体删除其个人数据的权利。但 Decision Object 通过 Hash 链固化——如果 DO 的 `context` 包含用户 PII，直接删除会导致整条哈希链断裂。
 
@@ -866,7 +868,7 @@ GDPR Article 17 赋予数据主体删除其个人数据的权利。但 Decision 
 │                                                 │
 │  DO-001.context.raw → 用户张三, 信用卡 1234...    │  ← 原始 PII
 │                                                 │
-│  GDPR 删除请求 → 删除冷存储中的原始记录            │
+│  GDPR/LGPD/DPDP 删除请求 → 删除冷存储中的原始记录       │
 │  审计链不变 → context_snapshot_hash 仍可验证      │
 │  监管审查 → 通过 sanitized_context 获取关键语义     │
 └─────────────────────────────────────────────────┘
@@ -875,7 +877,7 @@ GDPR Article 17 赋予数据主体删除其个人数据的权利。但 Decision 
 **核心原则**：
 1. 审计链只存 Hash — 不存储原始 PII
 2. 原始 Context 落入冷存储 — 支持物理删除
-3. GDPR 删除 = 删除冷存储中的原始记录
+3. GDPR/LGPD/DPDP 删除 = 删除冷存储中的原始记录
 4. 冷存储保留策略遵循各辖区法定最短保留期
 5. 热/冷存储的分界线由 `context_snapshot_hash` 与 `sanitized_context` 字段划定
 
@@ -952,6 +954,14 @@ Agent 主线程                    审计 Worker 集群
 ```
 
 Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路审计 Worker 集群异步执行密码学操作和持久化。此架构将 DO 生成对 Agent 主流程的延迟影响降至 <1ms。
+
+> ⚠️ **队列可靠性约束**：异步架构的性能优势依赖于消息队列不丢失 DO。队列丢失 = DO 缺失 = 审计链断裂 = 合规举证能力丧失。为此规定以下可靠性要求：
+>
+> 1. **持久化写入**：消息队列 MUST 支持磁盘持久化写入（如 Kafka `acks=all`、Redis Stream `XADD ... MAXLEN` 同步刷盘）。禁止使用纯内存暂存后异步刷盘的模式——进程崩溃时未落盘 DO 永久丢失
+> 2. **至少一次投递**：Worker 处理 MUST 支持幂等去重，队列 MUST 保证至少一次投递（at-least-once）语义。使用 `decision_id` 作为幂等键
+> 3. **预写日志（WAL）兜底**：DO 明文 JSON 在入队前 SHOULD 写入本地预写日志（简化为追加模式的 CSV 或 JSONL 文件），作为消息队列不可用时的最后防线
+> 4. **Worker 崩溃恢复**：Worker 崩溃后重启 MUST 重放未完成的批次。可基于消息队列的 consumer group offset 或 WAL 中的完成标记实现
+> 5. **完整 DO 丢失告警**：当检测到连续 DO 缺失（如 `audit.previous_hash` 链断裂）时 MUST 触发告警——丢失的证据可能已被恶意删除而非队列故障
 
 ### 9.5 存储优化指南
 
