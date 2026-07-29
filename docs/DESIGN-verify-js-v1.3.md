@@ -137,7 +137,7 @@ AV-004  PASS  cb=b2c3d4e5...  audit=sha256:b2c3d4e5...
 AV-005  PASS  cb=c3d4e5f6...  audit=sha256:c3d4e5f6...
 AV-006  PASS  cb=d4e5f6a7...  audit=sha256:d4e5f6a7...
 AV-007  PASS  cb=e5f6a7b8...  audit=sha256:e5f6a7b8...
-AV-008  FAIL  cb=MATCH      audit=MISMATCH ← EXPECTED: stale regression vector
+AV-013  FAIL  cb=N/A      audit=MISMATCH ← EXPECTED: chain position tampering canary
 AV-009  PASS  cb=f6a7b8c9...  audit=sha256:f6a7b8c9...
 AV-010  PASS  cb=a7b8c9d0...  audit=sha256:a7b8c9d0...
 AV-011  PASS  cb=b8c9d0e1...  audit=sha256:b8c9d0e1...
@@ -174,7 +174,7 @@ AV-012  PASS  cb=c9d0e1f2...  audit=sha256:c9d0e1f2...
     },
     ...
     {
-      "id": "AV-008",
+      "id": "AV-013",
       "canonical_bytes_match": true,
       "audit_hash_match": false,
       "status": "EXPECTED_FAIL",
@@ -269,7 +269,7 @@ hash = hashlib.sha256(data.encode('utf-8')).hexdigest()
 |------|------|
 | 向量文件不存在 | 退出码 1，输出 `ERROR: Vector file not found` |
 | 向量格式无效 (缺少 audit_vectors) | 退出码 2，输出 `ERROR: Invalid vector format` |
-| AV-008 的 expected MISMATCH | 状态 `EXPECTED_FAIL`，不计入总失败数 |
+| AV-013 的 expected MISMATCH | 状态 `EXPECTED_FAIL`，不计入总失败数 |
 | extensions 验证 | 直接参与主 JCS，不需要单独验证 |
 | canonical_bytes 不一致 | 状态 `FAIL`，输出差异长度和位置 |
 | 自建 JCS 与 reference 不同 | 状态 `PASS` 但输出 WARNING: `JCS divergence detected` |
@@ -301,7 +301,7 @@ function main(args) → exitCode
 
 | 码 | 含义 |
 |:---:|------|
-| 0 | 全部 PASS (含 AV-008 expected failure) |
+| 0 | 全部 PASS (含 AV-013 expected failure) |
 | 1 | 文件 I/O 错误 |
 | 2 | 向量格式无效 |
 | 3 | JCS 输入违规 (NaN/Infinity) |
@@ -327,7 +327,7 @@ node scripts/generate-vectors.cjs
 # 验证器验证自己生成的向量
 node scripts/verify.js --vectors=decision-object-vectors-v1.2.json --level=L3
 
-# 期望输出: 11/12 PASS, 1 expected failure (AV-008)
+# 期望输出: 11/12 PASS, 1 expected failure (AV-013)
 ```
 
 ### 10.2 交叉验证 (cross-implementation)
