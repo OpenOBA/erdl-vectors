@@ -17,7 +17,7 @@
 > - Draft 2（2026-07-27）：联合审计委员会意见修订，扩展至 24 字段，增加 JCS 数值约束、冷热分离隐私方案、跨版本审计链锚定
 > - Draft 3（2026-07-27）：引入平面哈希架构——extensions 直接参与主 JCS，消除中间层完整性缺口，强化扩展区防篡改保证
 >
-> **摘要**：本白皮书提出 ERDL Decision Object v1.3 设计方案——一个面向企业 AI Agent 的跨实现、防篡改、多辖区兼容的审计决策记录标准。方案基于 JCS (RFC 8785) + SHA-256 密码学基础，与 IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00) 技术对齐，覆盖 EU AI Act、GB/Z 185、NIST AI RMF、COSO 2026 等 12 个全球主要监管框架的审计要求。DO 包含 24 个顶层字段（CORE 14 + JURISDICTION 10），通过辖区激活机制实现按需适配，通过平面哈希架构确保完整性依赖密码学而非验证流程——所有字段统一参与 JCS，任何篡改直接改变 audit.hash。
+> **摘要**：本白皮书提出 ERDL Decision Object v1.3 设计方案——一个面向企业 AI Agent 的跨实现、防篡改、多辖区兼容的审计决策记录标准。方案基于 JCS (RFC 8785) + SHA-256 密码学基础，与 IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00) 技术对齐，覆盖 EU AI Act、GB/Z 185、NIST AI RMF、COSO 2026、LGPD、DPDP 等 14 个全球主要监管框架的审计要求。DO 包含 24 个顶层字段（CORE 14 + JURISDICTION 10），通过辖区激活机制实现按需适配，通过平面哈希架构确保完整性依赖密码学而非验证流程——所有字段统一参与 JCS，任何篡改直接改变 audit.hash。
 
 ---
 
@@ -32,7 +32,7 @@
 
 **第二部分：合规与适配**
 5. 全向兼容 × 按需适配：辖区激活机制
-6. 12 监管框架兼容性
+6. 14 监管框架兼容性
 7. 生态兼容性（三方审计视角 / IETF AAT / MCP / A2A / Agent 框架 / OpenTelemetry / 审计报告输出）
 8. 隐私与数据最小化设计（GDPR / LGPD / DPDP）
 9. 法规版本化与升级路径
@@ -104,7 +104,7 @@ v1.0 和 v1.1 已被三个独立实现验证通过（Rulsynor/TypeScript [OpenOB
 本白皮书为**征求意见稿 (RFC)**，发送给：
 - **Erik Newton (Concordia)**：ERDL Decision Object 的第二个独立 runner（Python 实现）。Concordia 在 v1.1 冻结期独立发现了 `expected_sha256` 答案密钥的结构性风险
 - **Christopher Hopley (chopmob-cloud / AlgoVoi)**：合规 substrate 模型与跨验证愿景的提出者。独立审计了 v1.1 的 c3f22df 事故（em-dash 空格修复导致 3/7 向量 audit.hash 不匹配，commit c3f22df → 5cff368）
-- **监管合规专家与联合审计委员会**：对 DO 字段设计与 12 监管框架的兼容性、平面哈希架构的长期可维护性进行审查
+- **监管合规专家与联合审计委员会**：对 DO 字段设计与 14 监管框架的兼容性、平面哈希架构的长期可维护性进行审查
 
 所有收到的反馈将在 v1.2 正式发布前公开记录并逐条回应。
 
@@ -430,7 +430,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 
 ---
 
-## 6. 12 监管框架兼容性
+## 6. 14 监管框架兼容性
 
 ### 6.1 覆盖框架
 
@@ -572,7 +572,7 @@ DO 本身即为审计工作底稿（Audit Working Paper）。第三方审计师�
 | **粒度** | 每次 Tool Call 的 when/then 评估 | 每次 Agent 操作 |
 | **场景** | "为什么这个操作被拦截/放行？" | "Agent 做了什么操作？" |
 | **深度** | 深度（policies/matched_rules/evaluation 细节） | 广度（tool_call/delegation/error/lifecycle） |
-| **监管映射** | 12 框架逐字段映射 | EU AI Act + SOC 2 + ISO/PCI |
+| **监管映射** | 14 框架逐字段映射 | EU AI Act + SOC 2 + ISO/PCI |
 
 两者使用完全相同的密码学原语（JCS + SHA-256 + ECDSA P-256），通过 `execution_trace_id` 串联。
 

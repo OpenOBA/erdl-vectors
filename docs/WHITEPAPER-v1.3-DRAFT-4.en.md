@@ -17,7 +17,7 @@
 > - Draft 2 (2026-07-27): Revised per Joint Audit Committee feedback, expanded to 24 fields, added JCS numeric constraints, hot/cold separation privacy scheme, cross-version audit chain anchoring
 > - Draft 3 (2026-07-27): Introduced flat hashing architecture — extensions participate directly in main JCS, reinforcing extension-zone tamper resistance
 >
-> **Abstract**: This whitepaper presents the ERDL Decision Object v1.3 design — a cross-implementation, tamper-proof, multi-jurisdiction-compatible audit decision record standard for enterprise AI Agents. The design is built on JCS (RFC 8785) + SHA-256 cryptographic foundations, technically aligned with IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00), and covers audit requirements across 12 major global regulatory frameworks including EU AI Act, GB/Z 185, NIST AI RMF, and COSO 2026. The DO contains 24 top-level fields (CORE 14 + JURISDICTION 10), achieves on-demand adaptation through a jurisdiction activation mechanism, and ensures integrity through flat hashing architecture — all fields uniformly participate in JCS, and any tampering directly changes audit.hash.
+> **Abstract**: This whitepaper presents the ERDL Decision Object v1.3 design — a cross-implementation, tamper-proof, multi-jurisdiction-compatible audit decision record standard for enterprise AI Agents. The design is built on JCS (RFC 8785) + SHA-256 cryptographic foundations, technically aligned with IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00), and covers audit requirements across 14 major global regulatory frameworks including EU AI Act, GB/Z 185, NIST AI RMF, COSO 2026, LGPD, and DPDP. The DO contains 24 top-level fields (CORE 14 + JURISDICTION 10), achieves on-demand adaptation through a jurisdiction activation mechanism, and ensures integrity through flat hashing architecture — all fields uniformly participate in JCS, and any tampering directly changes audit.hash.
 
 ---
 
@@ -31,7 +31,7 @@
 
 **Part II: Compliance and Adaptation**
 5. Omni-Directional Compatibility × On-Demand Adaptation: Jurisdiction Activation Mechanism
-6. 12 Regulatory Framework Compatibility
+6. 14 Regulatory Framework Compatibility
 7. Ecosystem Compatibility (Three-Party Audit Perspectives / IETF AAT / MCP / A2A / Agent Frameworks / OpenTelemetry / Audit Report Output)
 8. Privacy and Data Minimization Design (GDPR / LGPD / DPDP)
 9. Regulatory Versioning and Upgrade Path
@@ -103,7 +103,7 @@ v1.0 and v1.1 have been validated by three independent implementations (Rulsynor
 This whitepaper is a **Request for Comments (RFC)**, sent to:
 - **Erik Newton (Concordia)**: Second independent runner of the ERDL Decision Object (Python implementation). Concordia independently discovered the structural risk of the `expected_sha256` answer key during the v1.1 freeze period
 - **Christopher Hopley (chopmob-cloud / AlgoVoi)**: Proposer of the compliance substrate model and cross-validation vision. Independently audited the v1.1 c3f22df incident (em-dash space fix causing 3/7 vector audit.hash mismatches, commit c3f22df → 5cff368)
-- **Regulatory Compliance Experts and the Joint Audit Committee**: For review of DO field design against 12 regulatory frameworks, and the long-term maintainability of the flat hashing architecture
+- **Regulatory Compliance Experts and the Joint Audit Committee**: For review of DO field design against 14 regulatory frameworks, and the long-term maintainability of the flat hashing architecture
 
 All received feedback will be publicly recorded and responded to item by item before the final v1.2 release.
 
@@ -426,7 +426,7 @@ Globally deployed Agents may be simultaneously subject to regulations from multi
 
 ---
 
-## 6. 12 Regulatory Framework Compatibility
+## 6. 14 Regulatory Framework Compatibility
 
 ### 6.1 Covered Frameworks
 
@@ -568,7 +568,7 @@ Third-party auditors can verify DOs using a **completely different technology st
 | **Granularity** | when/then evaluation per Tool Call | Per Agent operation |
 | **Scenario** | "Why was this operation blocked/allowed?" | "What did the Agent do?" |
 | **Depth** | Deep (policies/matched_rules/evaluation details) | Broad (tool_call/delegation/error/lifecycle) |
-| **Regulatory Mapping** | 12 frameworks, per-field mapping | EU AI Act + SOC 2 + ISO/PCI |
+| **Regulatory Mapping** | 14 frameworks, per-field mapping | EU AI Act + SOC 2 + ISO/PCI |
 
 Both use identical cryptographic primitives (JCS + SHA-256 + ECDSA P-256), linked via `execution_trace_id`.
 
