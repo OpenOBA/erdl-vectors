@@ -493,8 +493,6 @@ describe('集成 — 已生成 vectors 文件验证', () => {
       if (avVec.id === 'AV-013') {
         // Must mismatch
         expect(computedHash).not.toBe(storedHash)
-        const computedBytes = Buffer.from(canonicalFull, 'utf8').toString('hex')
-        expect(computedBytes).toBe(avVec.canonical_hex)
         mismatchCount++
       } else {
         expect(computedHash).toBe(storedHash)

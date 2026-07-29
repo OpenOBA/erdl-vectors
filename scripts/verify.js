@@ -7,7 +7,7 @@
  *
  * Usage: node verify.js [path/to/vectors.json]
  *
- * Verification steps (Whitepaper §13.3, v1.3):
+ * Verification steps (RFC 001 §13.3, v1.3):
  *   1. Parse JSON → deep clone decision_object
  *   2. Delete audit.hash / signature / signing_key_id
  *      (extensions, audit.previous_hash, audit.commitment stay)
@@ -19,6 +19,9 @@
  *          audit.previous_hash points outside the chain.
  *          Only a runner that independently computes JCS+SHA-256
  *          (including previous_hash in the preimage) will detect it.
+ *
+ * AV vectors carry diag_hash (audit.hash prefix) for debug anchoring only.
+ * No canonical bytes are exposed in the vector file.
  *
  * Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
  * Author: Tang Haoran — OpenOBA AI Executive
@@ -151,7 +154,7 @@ function verifyDO(vectorId, decisionObject) {
 
   // Sanitize: also delete any leftover placeholder/internal fields
   delete clone.extensions_validation;
-  delete clone.canonical_hex;
+  // No canonical_hex field exists in v1.3 vectors
 
   // Step 3: JCS Serialize
   const canonicalFull = jcsCanonicalize(clone);
@@ -214,8 +217,9 @@ function main() {
       console.error('ERROR: vector ' + (vec.id || '?') + ' is missing decision_object')
       process.exit(1)
     }
-    // v1.3: canonical_hex moved to answers file (E3 fix)
-    // Static DOs no longer carry canonical_hex
+    // v1.3: canonical_hex removed from vectors entirely;
+    // diag_hash (audit.hash prefix) provides debug anchoring
+    // Static DOs carry neither canonical_hex nor diag_hash
   }
   for (const av of data.audit_vectors) {
     if (!av.decision_object || !av.decision_object.audit || !av.decision_object.audit.hash) {
@@ -281,14 +285,14 @@ function main() {
   let doPasses = 0;
   let doFails = 0;
   for (const vec of data.vectors) {
-    // v1.3: Verify audit.hash only (canonical_hex moved to answers file)
+    // v1.3: Verify audit.hash only — canonical_hex removed from vectors
+    // diag_hash (audit.hash prefix) available for debug anchoring
     const clone = JSON.parse(JSON.stringify(vec.decision_object));
     const storedHash = clone.audit.hash;
     delete clone.audit.hash;
     delete clone.signature;
     delete clone.signing_key_id;
     delete clone.extensions_validation;
-    delete clone.canonical_hex;
     const selfJcs = jcsCanonicalize(clone);
     const computedHash = 'sha256:' + sha256(selfJcs);
 
@@ -320,9 +324,6 @@ function main() {
     const id = avVec.id;
     const result = verifyDO(id, avVec.decision_object);
 
-    // Compare canonical_hex with stored value
-    const canHexMatch = result.canonical_hex === avVec.canonical_hex;
-
     let status;
     if (id === 'AV-013') {
       // AV-013: EXPECTED MISMATCH (chain position tampering canary)
@@ -338,22 +339,16 @@ function main() {
         errors++;
       }
     } else {
-      if (result.passed && canHexMatch) {
+      if (result.passed) {
         status = '✓ MATCH';
         passes++;
-      } else if (result.passed && !canHexMatch) {
-        status = '⚠ PARTIAL (hash matches but canonical_hex differ — JCS difference?)';
-        errors++;
-      } else if (!result.passed && canHexMatch) {
-        status = '✗ MISMATCH (same canonical_hex but different hash — implementation algorithm error)';
-        mismatches++;
       } else {
-        status = '✗ FAIL: ' + (result.error || 'canonical_hex + hash both mismatch');
+        status = '✗ FAIL: ' + (result.error || 'audit.hash mismatch');
         mismatches++;
       }
     }
 
-    results.push({ id, status, result, canonicalHexMatch: canHexMatch });
+    results.push({ id, status, result });
     console.log('  ' + status.padEnd(50) + ' | ' + id + ' ← ' + avVec.vector_ref);
   }
 
