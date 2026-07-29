@@ -105,20 +105,18 @@ function serializeNumber(num) {
 ## 3. CLI 接口
 
 ```
-Usage: node scripts/verify.js [OPTIONS]
+Usage: node scripts/verify.js [path/to/vectors.json]
 
-Options:
-  --vectors=<path>   Path to vector set JSON (default: ./decision-object-vectors-v1.3.json)
-  --level=<L1|L2|L3> Compatibility level (default: L3)
-  --format=<text|json> Output format (default: text)
-  --verbose          Show per-vector canonical_bytes and audit.hash details
-  --no-color         Disable colored output
-  --help             Show this help
+The verifier accepts a single positional argument — the path to the vector set JSON.
+Defaults to `./decision-object-vectors-v1.3.json` when called from the repo root.
 
 Examples:
-  node verify.js --vectors=decision-object-vectors-v1.3.json --level=L3
-  node verify.js --level=L1 --format=json
-  node verify.js --verbose 2>&1 | grep MISMATCH
+  node verify.js
+  node verify.js decision-object-vectors-v1.3.json
+  node verify.js path/to/custom-vectors.json
+
+For compatibility level filtering (L1/L2/L3), use the vector set's `metadata.compatibility_levels`
+in the output JSON — each level maps to a subset of the total 101 vectors.
 ```
 
 ### 输出示例 (text模式)
@@ -230,6 +228,8 @@ function filterByLevel(vectors, level) {
   // L1/L2 计数从向量集 metadata.compatibility_levels 动态读取
   // 生成器在输出 JSON 的 metadata 中声明各级别计数
   const meta = vectors.metadata;
+  // L1/L2 filtering is documented here for future multi-level CI pipelines.
+  // Current verify.js always validates all 63 DOs + 12 AVs (L3 level).
   if (!meta.compatibility_levels || !meta.compatibility_levels[level]) {
     console.error('ERROR: Vector set missing compatibility_levels metadata');
     process.exit(2);

@@ -48,7 +48,7 @@
 ### Verification
 - **Zero-dependency verifier**: `verify.js` uses self-built JCS (no npm deps) → truly cross-implementation verifiable
 - **Stale regression canary**: AV-008 intentionally mismatches — catches validators that skip five-step verification
-- **156 tests**: JCS RFC 8785 compliance, SHA-256 determinism, 5-step verification, tamper detection, full vector integrity
+- **152 tests**: JCS RFC 8785 compliance, SHA-256 determinism, 5-step verification, tamper detection, full vector integrity (66 generator + 86 verifier as of v1.3.0)
 
 ### Security
 - **Independent security review** — 0 critical/high findings

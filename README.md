@@ -24,7 +24,7 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 ## 概述
 
 > **v1.3 关键变更**：audit 对象现包含 `hash` + `previous_hash` + `commitment` 三字段。`canonical_hex` 从向量移入独立答案文件。AV-008 被 AV-013 替代——链位置篡改金丝雀。见 [CHANGELOG.md](CHANGELOG.md)。
-本仓库包含 ERDL（Entity-Rule Definition Language）Decision Object v1.2 协议的标准**101 条跨实现测试向量**。每条向量是一个完整的、可自验证的 Decision Object——AI Agent 规则评估决策的标准化、防篡改审计格式。
+本仓库包含 ERDL（Entity-Rule Definition Language）Decision Object v1.3 协议的标准**101 条跨实现测试向量**。每条向量是一个完整的、可自验证的 Decision Object——AI Agent 规则评估决策的标准化、防篡改审计格式。
 
 ### 核心保证
 
@@ -75,7 +75,7 @@ node scripts/generate-vectors.cjs
 
 ```bash
 npm test
-# → 153 个测试覆盖 JCS、SHA-256、五步验证及全量向量完整性
+# → 152 个测试覆盖 JCS、SHA-256、五步验证及全量向量完整性
 ```
 
 ## 向量集组成

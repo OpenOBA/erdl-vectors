@@ -17,8 +17,10 @@
 5. [Your Engine's Role: Populating Decision Objects](#5-your-engines-role-populating-decision-objects)
 6. [Testing Against the Vector Set](#6-testing-against-the-vector-set)
 7. [Common Pitfalls](#7-common-pitfalls)
-8. [Compatibility Levels](#8-compatibility-levels)
-9. [Reference Implementations](#9-reference-implementations)
+8. [Answers File Separation (v1.3)](#8-answers-file-separation-v13)
+9. [Language-Specific JCS Notes](#9-language-specific-jcs-notes)
+10. [Compatibility Levels](#10-compatibility-levels)
+11. [Reference Implementations](#11-reference-implementations)
 
 ---
 
@@ -248,11 +250,13 @@ audit.hash = SHA-256(
     data_modification_expected,
     result,
     human_oversight,
+    // audit.previous_hash and audit.commitment (v1.3: chain integrity fields)
+    // extensions (participates directly in main JCS)
   })
 )
 ```
 
-Note: `audit`, `signature`, and `signing_key_id` are NOT included in the hash. `extensions` IS included — it participates directly in the main JCS.
+Note: `audit.hash`, `signature`, and `signing_key_id` are NOT included in the hash preimage. `extensions`, `audit.previous_hash`, and `audit.commitment` ARE included — they participate directly in the main JCS.
 
 ## 6. Testing Against the Vector Set
 
@@ -406,7 +410,7 @@ The JCS constraints in Whitepaper §3.1 apply across all languages. Below are kn
 
 > **Cross-validation**: The libraries recommended above have been byte-for-byte cross-validated across 8 languages on 24 canonicalisation vectors (see AlgoVoi's [8-impl attestation](https://github.com/chopmob-cloud/algovoi-jcs-conformance-vectors/blob/main/_attestations/2026-05-24-8-impl-cross-validation.md)). Your implementation should produce identical bytes on the same input. If it doesn't, the bug is in your pre-processing, not in the JCS library.
 
-## 9. Compatibility Levels
+## 10. Compatibility Levels
 
 | Level | Vectors | Requirement |
 |:-----:|:-------:|-------------|
@@ -416,7 +420,7 @@ The JCS constraints in Whitepaper §3.1 apply across all languages. Below are kn
 
 Start with L1. Most runners pass L1 within a few hours. L2 and L3 add edge cases that flush out JCS number formatting and null-handling bugs.
 
-## 10. Reference Implementations
+## 11. Reference Implementations
 
 | Language | File | Notes |
 |----------|------|-------|
