@@ -1176,7 +1176,7 @@ Neutrality is tested, not declared.
 | Audit Hash Vectors | 12 | AV-001~AV-012 + AV-013 (chain integrity canary) |
 | **Total** | **101** | |
 
-**Note**: v1.3 moves `canonical_hex` out of the vector file into a separate answers file (`decision-object-answers-v1.3.json`), eliminating the "SHA-256-only without JCS" shortcut attack. Conformance runners MUST NOT read the answers file.
+**Note**: v1.3.1 completely removes `canonical_hex` (the hex-encoding of JCS direct output) from the vector file. AV vectors now carry `diag_hash` (`audit.hash` first 14 characters, i.e., `"sha256:"` + 8 hex digits) as a debug anchor — SHA-256 is a one-way function; `diag_hash` cannot invert to recover JCS output and cannot be used to bypass JCS implementation. Full `canonical_hex` answers remain in the separate answers file `decision-object-answers-v1.3.json` for development diagnostics only. Conformance runners MUST NOT read the answers file.
 
 ### 13.3 Five-Step Verification Method
 
@@ -1202,7 +1202,7 @@ Step 5: Compare recomputed hash with stored audit.hash
 
 The vector set includes one **chain position tampering canary**: AV-013's `audit.previous_hash` was tampered to point outside the chain, but `audit.hash` was computed using the pre-tamper `previous_hash`. Any runner that independently recomputes JCS(including previous_hash)+SHA-256 from first principles will detect a MISMATCH — because the previous_hash carried in the DO body differs from the one used to compute the stored hash.
 
-- A runner that only verifies SHA-256 (using the canonical_hex shortcut) cannot distinguish — the hash matches
+- A runner that does not correctly implement JCS cannot produce the same `audit.hash`
 - A runner that does not include `previous_hash` in the JCS preimage will falsely report MATCH
 - A properly implemented runner (delete only audit.hash) will detect MISMATCH
 
@@ -1216,13 +1216,21 @@ The vector set includes one **chain position tampering canary**: AV-013's `audit
 | L2 Verified | All v1.1 45 vectors | 45 |
 | L3 Full | All v1.3 101 vectors (including AV-013 chain integrity canary) | 101 |
 
-### 13.6 Answers File
+### 13.6 Answers File and Diagnostic Anchor
 
-`decision-object-answers-v1.3.json` contains precomputed `canonical_hex` values for all vectors, provided for debugging and development convenience. **Conformance runners MUST NOT read the answers file** — reading correct answers bypasses JCS implementation and voids the independent verification claim.
+**Answers File**: `decision-object-answers-v1.3.json` contains precomputed `canonical_hex` values for all 75 vectors, provided for development debugging. **Conformance runners MUST NOT read the answers file** — reading correct answers bypasses JCS implementation and voids the independent verification claim.
 
 - Answers file is managed separately from the vector file
-- The vector file contains no `canonical_hex` fields
 - CI/CD compliance pipelines should configure the answers file as inaccessible
+- Recommended acquisition flow: developer submits preliminary implementation → requests via email/ticket → obtains answers file for local debugging
+
+**Diagnostic Anchor**: v1.3.1 provides `diag_hash` fields on AV vectors (first 14 characters of `audit.hash`, i.e., `"sha256:"` + 8 hex digits) as debug positioning anchors. `diag_hash` is a one-way SHA-256 output prefix — it cannot invert to recover JCS output, cannot be used to bypass JCS implementation, and cannot be used to compute the SHA-256 input preimage. It serves only to quickly locate issues: "my result starts with `x`, the answer starts with `y`."
+
+| Field | Location | Reversible? | Usable for Cheating? |
+|-------|----------|:-----------:|:--------------------:|
+| `diag_hash` | AV vector file | ❌ SHA-256 one-way | ❌ Only 8 hex chars, zero JCS info |
+| `canonical_hex` | Separate answers file | ✅ JCS direct output | ✅ Copyable (isolated) |
+| `audit.hash` | DO body | ❌ SHA-256 one-way | ❌ Comparable only, not invertible |
 
 ---
 
@@ -1236,7 +1244,7 @@ This whitepaper is a Request for Comments (RFC). We invite experts in the follow
 4. **Flat Hashing Extensibility**: Under the self-describing extensions design + append-only governance principles, is the content integrity of the extensions zone adequately protected?
 5. **IETF AAT Alignment**: ERDL DO and AAT share cryptographic primitives. Is `execution_trace_id` adequate as a cross-format bridge key?
 6. **Chain Integrity Canary**: Does AV-013 (chain position tampering canary) adequately test the verification logic that includes `previous_hash` in the JCS preimage?
-7. **Answers File Separation**: Does storing `canonical_hex` in a separate answers file effectively prevent the "SHA-256-only without JCS implementation" compliance shortcut?
+7. **Diagnostic Anchor vs. Answers File Separation**: Does the layered design — `diag_hash` (SHA-256 prefix on AV vectors) for debug positioning only, `canonical_hex` (separate answers file) physically isolated from vectors — effectively prevent the "bypass JCS implementation" compliance shortcut?
 8. **Dual Hash Transition Security**: Does §9.6's "verify every hash present" strategy adequately defend against algorithm downgrade attacks?
 9. **Threat Model Completeness**: Does Appendix C's threat model omit any attack vectors actually encountered in production environments? Which risk acceptance statements are unacceptable in your compliance context?
 10. **SMB Deployment**: Does the minimal deployment mode in §9.5 (NATIVE + JSONL) meet the actual needs of small teams? Are the bottleneck thresholds (50/500 Tool Calls/s) for the progressive upgrade path (single-process → Redis → Worker cluster) reasonable?

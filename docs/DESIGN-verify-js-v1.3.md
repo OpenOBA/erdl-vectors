@@ -69,19 +69,19 @@ function verifyAuditVector(av) {
 
   // 4. JCS (CORE + JURISDICTION + EXTENSIONS + audit.previous_hash + audit.commitment)
   const canonicalStr = jcsCanonicalize(clone);
-  const canonicalBytes = Buffer.from(canonicalStr, 'utf-8').toString('hex');
 
   // 5. SHA-256
   const recomputedHash = 'sha256:' + sha256(canonicalStr);
 
-  // 6. Compare
+  // 6. Compare — only audit.hash, no canonical_hex
   return {
-    canonical_bytes_match: canonicalBytes === av.canonical_hex,
     audit_hash_match: recomputedHash === claimedHash,
-    status: (canonicalBytes === av.canonical_hex && recomputedHash === claimedHash) ? 'PASS' : 'FAIL'
+    status: recomputedHash === claimedHash ? 'PASS' : 'FAIL'
   };
 }
 ```
+
+> **v1.3.1**: `canonical_hex` comparison removed from verification logic. The vector file carries `diag_hash` (audit.hash prefix) for debug anchoring only. Full canonical_hex answers remain in the separate answers file for development diagnostics.
 
 ### AV-013 Special Handling
 
@@ -110,7 +110,7 @@ Verifiers MUST NOT special-case AV-013 by hardcoded ID.
 | Invalid format (missing audit_vectors) | Exit code 2: `ERROR: Invalid vector format` |
 | AV-013 expected MISMATCH | Status `EXPECTED_MISMATCH`, not counted as failure |
 | Extensions verification | Participates directly in JCS, no separate verification |
-| canonical_hex mismatch | Status `FAIL`, output diff |
+| canonical_hex comparison | Removed in v1.3.1 — diag_hash available for debug anchoring only |
 | NaN/Infinity in JCS | Exit code 3: `INVALID: NaN/Infinity in JCS input` |
 
 ## 7. Exit Codes

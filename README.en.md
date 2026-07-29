@@ -2,7 +2,7 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **Version**: v1.3.0 · 2026-07-29  
+> **Version**: v1.3.1 · 2026-07-29  
 > **Status**: Released  
 > **Maintainer**: OpenOBA (https://openoba.com)  
 > **License**: MIT
@@ -40,7 +40,7 @@ This repository contains the authoritative set of **101 cross-implementation tes
 ```
 $ node scripts/generate-vectors.cjs
 $ sha256sum decision-object-vectors-v1.3.json
-├── decision-object-answers-v1.3.json      # Answers file (debug builds only; conformance runners MUST NOT read) / 答案文件（调试用，合规运行不可读）
+├── decision-object-answers-v1.3.json      # Answers file (development debug; conformance runners MUST NOT read) / 答案文件（开发调试，合规运行不可读）
 a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369
 
 $ node scripts/generate-vectors.cjs  # second run
@@ -146,7 +146,7 @@ Step 4: SHA-256 the canonical representation
 Step 5: Compare computed hash with stored audit.hash
 ```
 
-Any validator that shortcuts this process (e.g., by comparing pre-computed hashes directly) will **pass AV-001 – AV-007, AV-009 – AV-012 but fail AV-013** — the chain integrity canary catches lazy implementations.
+Any validator that does not correctly implement JCS will **pass AV-001 – AV-007, AV-009 – AV-012 but fail AV-013** — the chain integrity canary catches implementations that exclude `previous_hash` from the JCS preimage.
 
 ## Compliance Profile
 
@@ -166,7 +166,7 @@ See RFC 001 ([Chinese](docs/OPENOBA-DOBJ-RFC-001-CN.md) / [English](docs/OPENOBA
 ```
 erdl-vectors/
 ├── decision-object-vectors-v1.3.json   # 101 vectors (~495 KB)
-├── decision-object-answers-v1.3.json   # Answers file (debug only; conformance runners MUST NOT read)
+├── decision-object-answers-v1.3.json   # Answers file (development debug; conformance runners MUST NOT read)
 ├── scripts/
 │   ├── generate-vectors.cjs            # Deterministic vector generator
 │   ├── verify.js                       # Zero-dependency five-step verifier
