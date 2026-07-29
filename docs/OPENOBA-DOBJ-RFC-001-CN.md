@@ -205,7 +205,6 @@ audit.hash 计算公式（五步验证法）：
 ```
 
 **设计原则**：平面架构确保完整性依赖密码学而非流程。extensions 直接参与主 JCS，篡改任何字段（包括 extensions 内部数据）都会改变 `audit.hash`。签名同理——signature 在 Step 2 被剥离，但 extensions 仍参与签名原像，确保 HIPAA/PCI DSS 要求的非否认性覆盖全部决策数据。
-```
 
 
 
@@ -920,7 +919,7 @@ ERDL 不规定冷存储的具体实现（S3 Glacier、Azure Cool Blob、本地�
 
 不在 CORE 或 JURISDICTION 中新增字段。通过 extensions 区的自描述条目承载：
 
-```json
+```jsonc
 "extensions": [
   {
     "id": "eu-ai-act-2027-amendment-carbon",
@@ -1005,7 +1004,7 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 
 当 SHA-256 在未来（如 2035 年）被标记为 Legacy 时，过渡期 DO 的 `audit` 对象应同时包含旧哈希和新哈希：
 
-```json
+```jsonc
 "audit": {
   "hash_sha256": "sha256:...",
   "hash_sha512": "sha512:...",
