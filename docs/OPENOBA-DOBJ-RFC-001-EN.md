@@ -1200,11 +1200,12 @@ Step 5: Compare recomputed hash with stored audit.hash
 
 ### 13.4 Chain Integrity Canary (AV-013)
 
-The vector set includes one **chain position tampering canary**: AV-013's `audit.previous_hash` was tampered to point outside the chain, but `audit.hash` was computed using the pre-tamper `previous_hash`. Any runner that independently recomputes JCS(including previous_hash)+SHA-256 from first principles will detect a MISMATCH — because the previous_hash carried in the DO body differs from the one used to compute the stored hash.
+The vector set includes one **chain position tampering canary**: AV-013's `audit.previous_hash` was tampered to `sha256:ffff...` (pointing outside the chain), and `audit.hash` is the digest a regressed runner (deleting the entire audit object, excluding `previous_hash` from the JCS preimage) would compute over this tampered body.
 
-- A runner that does not correctly implement JCS cannot produce the same `audit.hash`
-- A runner that does not include `previous_hash` in the JCS preimage will falsely report MATCH
-- A properly implemented runner (delete only audit.hash) will detect MISMATCH
+- **Correct runner** (deletes only `audit.hash`, includes `previous_hash` in JCS preimage): MISMATCH — the tampered `previous_hash` in the DO body differs from the value used when computing `audit.hash`
+- **Regressed runner** (deletes entire `audit` object, no `previous_hash` in JCS preimage): MATCH — `previous_hash` is ignored, both bodies produce the same digest. The canary **catches this regression**.
+
+This design follows the v1.1 AV-008 pattern: the stored hash equals the digest a regressed runner would produce, making the correct and regressed implementations produce distinguishable results on the canary.
 
 > Verifiers MUST NOT special-case this vector by a hardcoded id. All 12 audit vectors MUST go through the identical five-step verification pipeline.
 

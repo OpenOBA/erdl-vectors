@@ -34,7 +34,7 @@ This repository contains the authoritative set of **101 cross-implementation tes
 | **Deterministic generation** | `node scripts/generate-vectors.cjs` produces byte-identical output every run |
 | **Tamper-evident** | JCS (RFC 8785) + SHA-256 flat hashing — any field change alters the audit hash |
 | **Cross-implementation verifiable** | `node scripts/verify.js` works with zero dependencies — implementers can validate their own engines |
-| **Chain integrity detection** | AV-013 acts as a canary — validators that exclude previous_hash from JCS will **fail** |
+| **Chain integrity detection** | AV-013 acts as a canary — correct runner detects MISMATCH, regressed runner is caught as MATCH |
 | **RFC 9562 UUIDv7** | All `decision_id`/`execution_trace_id` fields are fully RFC 9562 compliant (frozen timestamp) |
 
 ### Deterministic Architecture
@@ -122,7 +122,7 @@ npm test
 | AV-005 | DO-017 | Low-reputation agent (ESCALATE) |
 | AV-006 | DO-024 | Unless exemption (ALLOW) |
 | AV-007 | DO-027 | Null-safe field access (PASS) |
-| AV-013 | DO-051 | Chain position tampering canary — the stored audit.hash was computed with the correct previous_hash, but the DO body carries a tampered previous_hash pointing outside the chain. A correct runner recomputing from the body detects the mismatch |
+| AV-013 | DO-051 | Chain position tampering canary — stored hash is a regressed runner (delete entire audit) digest. Correct runner (includes previous_hash) detects MISMATCH. Regressed runner (no previous_hash) falsely reports MATCH — canary catches this |
 | AV-009 | DO-021 | Auto-correction (CORRECT) |
 | AV-010 | DO-031 | Anomaly notification (NOTIFY) |
 | AV-011 | DO-038 | Snapshot rollback (ROLLBACK) |
@@ -148,7 +148,7 @@ Step 4: SHA-256 the canonical representation
 Step 5: Compare computed hash with stored audit.hash
 ```
 
-Any validator that does not correctly implement JCS will **pass AV-001 – AV-007, AV-009 – AV-012 but fail AV-013** — the chain integrity canary catches implementations that exclude `previous_hash` from the JCS preimage.
+Any validator that excludes `previous_hash` from the JCS preimage will **pass AV-001 – AV-007, AV-009 – AV-012 but be caught by AV-013** — AV-013's stored hash equals the regressed runner's digest, correct runner detects the mismatch.
 
 ## Compliance Profile
 

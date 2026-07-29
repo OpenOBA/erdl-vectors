@@ -12759,7 +12759,7 @@
       "id": "AV-013",
       "vector_ref": "DO-051",
       "category": "audit-hash",
-      "purpose": "Chain position tampering canary — audit.previous_hash in the DO body was tampered to point outside the chain, but audit.hash was computed with the original previous_hash. A runner that includes previous_hash in its JCS preimage will detect the mismatch. A runner that excludes previous_hash (or shortcuts with canonical_hex) will falsely pass. Replaces v1.2 AV-008.",
+      "purpose": "Chain position tampering canary — stored audit.hash was computed by a regressed runner (delete entire audit, no previous_hash in JCS preimage) over the DO body with tampered previous_hash. A correct runner that includes previous_hash in JCS will detect the mismatch. A regressed runner that excludes previous_hash will falsely report MATCH. This is the AV-008 pattern applied to chain integrity detection.",
       "decision_object": {
         "spec": "decision-object-v1.0",
         "decision_id": "019fa605-6800-7000-8000-000000000099",
@@ -12889,7 +12889,7 @@
         "human_oversight": false,
         "extensions": [],
         "audit": {
-          "hash": "sha256:346f20b1bc47825c49cffd37dc6931de2648c9e66179ad43b739df03a4370569",
+          "hash": "sha256:0cead2871350d12be4c705c75bc45dec8c0aba209989bad3b4881876d2447583",
           "previous_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "commitment": "2026-07-29T00:00:00.000Z|did:erdl:sha256:test-runner-v1.3|chain-tampering-canary|CANARY"
         },
@@ -12897,8 +12897,8 @@
         "signing_key_id": "key-v1-test-2026-07"
       },
       "verification_method": "five-step",
-      "note": "EXPECTED MISMATCH: a correct runner recomputes audit.hash from the DO body (including the tampered previous_hash) and gets a hash that differs from the stored value.",
-      "diag_hash": "sha256:346f20b"
+      "note": "EXPECTED MISMATCH: stored audit.hash equals the digest a regressed runner would compute (entire audit deleted from JCS preimage). A correct runner that includes audit.previous_hash in JCS gets a different hash — detecting the tampered previous_hash. A regressed runner that excludes previous_hash gets the same hash as stored — falsely reporting MATCH.",
+      "diag_hash": "sha256:0cead28"
     }
   ],
   "reserved_vectors": {

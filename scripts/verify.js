@@ -16,9 +16,9 @@
  *   5. Compare with stored audit.hash
  *
  * Special: AV-013 EXPECTED_MISMATCH — chain position tampering canary.
- *          audit.previous_hash points outside the chain.
- *          Only a runner that independently computes JCS+SHA-256
- *          (including previous_hash in the preimage) will detect it.
+ *          Stored hash = regressed runner digest (entire audit deleted).
+ *          Correct runner (includes previous_hash) → MISMATCH.
+ *          Regressed runner (excludes previous_hash) → MATCH (caught).
  *
  * AV vectors carry diag_hash (audit.hash prefix) for debug anchoring only.
  * No canonical bytes are exposed in the vector file.
@@ -327,7 +327,9 @@ function main() {
     let status;
     if (id === 'AV-013') {
       // AV-013: EXPECTED MISMATCH (chain position tampering canary)
-      // audit.previous_hash points outside chain → hash must not match
+      // Stored hash = regressed runner digest (entire audit deleted from JCS preimage).
+      // Correct runner (includes previous_hash) → MISMATCH (detects tampered previous_hash).
+      // Regressed runner (excludes previous_hash) → MATCH (canary catches regression).
       if (!result.passed) {
         status = '✓ EXPECTED_MISMATCH';
         passes++;

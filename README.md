@@ -33,7 +33,7 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 | **确定性生成** | `node scripts/generate-vectors.cjs` 每次运行产出字节级完全相同的输出 |
 | **防篡改** | JCS（RFC 8785）+ SHA-256 平面哈希——任何字段变更都会改变审计哈希 |
 | **跨实现可验证** | `node scripts/verify.js` 零依赖运行——实现者可以验证自己的引擎 |
-| **链完整性检测** | AV-013 作为金丝雀——跳过完整哈希重算的验证器将**失败** |
+| **链完整性检测** | AV-013 作为金丝雀——正确 runner 检测到 MISMATCH，regressed runner 被捕获为 MATCH |
 | **RFC 9562 UUIDv7** | 所有 `decision_id`/`execution_trace_id` 完全符合 RFC 9562（冻结时间戳） |
 
 ### 确定性架构
@@ -123,7 +123,7 @@ npm test
 | AV-005 | DO-017 | 低信誉 Agent 升级（ESCALATE） |
 | AV-006 | DO-024 | Unless 豁免触发（ALLOW） |
 | AV-007 | DO-027 | 空值安全字段访问（PASS） |
-| AV-013 | DO-051 | 链位置篡改金丝雀 — stored hash 用正确的 previous_hash 计算，但 DO body 携带的 previous_hash 已被篡改指向链外。正确 runner 重算时会因 previous_hash 不一致而检测到 mismatch |
+| AV-013 | DO-051 | 链位置篡改金丝雀 — stored hash 为 regressed runner（删整个 audit）的摘要。正确 runner（含 previous_hash）检测到 MISMATCH。Regressed runner（不含 previous_hash）错误报告 MATCH — 金丝雀捕获此回归 |
 | AV-009 | DO-021 | 自动修正（CORRECT） |
 | AV-010 | DO-031 | 异常通知（NOTIFY） |
 | AV-011 | DO-038 | 快照回滚（ROLLBACK） |
@@ -148,7 +148,7 @@ npm test
 步骤 5：将计算哈希与存储的 audit.hash 比较
 ```
 
-任何未正确实现 JCS 的验证器将**通过 AV-001 – AV-007、AV-009 – AV-012 但被 AV-013 金丝雀捕获**——专门用于检测未将 `previous_hash` 纳入 JCS 原像的实现。
+任何未将 `previous_hash` 纳入 JCS 原像的验证器将**通过 AV-001 – AV-007、AV-009 – AV-012 但被 AV-013 金丝雀捕获**——AV-013 的 stored hash = regressed runner 的摘要，正确 runner 检测到 MISMATCH。
 
 ## 合规配置
 

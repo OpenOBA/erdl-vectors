@@ -727,4 +727,75 @@ describe('审计哈希 — 篡改检测', () => {
     // New hash ≠ stored hash → tampering detected
     expect(newHash).not.toBe(originalHash)
   })
+  // ============================================================
+  // Reverse tests: buggy implementations MUST be detected
+  // ============================================================
+
+  // Buggy JCS: no key sorting (JSON.stringify directly)
+  function jcsNoSort(obj) { return JSON.stringify(obj) }
+
+  const sampleDOs = ["DO-001", "DO-010", "DO-025", "DO-051"]
+  const sampleAVs = ["AV-001", "AV-005", "AV-009"]
+
+  it("reverse: no-sort JCS — sampled DOs all fail", () => {
+    for (const id of sampleDOs) {
+      const vec = data.vectors.find(function(v) { return v.id === id })
+      const clone = JSON.parse(JSON.stringify(vec.decision_object))
+      const stored = vec.decision_object.audit.hash
+      delete clone.audit.hash; delete clone.signature; delete clone.signing_key_id; delete clone.extensions_validation
+      const computed = "sha256:" + sha256(jcsNoSort(clone))
+      expect(computed).not.toBe(stored)
+    }
+  })
+
+  it("reverse: no-sort JCS — sampled AVs all fail", () => {
+    for (const id of sampleAVs) {
+      const av = data.audit_vectors.find(function(a) { return a.id === id })
+      const clone = JSON.parse(JSON.stringify(av.decision_object))
+      const stored = av.decision_object.audit.hash
+      delete clone.audit.hash; delete clone.signature; delete clone.signing_key_id; delete clone.extensions_validation
+      const computed = "sha256:" + sha256(jcsNoSort(clone))
+      expect(computed).not.toBe(stored)
+    }
+  })
+
+  it("reverse: delete-entire-audit — sampled DOs all fail", () => {
+    for (const id of sampleDOs) {
+      const vec = data.vectors.find(function(v) { return v.id === id })
+      const clone = JSON.parse(JSON.stringify(vec.decision_object))
+      const stored = vec.decision_object.audit.hash
+      delete clone.audit; delete clone.signature; delete clone.signing_key_id; delete clone.extensions_validation
+      const computed = "sha256:" + sha256(jcsCanonicalize(clone))
+      expect(computed).not.toBe(stored)
+    }
+  })
+
+  it("reverse: delete-entire-audit — sampled AVs all fail (AV-013 excepted)", () => {
+    for (const id of sampleAVs) {
+      const av = data.audit_vectors.find(function(a) { return a.id === id })
+      const clone = JSON.parse(JSON.stringify(av.decision_object))
+      const stored = av.decision_object.audit.hash
+      delete clone.audit; delete clone.signature; delete clone.signing_key_id; delete clone.extensions_validation
+      const computed = "sha256:" + sha256(jcsCanonicalize(clone))
+      expect(computed).not.toBe(stored)
+    }
+  })
+
+  it("reverse: AV-013 discriminator — correct MISMATCH + regressed MATCH", () => {
+    const av13 = data.audit_vectors.find(function(a) { return a.id === "AV-013" })
+    const doObj = av13.decision_object
+    const stored = doObj.audit.hash
+
+    // Correct: delete only audit.hash -> MUST mismatch
+    const corr = JSON.parse(JSON.stringify(doObj))
+    delete corr.audit.hash; delete corr.signature; delete corr.signing_key_id; delete corr.extensions_validation
+    const corrHash = "sha256:" + sha256(jcsCanonicalize(corr))
+    expect(corrHash).not.toBe(stored)
+
+    // Regressed: delete entire audit -> MUST match (canary catches)
+    const regr = JSON.parse(JSON.stringify(doObj))
+    delete regr.audit; delete regr.signature; delete regr.signing_key_id; delete regr.extensions_validation
+    const regrHash = "sha256:" + sha256(jcsCanonicalize(regr))
+    expect(regrHash).toBe(stored)
+  })
 })

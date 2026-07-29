@@ -452,12 +452,36 @@ describe('审计向量', () => {
     }
   })
 
-  it('AV-013 是链完整性金丝雀', () => {
+  it('AV-013 金丝雀 discriminator：正确实现 MISMATCH + regressed 实现 MATCH', () => {
     const av13 = data.audit_vectors.find((a: any) => a.id === 'AV-013')
     expect(av13).toBeDefined()
     expect(av13.category).toBe('audit-hash')
     expect(av13.purpose).toContain('chain')
-    expect(av13.note).toContain('MISMATCH')
+
+    const doObj = av13.decision_object
+
+    // 正确实现：只删除 audit.hash（保留 previous_hash 在 JCS 原像中）
+    const corrClone = JSON.parse(JSON.stringify(doObj))
+    const storedHash = doObj.audit.hash
+    delete corrClone.audit.hash
+    delete corrClone.signature
+    delete corrClone.signing_key_id
+    delete corrClone.extensions_validation
+    const corrHash = 'sha256:' + sha256(jcsCanonicalize(corrClone))
+
+    // 正确 runner MUST 检测到 MISMATCH（previous_hash 被篡改）
+    expect(corrHash).not.toBe(storedHash)
+
+    // Regressed 实现：删除整个 audit 对象（previous_hash 不在 JCS 原像中）
+    const regrClone = JSON.parse(JSON.stringify(doObj))
+    delete regrClone.audit
+    delete regrClone.signature
+    delete regrClone.signing_key_id
+    delete regrClone.extensions_validation
+    const regrHash = 'sha256:' + sha256(jcsCanonicalize(regrClone))
+
+    // Regressed runner MUST 错误地报告 MATCH（被金丝雀捕获）
+    expect(regrHash).toBe(storedHash)
   })
 })
 

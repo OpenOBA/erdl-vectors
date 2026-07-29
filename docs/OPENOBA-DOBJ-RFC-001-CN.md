@@ -1202,11 +1202,12 @@ Step 5: Compare recomputed hash with stored audit.hash
 
 ### 13.4 链完整性金丝雀（AV-013）
 
-向量集包含一条**链位置篡改金丝雀**：AV-013 的 `audit.previous_hash` 被篡改指向链外地址，但 `audit.hash` 是用篡改前的 `previous_hash` 计算的。任何从第一原理独立重算 JCS(含 previous_hash)+SHA-256 的 runner 都会检测到 MISMATCH——因为 DO 体内携带的 previous_hash 与计算 stored hash 时用的不同。
+向量集包含一条**链位置篡改金丝雀**：AV-013 的 `audit.previous_hash` 被篡改为 `sha256:ffff...`（指向链外），`audit.hash` 则是一个 regressed runner（删除整个 audit 对象，不含 `previous_hash` 在 JCS 原像中）对该篡改 body 计算出的摘要。
 
-- 未正确实现 JCS 的 runner 无法产生相同的 `audit.hash`
-- 不将 `previous_hash` 纳入 JCS 原像的 runner 会错误地报告 MATCH
-- 正确实现"只删 audit.hash"的 runner 会检测到 MISMATCH
+- **正确 runner**（只删 `audit.hash`，含 `previous_hash` 在 JCS 原像中）：MISMATCH——因为 body 中携带的篡改 `previous_hash` 与计算 `audit.hash` 时所用的不同
+- **Regressed runner**（删整个 `audit` 对象，不含 `previous_hash` 在 JCS 原像中）：MATCH——因为 `previous_hash` 被忽略，两个 body 产生相同的摘要。金丝雀**捕获此回归**。
+
+此设计延续 v1.1 AV-008 的模式：stored hash = regressed runner 会算出的值，使包含和不包含 `previous_hash` 的实现在金丝雀上产生可区分的不同结果。
 
 > 验证器不得通过硬编码向量 ID 来特殊处理此向量。所有 12 条审计向量 MUST 经过相同的五步验证流程。
 
