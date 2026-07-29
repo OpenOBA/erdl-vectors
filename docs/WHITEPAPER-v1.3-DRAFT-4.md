@@ -1294,6 +1294,8 @@ DO 协议遵循以下安全默认原则：
 - OWASP Top 10 for Agentic Applications (2026)
 - Colorado SB 24-205 — Consumer Protections for AI (2026-06-30)
 - Singapore MGF for Agentic AI (2026-01-22)
+- LGPD — Lei Geral de Proteção de Dados (Brazil, Law No. 13.709/2018, effective 2020-09-18)
+- DPDP — Digital Personal Data Protection Act (India, Act No. 22 of 2023)
 - 中国信通院 — 可信 AI 智能体评估体系 2.0 (2026-04-15)
 
 ---
