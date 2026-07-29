@@ -1,14 +1,21 @@
-# ERDL Decision Object v1.3 — 企业 AI Agent 审计基础设施标准
+# RFC 001 — ERDL Decision Object v1.3 · 企业 AI Agent 审计决策记录标准
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **白皮书 · 征求意见稿 (Request for Comments)**
+> **RFC 编号**：OPENOBA-DOBJ-RFC-001
+>
+> **文档名称**：ERDL Decision Object v1.3 — Enterprise AI Agent Audit Decision Record Standard
 >
 > **版本**：Draft 4 · 2026-07-29
-> **作者**：OpenOBA 团队
+> **作者**：唐浩然（OpenOBA AI 执行官）
+> **维护方**：OpenOBA (https://openoba.com)
+> **语言**：中文（English version: OPENOBA-DOBJ-RFC-001-EN.md）
+>
 > **征集意见对象**：Erik Newton (Concordia)、Christopher Hopley (chopmob-cloud / AlgoVoi)、监管合规专家、联合审计委员会
-> **v1.3 变更摘要**：修复 Erik Newton 发现的三个问题（E1: 白皮书与代码对齐、E2: 链位置篡改检测恢复、E3: canonical_hex 从向量移入独立答案文件）+ 修复 Chris Hopley 发现的安全问题（S2: 双哈希降级修复、S3: schema_ref SSRF 防护）+ 白皮书内部一致性修复（C3: §3.3 覆盖措辞）
-> **状态**：征求意见稿 — 非最终版本。所有设计细节均可能在收到反馈后调整。
+> **状态**：征求意见稿 (Request for Comments) — 非最终版本。所有设计细节均可能在收到反馈后调整。
+> **反馈截止日期**：2026-08-29（30 天征求意见期）
+>
+> **v1.3 变更摘要**：修复 Erik Newton 发现的三个问题（E1: 白皮书与代码对齐、E2: 链位置篡改检测恢复、E3: canonical_hex 从向量移入独立答案文件）+ 修复 Chris Hopley 发现的安全问题（S2: 双哈希降级修复、S3: schema_ref SSRF 防护）+ 白皮书内部一致性修复（C3: §3.3 覆盖措辞）+ 新增 LGPD/DPDP 辖区覆盖 + 异步审计队列可靠性约束 + 中小企业最小部署模式 + 实测性能基准 + 附录 C 威胁模型
 >
 > **关键字解释**：本文档中的 "MUST"、"MUST NOT"、"REQUIRED"、"SHALL"、"SHALL NOT"、"SHOULD"、"SHOULD NOT"、"RECOMMENDED"、"MAY" 和 "OPTIONAL" 等关键字遵循 [RFC 2119](https://datatracker.ietf.org/doc/rfc2119/) 和 [RFC 8174](https://datatracker.ietf.org/doc/rfc8174/) 的语义解释。
 >
@@ -16,8 +23,9 @@
 > - Draft 1（2026-07-27）：初始版本，23 字段设计
 > - Draft 2（2026-07-27）：联合审计委员会意见修订，扩展至 24 字段，增加 JCS 数值约束、冷热分离隐私方案、跨版本审计链锚定
 > - Draft 3（2026-07-27）：引入平面哈希架构——extensions 直接参与主 JCS，消除中间层完整性缺口，强化扩展区防篡改保证
+> - Draft 4（2026-07-29）：v1.3 第三方审计修复 + RFC 正式编号（OPENOBA-DOBJ-RFC-001），14 监管框架覆盖，威胁模型附录，实测性能基准
 >
-> **摘要**：本白皮书提出 ERDL Decision Object v1.3 设计方案——一个面向企业 AI Agent 的跨实现、防篡改、多辖区兼容的审计决策记录标准。方案基于 JCS (RFC 8785) + SHA-256 密码学基础，与 IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00) 技术对齐，覆盖 EU AI Act、GB/Z 185、NIST AI RMF、COSO 2026、LGPD、DPDP 等 14 个全球主要监管框架的审计要求。DO 包含 24 个顶层字段（CORE 14 + JURISDICTION 10），通过辖区激活机制实现按需适配，通过平面哈希架构确保完整性依赖密码学而非验证流程——所有字段统一参与 JCS，任何篡改直接改变 audit.hash。
+> **摘要**：本 RFC 提出 ERDL Decision Object v1.3 设计方案——一个面向企业 AI Agent 的跨实现、防篡改、多辖区兼容的审计决策记录标准。方案基于 JCS (RFC 8785) + SHA-256 密码学基础，与 IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00) 技术对齐，覆盖 EU AI Act、GB/Z 185、NIST AI RMF、COSO 2026、LGPD、DPDP 等 14 个全球主要监管框架的审计要求。DO 包含 24 个顶层字段（CORE 14 + JURISDICTION 10），通过辖区激活机制实现按需适配，通过平面哈希架构确保完整性依赖密码学而非验证流程——所有字段统一参与 JCS，任何篡改直接改变 audit.hash。
 
 ---
 
@@ -1302,4 +1310,4 @@ DO 协议遵循以下安全默认原则：
 
 > *"确定性架构，而非 Prompt 工程。中立性是被测出来的，不是宣称出来的。"*
 >
-> -- OpenOBA · 2026.07.29 · ERDL Decision Object v1.3 征求意见稿 (Draft 4)
+> -- OpenOBA · 2026.07.29 · RFC 001 (OPENOBA-DOBJ-RFC-001) · Draft 4 · 征求意见稿

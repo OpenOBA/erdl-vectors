@@ -135,7 +135,7 @@ npm test
 
 ## 五步审计哈希验证
 
-验证算法（白皮书 §13.3）遵循五个确定性步骤：
+验证算法（[RFC 001 §13.3](docs/OPENOBA-DOBJ-RFC-001-CN.md)）遵循五个确定性步骤：
 
 ```
 步骤 1：深拷贝 decision_object
@@ -177,8 +177,8 @@ erdl-vectors/
 │   ├── DESIGN-generate-vectors-v1.2.md # 生成器架构设计
 │   ├── DESIGN-vector-inventory-v1.2.md # 完整 63 DO 清单
 │   ├── DESIGN-verify-js-v1.3.md        # 验证器架构设计
-│   ├── WHITEPAPER-v1.3-DRAFT-4.md      # 白皮书（中文版）
-│   └── WHITEPAPER-v1.3-DRAFT-4.en.md   # 白皮书（英文版）
+│   ├── OPENOBA-DOBJ-RFC-001-CN.md          # RFC 001（中文版）
+│   └── OPENOBA-DOBJ-RFC-001-EN.md          # RFC 001（英文版）
 ├── knowledge/
 │   ├── regulatory/                     # 12 个监管框架
 │   └── spec/                           # ERDL 规范参考

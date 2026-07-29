@@ -83,7 +83,7 @@ That's it. 50 lines. If your language's `json.dumps()` doesn't produce RFC 8785-
 
 ## 3. The Five-Step Verification Algorithm
 
-The algorithm (Whitepaper §13.3) is designed to be implementable in any language with only two primitives: JCS serialization and SHA-256.
+The algorithm ([RFC 001 §13.3](OPENOBA-DOBJ-RFC-001-EN.md)) is designed to be implementable in any language with only two primitives: JCS serialization and SHA-256.
 
 ```
 Input:  decision_object (JSON-parsed object)
@@ -321,7 +321,7 @@ Keys containing spaces, colons, or Unicode require proper JSON string escaping i
 
 ### P1: Schema pruning — field removal differs by language
 
-Whitepaper §5.4 requires removing non-activated JURISDICTION fields from the DO before JCS. The meaning of "remove" varies by language, and inconsistent removal produces different canonical bytes:
+[RFC 001 §5.4](OPENOBA-DOBJ-RFC-001-EN.md) requires removing non-activated JURISDICTION fields from the DO before JCS. The meaning of "remove" varies by language, and inconsistent removal produces different canonical bytes:
 
 **Correct**: physically delete the key from the object, so the key does not appear in the JCS output at all.
 **Wrong**: set the key to `null` / `undefined` / empty string (these all produce different JCS output than omitting the key).
@@ -359,7 +359,7 @@ v1.3 moves all \`canonical_hex\` values from the vector file to a separate \`dec
 
 ## 9. Language-Specific JCS Notes
 
-The JCS constraints in Whitepaper §3.1 apply across all languages. Below are known pitfalls and recommended practices for common implementation languages.
+The JCS constraints in [RFC 001 §3.1](OPENOBA-DOBJ-RFC-001-EN.md) apply across all languages. Below are known pitfalls and recommended practices for common implementation languages.
 
 ### Python
 

@@ -5,7 +5,7 @@
 ## v1.3.0 (2026-07-29)
 
 ### Bug Fixes (Third-Party Audit)
-- **E1 (Erik Newton)**: Whitepaper §13.3 now matches verify.js — both delete only `audit.hash` (not entire `audit` object). Previously, `delete clone.audit` removed `previous_hash` and `commitment` from the JCS preimage.
+- **E1 (Erik Newton)**: RFC 001 §13.3 now matches verify.js — both delete only `audit.hash` (not entire `audit` object). Previously, `delete clone.audit` removed `previous_hash` and `commitment` from the JCS preimage.
 - **E2 (Erik Newton)**: Chain position tampering detection restored. `audit.previous_hash` and `audit.commitment` now participate in JCS → any tampering with a record's position in the chain changes `audit.hash`.
 - **E3 (Erik Newton)**: `canonical_hex` moved from vector file to separate `decision-object-answers-v1.3.json`. Conformance runners MUST NOT read the answers file — this eliminates the SHA-256-only shortcut attack.
 - **S2 (Chris Hopley)**: §9.6 dual-hash transition — "verify every hash present" replaces "at least one" (CWE-757 algorithm downgrade fix).
@@ -20,7 +20,7 @@
 - Audit vector count remains 12 (AV-001~AV-012 + AV-013)
 
 ### Documentation
-- Whitepaper: v1.2 DRAFT-3 → v1.3 DRAFT-4 (CN + EN)
+- RFC 001: v1.2 DRAFT-3 → v1.3 DRAFT-4 (CN + EN, OPENOBA-DOBJ-RFC-001)
 - Runner's Guide: Step 2 deletion logic updated; Answers file section added; §5 field list corrected; §9/§10/§11 numbering fixed
 - DESIGN documents: verify.js v1.2 → v1.3; generate §5 aligned; CLI docs synced to actual impl
 - ALIGNMENT-REPORT: v1.3 upgrade summary
@@ -44,7 +44,7 @@
 - ✅ verify.js: 63/63 DO audit.hash self-consistent
 - ✅ verify.js: 11/11 AV MATCH + AV-013 EXPECTED_MISMATCH (chain canary detected)
 - ✅ vitest: 152/152 passed (66 generator + 86 verifier)
-- ✅ CN↔EN whitepaper: cross-references aligned
+- ✅ CN↔EN RFC 001: cross-references aligned
 - Baseline: commit `3131548` (v1.2 DRAFT-3, clean working tree)
 
 ## v1.2.0 (2026-07-28)
