@@ -2,7 +2,7 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **Version**: v1.3.0  
+> **Version**: v1.3.0 · 2026-07-29  
 > **Status**: Released  
 > **Maintainer**: OpenOBA (https://openoba.com)  
 > **License**: MIT
@@ -165,10 +165,12 @@ See RFC 001 ([Chinese](docs/OPENOBA-DOBJ-RFC-001-CN.md) / [English](docs/OPENOBA
 
 ```
 erdl-vectors/
-├── decision-object-vectors-v1.3.json   # 101 vectors (~813 KB)
+├── decision-object-vectors-v1.3.json   # 101 vectors (~495 KB)
+├── decision-object-answers-v1.3.json   # Answers file (debug only; conformance runners MUST NOT read)
 ├── scripts/
 │   ├── generate-vectors.cjs            # Deterministic vector generator
-│   └── verify.js                       # Zero-dependency five-step verifier
+│   ├── verify.js                       # Zero-dependency five-step verifier
+│   └── reference-runner.js             # Third-party reference runner (independent JCS impl)
 ├── test/
 │   ├── generate-comprehensive.test.ts  # 67 generator integrity tests
 │   └── verify-comprehensive.test.ts    # 86 JCS/verification/audit tests
