@@ -181,7 +181,7 @@ function main() {
 
   if (!fs.existsSync(vectorsPath)) {
     console.error('ERROR: Vectors file not found: ' + vectorsPath);
-    console.error('Usage: node verify.js [path/to/decision-object-vectors-v1.2.json]');
+    console.error('Usage: node verify.js [path/to/decision-object-vectors-v1.3.json]');
     process.exit(1);
   }
 
