@@ -1,4 +1,4 @@
-# ERDL Decision Object v1.3 — Cross-Implementation Test Vectors
+﻿# ERDL Decision Object v1.3 — Cross-Implementation Test Vectors
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
@@ -15,8 +15,8 @@ The ERDL Decision Object is the standardized, tamper-evident audit trail for AI 
 
 This project would not have been possible without the generous support of our collaborators:
 
-- **Christopher Hopley (chopmob-cloud / AlgoVoi)** — independent technical critic. His review of the ERDL Decision Object v1.2 draft identified critical issues including self-referential hash exclusion gaps, cross-engine string-to-number canonicalization inconsistencies, and layered integrity weaknesses, directly leading to the adoption of the flat hashing architecture. **In the v1.3 audit, he built a clean-room RFC 8785 JCS + SHA-256 checker to verify the spec's internal consistency, reporting four technical findings (C1~C4) and three security findings (S1~S3) — including the dual-hash algorithm downgrade (CWE-757) and schema_ref SSRF attack surface that directly drove §9.6 and §11.2 security hardening.** His deep understanding of JCS RFC 8785 canonicalization and compliance auditing shaped the protocol's rigor.
-- **Erik Newton (Concordia)** — the first independent Runner implementer and the originator of the principle "neutrality is tested, not declared." He established the "three independent implementations, one open specification, no single owner" standardization path in A2A Discussion #2031. His Python-based verification engine confirmed the first 5 audit vectors byte-for-byte, later extended to all 28 compliance vectors — proving JCS+SHA-256 cross-implementation verification works in practice. During the v1.1 freeze-period audit, he independently identified the `expected_sha256` structural risk, leading to stale regression vectors. **In the v1.3 audit, he verified all 12 AV vectors (AV-001~AV-012) with his independent RFC 8785 canonicalizer, confirming 11 byte-perfect matches and AV-008 correctly failing — "a clean result." He also identified three critical issues: spec-code deletion inconsistency (E1), previous_hash/commitment exclusion enabling chain position tampering (E2), and canonical_hex leaking JCS answers (E3) — directly driving the v1.3 audit structure fix, AV-013 chain integrity canary, and answers file separation architecture.**
+- **Christopher Hopley (chopmob-cloud / AlgoVoi)** — independent technical critic. His review of the ERDL Decision Object v1.2 draft identified critical issues including self-referential hash exclusion gaps, cross-engine string-to-number canonicalization inconsistencies, and layered integrity weaknesses, directly leading to the adoption of the flat hashing architecture. **In the v1.3 audit, he built a clean-room RFC 8785 JCS + SHA-256 checker to verify the spec's internal consistency, reporting four technical findings (C1-C4) and three security findings (S1-S3) — including the dual-hash algorithm downgrade (CWE-757) and schema_ref SSRF attack surface that directly drove §9.6 and §11.2 security hardening.** His deep understanding of JCS RFC 8785 canonicalization and compliance auditing shaped the protocol's rigor.
+- **Erik Newton (Concordia)** — the first independent Runner implementer and the originator of the principle "neutrality is tested, not declared." He established the "three independent implementations, one open specification, no single owner" standardization path in A2A Discussion #2031. His Python-based verification engine confirmed the first 5 audit vectors byte-for-byte, later extended to all 28 compliance vectors — proving JCS+SHA-256 cross-implementation verification works in practice. During the v1.1 freeze-period audit, he independently identified the `expected_sha256` structural risk, leading to stale regression vectors. **In the v1.3 audit, he verified all 12 AV vectors (AV-001 – AV-012) with his independent RFC 8785 canonicalizer, confirming 11 byte-perfect matches and AV-008 correctly failing — "a clean result." He also identified three critical issues: spec-code deletion inconsistency (E1), previous_hash/commitment exclusion enabling chain position tampering (E2), and canonical_hex leaking JCS answers (E3) — directly driving the v1.3 audit structure fix, AV-013 chain integrity canary, and answers file separation architecture.**
 - **Rulsynor Team** — the reference ERDL rule engine serving as the canonical implementation against which all vectors are generated and validated. Their production-grade engine provided real-world constraints that shaped the Decision Object's field design, from agent identity metadata to compliance profile structure.
 
 We are deeply grateful for their contributions, which transformed a specification into a verified, cross-implementation standard.
@@ -105,9 +105,9 @@ npm test
 
 | Category | Count | Description |
 |----------|:-----:|-------------|
-| Temporal (T-001~T-010) | 10 | Time-of-day, day-of-week, holidays, leap year, Y2K38 boundary |
-| Seeded (S-001~S-008) | 8 | Deterministic random seeds for reproducible evaluation |
-| Stateful (ST-001~ST-008) | 8 | State machine transitions (idle→running→paused→error→recovering→stopped) |
+| Temporal (T-001 – T-010) | 10 | Time-of-day, day-of-week, holidays, leap year, Y2K38 boundary |
+| Seeded (S-001 – S-008) | 8 | Deterministic random seeds for reproducible evaluation |
+| Stateful (ST-001 – ST-008) | 8 | State machine transitions (idle→running→paused→error→recovering→stopped) |
 
 ### Audit Hash Vectors (12)
 
@@ -146,7 +146,7 @@ Step 4: SHA-256 the canonical representation
 Step 5: Compare computed hash with stored audit.hash
 ```
 
-Any validator that shortcuts this process (e.g., by comparing pre-computed hashes directly) will **pass AV-001~AV-007, AV-009~AV-012 but fail AV-013** — the chain integrity canary catches lazy implementations.
+Any validator that shortcuts this process (e.g., by comparing pre-computed hashes directly) will **pass AV-001 – AV-007, AV-009 – AV-012 but fail AV-013** — the chain integrity canary catches lazy implementations.
 
 ## Compliance Profile
 
