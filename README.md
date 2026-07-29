@@ -159,7 +159,7 @@ npm test
 | NIST AI RMF 1.0 | 美国 | 现行 |
 | COSO GenAI 2026 | 全球 | 现行 |
 
-完整参考文档见 `knowledge/regulatory/` 目录下的 12 个监管框架。
+完整参考文档见 RFC 001（[中文版](docs/OPENOBA-DOBJ-RFC-001-CN.md) / [英文版](docs/OPENOBA-DOBJ-RFC-001-EN.md)）§6。
 
 ## 仓库结构
 
@@ -177,13 +177,12 @@ erdl-vectors/
 │   ├── DESIGN-generate-vectors-v1.2.md # 生成器架构设计
 │   ├── DESIGN-vector-inventory-v1.2.md # 完整 63 DO 清单
 │   ├── DESIGN-verify-js-v1.3.md        # 验证器架构设计
-│   ├── OPENOBA-DOBJ-RFC-001-CN.md          # RFC 001（中文版）
-│   └── OPENOBA-DOBJ-RFC-001-EN.md          # RFC 001（英文版）
-├── knowledge/
-│   ├── regulatory/                     # 12 个监管框架
-│   └── spec/                           # ERDL 规范参考
+│   ├── ALIGNMENT-REPORT.md             # 跨文档对齐审计报告
+│   ├── OPENOBA-DOBJ-RFC-001-CN.md      # RFC 001（中文版）
+│   └── OPENOBA-DOBJ-RFC-001-EN.md      # RFC 001（英文版）
 ├── CHANGELOG.md                        # 版本历史
 ├── CONTRIBUTING.md                     # 贡献指南
+├── LICENSE                             # MIT 许可证
 ├── package.json
 ├── README.md                           # 本文件（中文版）
 └── README.en.md                        # English version

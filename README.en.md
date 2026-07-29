@@ -159,7 +159,7 @@ All vectors embed the `erdl-compliance-v1.2` profile with references to:
 | NIST AI RMF 1.0 | US | Current |
 | COSO GenAI 2026 | ALL | Current |
 
-See `knowledge/regulatory/` for full reference documentation on all 12 frameworks.
+See RFC 001 ([Chinese](docs/OPENOBA-DOBJ-RFC-001-CN.md) / [English](docs/OPENOBA-DOBJ-RFC-001-EN.md)) §6 for full reference documentation on all 14 frameworks.
 
 ## Repository Structure
 
@@ -177,13 +177,12 @@ erdl-vectors/
 │   ├── DESIGN-generate-vectors-v1.2.md # Generator architecture
 │   ├── DESIGN-vector-inventory-v1.2.md # Full 63 DO inventory
 │   ├── DESIGN-verify-js-v1.3.md        # Verifier architecture
-│   ├── OPENOBA-DOBJ-RFC-001-CN.md          # RFC 001 (Chinese)
-│   └── OPENOBA-DOBJ-RFC-001-EN.md          # RFC 001 (English)
-├── knowledge/
-│   ├── regulatory/                     # 12 regulatory frameworks
-│   └── spec/                           # ERDL specification references
+│   ├── ALIGNMENT-REPORT.md             # Cross-document alignment audit report
+│   ├── OPENOBA-DOBJ-RFC-001-CN.md      # RFC 001 (Chinese)
+│   └── OPENOBA-DOBJ-RFC-001-EN.md      # RFC 001 (English)
 ├── CHANGELOG.md                        # Version history
 ├── CONTRIBUTING.md                     # Contribution guidelines
+├── LICENSE                             # MIT License
 ├── package.json
 ├── README.md                           # 中文版
 └── README.en.md                        # This file (English)
