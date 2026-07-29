@@ -2,6 +2,15 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
+## v1.3.1 (2026-07-29)
+
+### Security Hardening (canonical_hex → diag_hash)
+- **Vector file zero-answer**: All 12 AV vector `canonical_hex` fields removed. Replaced with `diag_hash` — first 14 characters of `audit.hash` (`"sha256:"` + 8 hex digits). SHA-256 is a one-way function; `diag_hash` cannot invert to recover JCS output.
+- **verify.js**: Removed canonical_hex comparison logic. Now pure five-step JCS+SHA-256 verification with audit.hash comparison only.
+- **reference-runner.js**: Mode 2 rewritten — shortcut path blocked by design (no canonical bytes to lean on).
+- **RFC 001 §13.3/§13.6**: Updated all descriptions — `diag_hash` as debug anchor, `canonical_hex` in separate answers file only.
+- **Cross-implementation audit**: 4 independent verifiers confirm 12/12 (Rulsynor + Erik Newton/Concordia + Chris Hopley/AlgoVoi + Qwen3.7 MAX). 7/7 cheat strategies fail.
+
 ## v1.3.0 (2026-07-29)
 
 ### Bug Fixes (Third-Party Audit)
