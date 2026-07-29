@@ -342,7 +342,7 @@ Language-specific recommendations:
 
 If your runner reports all 12 audit vectors as MATCH, your five-step verification is NOT computing from scratch — you're comparing pre-computed hashes. The vector set includes one intentionally stale audit vector where `audit.hash` does not match the independently computed hash. Only a runner that recalculates the hash (not just reads stored values) will detect the MISMATCH.
 
-> ⚠️ **Important**: A runner should NEVER special-case any vector by id. All 12 audit vectors go through the same five-step pipeline regardless of their identity. AV-013's tampered `previous_hash` in the DO body differs from the one used to compute the stored `audit.hash` — only a runner that independently computes JCS+SHA-256 (including `previous_hash` in the preimage) will detect this mismatch.
+> ⚠️ **Important**: A runner should NEVER special-case any vector by id. All 12 audit vectors go through the same five-step pipeline regardless of their identity. AV-013's stored `audit.hash` was computed by a regressed runner (delete entire audit — no `previous_hash` in JCS preimage). A correct runner that includes `previous_hash` in JCS will detect the mismatch. A regressed runner that excludes `previous_hash` will falsely report MATCH — and the canary catches this.
 
 ### P2: Timestamp format
 

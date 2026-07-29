@@ -266,7 +266,6 @@ function mode5AV013Target() {
   console.log('MODE 5: AV-013 Target Verification (Chain Canary)');
   console.log('═══════════════════════════════════════════════════════');
 
-  // Find AV-013
   const av013 = auditVectors.find(av => av.id === 'AV-013');
   if (!av013) {
     console.log('  AV-013 not found!');
@@ -274,9 +273,8 @@ function mode5AV013Target() {
   }
 
   const storedHash = av013.decision_object.audit.hash.replace('sha256:', '');
-  console.log(`  AV-013 stored hash: ${storedHash}`);
-  console.log(`  AV-013 previous_hash: ${av013.decision_object.audit.previous_hash}`);
-  console.log(`  AV-013 commitment: ${av013.decision_object.audit.commitment}`);
+  console.log('  AV-013 stored hash (regressed runner digest): ' + storedHash.substring(0,20) + '...');
+  console.log('  AV-013 previous_hash (tampered):              ' + av013.decision_object.audit.previous_hash);
   console.log('');
 
   // Test A: Correct implementation (JCS with previous_hash in preimage)
@@ -289,8 +287,8 @@ function mode5AV013Target() {
   const canonical1 = jcsCanonical(clone1);
   const hash1 = sha256(canonical1);
   const correctMatch = hash1 === storedHash;
-  console.log(`  Result: ${correctMatch ? '❌ MATCH (unexpected!)' : '✅ MISMATCH (expected for canary)'}`);
-  console.log(`  Computed: ${hash1}`);
+  console.log('  Correct runner hash: ' + hash1.substring(0,20) + '...');
+  console.log('  Result: ' + (correctMatch ? 'MATCH (unexpected!)' : 'MISMATCH (correct — detects tampered previous_hash)'));
   console.log('');
 
   // Test B: Shortcut — no JCS (cannot compute hash without canonical_hex in v1.3)
@@ -300,8 +298,8 @@ function mode5AV013Target() {
   console.log('  Result: FAIL — shortcut blocked by design (no canonical bytes to lean on)');
   console.log('');
 
-  // Test C: Delete entire audit (v1.2 bug)
-  console.log('  --- Test C: Delete-Entire-Audit (v1.2 bug) ---');
+  // Test C: Delete entire audit (v1.2 bug — regressed runner)
+  console.log('  --- Test C: Delete-Entire-Audit (Regressed Runner) ---');
   const clone2 = deepClone(av013.decision_object);
   delete clone2.audit;
   delete clone2.signature;
@@ -309,17 +307,17 @@ function mode5AV013Target() {
   const canonical2 = jcsCanonical(clone2);
   const hash2 = sha256(canonical2);
   const deletedMatch = hash2 === storedHash;
-  console.log(`  Result: ${deletedMatch ? '⚠️  FALSE NEGATIVE' : '✅ No false negative'}`);
-  console.log(`  Deleted-audit hash: ${hash2}`);
+  console.log('  Regressed runner hash: ' + hash2.substring(0,20) + '...');
+  console.log('  Result: ' + (deletedMatch ? 'MATCH — CANARY CATCHES REGRESSION' : 'MISMATCH — canary did not catch regression'));
   console.log('');
 
-  console.log(`  Mode 5 Summary:`);
-  console.log(`    Correct impl returns MISMATCH: ${!correctMatch ? '✅ YES' : '❌ NO'}`);
-  console.log(`    Shortcut (no JCS): blocked — canonical_hex removed in v1.3`);
-  console.log(`    Deleted-audit falsely returns MATCH: ${deletedMatch ? '⚠️  YES (vulnerable!)' : '✅ NO (safe)'}`);
+  console.log('  Mode 5 Summary:');
+  console.log('    Correct impl returns MISMATCH: ' + (!correctMatch ? 'YES (detects tampering)' : 'NO (canary broken)'));
+  console.log('    Shortcut (no JCS): blocked — canonical_hex removed in v1.3');
+  console.log('    Regressed runner returns MATCH: ' + (deletedMatch ? 'YES — CANARY CATCHES REGRESSION' : 'NO (canary broken)'));
   console.log('');
 
-  return !correctMatch; // Expected: AV-013 should MISMATCH with correct implementation
+  return !correctMatch && deletedMatch; // AV-013: correct MISMATCH + regressed MATCH = canary works
 }
 
 // ─────────────────────────────────────────────────────────────

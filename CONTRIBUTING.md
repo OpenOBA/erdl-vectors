@@ -34,7 +34,7 @@ npm run generate && sha256sum decision-object-vectors-v1.3.json  # same hash
 
 1. Add an entry to `avMapping[]` in `scripts/generate-vectors.cjs`
 2. Reference an existing DO vector (must be statically generated)
-3. AV-013 is the chain integrity canary — do not modify its hash or purpose
+3. AV-013 is the chain integrity canary (AV-008 pattern) — do not modify its hash or purpose. Its stored hash = regressed runner digest.
 4. Regenerate and verify
 
 ## Modifying verify.js
