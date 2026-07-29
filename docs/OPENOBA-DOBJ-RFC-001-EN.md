@@ -1258,7 +1258,6 @@ This whitepaper is a Request for Comments (RFC). We invite experts in the follow
 | PII leakage (DO context contains user sensitive data) | I | Hot/cold separation (§8): audit chain stores only hash; raw PII falls to physically deletable cold storage | — |
 | schema_ref SSRF (verifier auto-fetches external URLs) | I | Offline-first + allowlist + 1MB cap (§11.2): automatic external retrieval prohibited in production verification paths | — |
 | Hash algorithm downgrade (verifier only checks SHA-256, ignores stronger algorithms) | T | Dual hash transition (§9.6): "verify every hash present" replaces "at least one" (CWE-757 fix) | — |
-| ReDoS (malicious regex input exhausts CPU) | D | SafeExpr regex engine (§3.4.1) + vector DO-044 (ReDoS protection test) | — |
 | Oversized DO exhausting verifier resources | D | Resource boundaries (§3.1 constraint 7): 1MB/100 ext/10 nesting levels; MUST reject on exceed | — |
 | Queue loss causing missing DOs | D/T | WAL safeguard + at-least-once delivery + missing DO alert (§9.4 reliability constraints) | — |
 | **Signing key compromise** | S | — | ⚠️ Accepted: private key management is beyond DO protocol scope — the whitepaper requires but does not prescribe KMS solutions. Enterprises MUST use Hardware Security Modules (HSM) or cloud KMS to manage private keys |
@@ -1273,6 +1272,7 @@ The ERDL Decision Object is an **audit record protocol**, not a comprehensive en
 2. **LLM prompt injection**: Crafting malicious context to induce the Agent to make an unsafe decision — the DO will faithfully record that decision. Prompt injection defense is the ERDL rule engine's responsibility (Guard rules), not the DO record's responsibility
 3. **Physical security**: Attacker gains physical access to hardware storing DO records
 4. **Rogue compliance auditor**: An auditor holding valid verification keys acts maliciously (selective verification, deliberate false reporting)
+5. **ReDoS (Regular Expression Denial of Service)**: Crafting malicious regex input to exhaust verifier CPU. ReDoS protection is the responsibility of the ERDL rule engine Guard (SafeExpr regex engine), not the DO record protocol — the DO only records "whether the decision was made according to the rules" and does not defend against regex-engine-level attacks
 
 ### C.3 Security Default Principles
 
