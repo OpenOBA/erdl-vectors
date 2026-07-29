@@ -2,7 +2,7 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **版本**：v1.3.0  
+> **版本**：v1.3.0 · 2026-07-29  
 > **状态**：已发布  
 > **维护方**：OpenOBA (https://openoba.com)  
 > **许可**：MIT
@@ -165,10 +165,12 @@ npm test
 
 ```
 erdl-vectors/
-├── decision-object-vectors-v1.3.json   # 101 条向量（~813 KB）
+├── decision-object-vectors-v1.3.json   # 101 条向量（~495 KB）
+├── decision-object-answers-v1.3.json   # 答案文件（调试用，合规运行不可读）
 ├── scripts/
 │   ├── generate-vectors.cjs            # 确定性向量生成器
-│   └── verify.js                       # 零依赖五步验证器
+│   ├── verify.js                       # 零依赖五步验证器
+│   └── reference-runner.js             # 第三方参考 Runner（独立 JCS 实现）
 ├── test/
 │   ├── generate-comprehensive.test.ts  # 67 项生成器完整性测试
 │   └── verify-comprehensive.test.ts    # 86 项 JCS/验证/审计测试
