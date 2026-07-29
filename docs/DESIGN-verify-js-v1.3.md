@@ -124,9 +124,9 @@ Examples:
 ### 输出示例 (text模式)
 
 ```
-ERDL Decision Object v1.2  Validator
+ERDL Decision Object v1.3  Validator
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Vector set: decision-object-vectors-v1.2.json
+Vector set: decision-object-vectors-v1.3.json
 Compatibility: L3 (101 vectors)
 JCS implementation: built-in (RFC 8785)
 
@@ -144,8 +144,8 @@ AV-011  PASS  cb=b8c9d0e1...  audit=sha256:b8c9d0e1...
 AV-012  PASS  cb=c9d0e1f2...  audit=sha256:c9d0e1f2...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- L3 Full: 11/12 PASS (1 expected failure: AV-008)
- ✅ Implementations producing these results are ERDL v1.2 compatible
+ L3 Full: 11/12 PASS (1 expected failure: AV-013)
+ ✅ Implementations producing these results are ERDL v1.3 compatible
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
