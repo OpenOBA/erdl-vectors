@@ -135,7 +135,7 @@ npm test
 
 ## Five-Step Audit Hash Verification
 
-The verification algorithm (Whitepaper §13.3) follows five deterministic steps:
+The verification algorithm ([RFC 001 §13.3](docs/OPENOBA-DOBJ-RFC-001-EN.md)) follows five deterministic steps:
 
 ```
 Step 1: Deep clone decision_object
@@ -177,8 +177,8 @@ erdl-vectors/
 │   ├── DESIGN-generate-vectors-v1.2.md # Generator architecture
 │   ├── DESIGN-vector-inventory-v1.2.md # Full 63 DO inventory
 │   ├── DESIGN-verify-js-v1.3.md        # Verifier architecture
-│   ├── WHITEPAPER-v1.3-DRAFT-4.md      # Whitepaper (Chinese)
-│   └── WHITEPAPER-v1.3-DRAFT-4.en.md   # Whitepaper (English)
+│   ├── OPENOBA-DOBJ-RFC-001-CN.md          # RFC 001 (Chinese)
+│   └── OPENOBA-DOBJ-RFC-001-EN.md          # RFC 001 (English)
 ├── knowledge/
 │   ├── regulatory/                     # 12 regulatory frameworks
 │   └── spec/                           # ERDL specification references

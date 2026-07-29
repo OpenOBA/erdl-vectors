@@ -1,127 +1,127 @@
-# English Whitepaper Alignment Report
+# English RFC 001 Alignment Report
 
 **Date**: 2026-07-29
-**Task**: v1.3 upgrade â€” align all documents after third-party audit (Erik Newton + Chris Hopley)
-**Status**: âœ… COMPLETE
+**Task**: v1.3 upgrade â€?align all documents after third-party audit (Erik Newton + Chris Hopley)
+**Status**: âœ?COMPLETE
 
 ---
 
 ## v1.3 Changes Summary
 
-### Source: Erik Newton (Concordia) â€” Cross-implementation verification
-- **E1**: Whitepaper Â§13.3 now matches verify.js â€” both delete only `audit.hash` (not entire `audit` object)
-- **E2**: `audit.previous_hash` and `audit.commitment` restored to JCS preimage â€” chain position tampering now cryptographically detectable
-- **E3**: `canonical_hex` moved to separate answers file (`decision-object-answers-v1.3.json`) â€” eliminates SHA-256-only shortcut
+### Source: Erik Newton (Concordia) â€?Cross-implementation verification
+- **E1**: RFC 001 Â§13.3 now matches verify.js â€?both delete only `audit.hash` (not entire `audit` object)
+- **E2**: `audit.previous_hash` and `audit.commitment` restored to JCS preimage â€?chain position tampering now cryptographically detectable
+- **E3**: `canonical_hex` moved to separate answers file (`decision-object-answers-v1.3.json`) â€?eliminates SHA-256-only shortcut
 
-### Source: Chris Hopley (AlgoVoi) â€” Independent technical critique
-- **C1**: Self-referencing exclusion for `policies[].hash` and `profile_hash` â€” confirmed correct in both whitepaper and vectors
-- **C2**: Numeric canonicalization constraint added (Â§3.1 constraint 8) â€” prevention measure, no active bug found
+### Source: Chris Hopley (AlgoVoi) â€?Independent technical critique
+- **C1**: Self-referencing exclusion for `policies[].hash` and `profile_hash` â€?confirmed correct in both RFC 001 and vectors
+- **C2**: Numeric canonicalization constraint added (Â§3.1 constraint 8) â€?prevention measure, no active bug found
 - **C3**: Â§3.3 explicitly overrides Â§3.1(5) for `extensions` empty array retention
-- **S2**: Dual-hash transition (Â§9.6) â€” "verify every hash present" replaces "at least one" (CWE-757 fix)
+- **S2**: Dual-hash transition (Â§9.6) â€?"verify every hash present" replaces "at least one" (CWE-757 fix)
 - **S3**: `schema_ref` SSRF hardening confirmed present (Â§11.2)
 
 ### Internal
 - **D1**: All 75 DO vectors now carry full `audit` object: `hash` + `previous_hash` + `commitment`
 - AV-008 (stale regression canary) replaced by AV-013 (chain position tampering canary)
-- Whitepaper upgraded: v1.2 DRAFT-3 â†’ v1.3 DRAFT-4 (CN + EN)
+- RFC 001 upgraded: v1.2 DRAFT-3 â†?v1.3 DRAFT-4 (CN + EN)
 - Runner's Guide, DESIGN documents, CHANGELOG updated
 
 ### Verification
-- âœ… verify.js: 63/63 DO audit.hash self-consistent
-- âœ… verify.js: 11/11 AV MATCH + AV-013 EXPECTED_MISMATCH
-- âœ… npm test: all tests pass
+- âœ?verify.js: 63/63 DO audit.hash self-consistent
+- âœ?verify.js: 11/11 AV MATCH + AV-013 EXPECTED_MISMATCH
+- âœ?npm test: all tests pass
 
-Successfully aligned `WHITEPAPER-v1.2-DRAFT-3.en.md` with the Chinese version. All 20 known discrepancies have been resolved.
+Successfully aligned `RFC 001-v1.2-DRAFT-3.en.md` with the Chinese version. All 20 known discrepancies have been resolved.
 
 **Verification Results**:
-- âœ… 152/152 vitest tests passed (66 generator + 86 verifier)
-- âœ… verify.js: 11 MATCH + 1 EXPECTED_MISMATCH (AV-013 â€” chain position tampering canary)
-- âœ… All structural checks passed
+- âœ?152/152 vitest tests passed (66 generator + 86 verifier)
+- âœ?verify.js: 11 MATCH + 1 EXPECTED_MISMATCH (AV-013 â€?chain position tampering canary)
+- âœ?All structural checks passed
 
 ---
 
 ## Changes Applied
 
 ### Preamble & Structure
-1. âœ… **RFC 2119/8174 Declaration** â€” Added keyword interpretation paragraph
-2. âœ… **Abstract** â€” Updated field counts (CORE 14 + JURISDICTION 10) and flat hashing description
-3. âœ… **Table of Contents** â€” Fixed Part III header and section numbering
-4. âœ… **Part III Title** â€” Added "Part III: Governance and Evolution" before Â§10
+1. âœ?**RFC 2119/8174 Declaration** â€?Added keyword interpretation paragraph
+2. âœ?**Abstract** â€?Updated field counts (CORE 14 + JURISDICTION 10) and flat hashing description
+3. âœ?**Table of Contents** â€?Fixed Part III header and section numbering
+4. âœ?**Part III Title** â€?Added "Part III: Governance and Evolution" before Â§10
 
 ### Â§2 Design Philosophy
-5. âœ… **Â§2.2 Principle 3** â€” Changed "15 CORE" â†’ "14 CORE", "9 JURISDICTION" â†’ "10 JURISDICTION"
+5. âœ?**Â§2.2 Principle 3** â€?Changed "15 CORE" â†?"14 CORE", "9 JURISDICTION" â†?"10 JURISDICTION"
 
 ### Â§3 Cryptographic Foundation
-6. âœ… **Â§3.1 Constraint 4** â€” Changed "confidence_score" example to generic numeric string constraint
-7. âœ… **Â§3.1 Constraint 6** â€” Added "Raw Data Pass-Through" (financial/audit critical constraint)
-8. âœ… **Â§3.1 Constraint 7** â€” Added "Resource Boundaries" (DoS protection: 1MB, 100 extensions, 10 nesting levels)
-9. âœ… **Â§3.1 Cross-reference** â€” Added Runner's Guide Â§9 language binding note
-10. âœ… **Â§3.2 Self-Referencing Exclusion** â€” Added convention for policies[].hash and profile_hash
-11. âœ… **Â§3.3 Flat Hashing** â€” Fixed control character corruption, corrected code fence formatting
-12. âœ… **Â§3.4 Chain Anchoring** â€” Expanded with break detection, segmentation, partial validity rules
+6. âœ?**Â§3.1 Constraint 4** â€?Changed "confidence_score" example to generic numeric string constraint
+7. âœ?**Â§3.1 Constraint 6** â€?Added "Raw Data Pass-Through" (financial/audit critical constraint)
+8. âœ?**Â§3.1 Constraint 7** â€?Added "Resource Boundaries" (DoS protection: 1MB, 100 extensions, 10 nesting levels)
+9. âœ?**Â§3.1 Cross-reference** â€?Added Runner's Guide Â§9 language binding note
+10. âœ?**Â§3.2 Self-Referencing Exclusion** â€?Added convention for policies[].hash and profile_hash
+11. âœ?**Â§3.3 Flat Hashing** â€?Fixed control character corruption, corrected code fence formatting
+12. âœ?**Â§3.4 Chain Anchoring** â€?Expanded with break detection, segmentation, partial validity rules
 
 ### Â§4 Decision Object Schema
-13. âœ… **Â§4.1 Header** â€” Changed "CORE Fields (15" â†’ "CORE Fields (14"
-14. âœ… **Â§4.2 Header** â€” Changed "JURISDICTION Fields (9" â†’ "JURISDICTION Fields (10"
-15. âœ… **Â§4.2 Field Numbering** â€” Renumbered #16-#24 â†’ #15-#24
-16. âœ… **Â§4.2 #22 confidence_score** â€” Changed from "float (string)" to "integer (0~100)"
-17. âœ… **Â§4.2 #23 signature** â€” Simplified description
-18. âœ… **Â§4.2 #24 signing_key_id** â€” Added new field with "ä¸å‚ä¸ç­¾ååŸåƒï¼Œçº¯ç²¹å…ƒæ•°æ®" description
-19. âœ… **Â§4.2 Numbering Rule** â€” Added comment: "CORE #1â€“#14, JURISDICTION #15â€“#24, EXTENSIONS unnumbered"
-20. âœ… **Â§4.3 schema_ref** â€” Minor text update (removed "Ten years from now")
-21. âœ… **Â§4.4 evaluation.confidence_score** â€” Changed type from "float (string)" to "integer"
-22. âœ… **Â§4.5 Field Bloat** â€” Baseline deployment changed from "15 fields" â†’ "14 fields"
+13. âœ?**Â§4.1 Header** â€?Changed "CORE Fields (15" â†?"CORE Fields (14"
+14. âœ?**Â§4.2 Header** â€?Changed "JURISDICTION Fields (9" â†?"JURISDICTION Fields (10"
+15. âœ?**Â§4.2 Field Numbering** â€?Renumbered #16-#24 â†?#15-#24
+16. âœ?**Â§4.2 #22 confidence_score** â€?Changed from "float (string)" to "integer (0~100)"
+17. âœ?**Â§4.2 #23 signature** â€?Simplified description
+18. âœ?**Â§4.2 #24 signing_key_id** â€?Added new field with "ä¸å‚ä¸ç­¾ååŸåƒï¼Œçº¯ç²¹å…ƒæ•°æ? description
+19. âœ?**Â§4.2 Numbering Rule** â€?Added comment: "CORE #1â€?14, JURISDICTION #15â€?24, EXTENSIONS unnumbered"
+20. âœ?**Â§4.3 schema_ref** â€?Minor text update (removed "Ten years from now")
+21. âœ?**Â§4.4 evaluation.confidence_score** â€?Changed type from "float (string)" to "integer"
+22. âœ?**Â§4.5 Field Bloat** â€?Baseline deployment changed from "15 fields" â†?"14 fields"
 
 ### Â§7 Ecosystem Compatibility
-23. âœ… **Â§7.4 Transport Bridge** â€” Removed AAT-specific binding, made generic with `referenced_transport_events` JSON format
-24. âœ… **Â§7.5 MCP** â€” Updated to "2026-07-28 stateless architecture" revision
-25. âœ… **Â§7.5 execution_trace_id** â€” Updated generation rule (deprecated session IDs, request-level identifiers)
+23. âœ?**Â§7.4 Transport Bridge** â€?Removed AAT-specific binding, made generic with `referenced_transport_events` JSON format
+24. âœ?**Â§7.5 MCP** â€?Updated to "2026-07-28 stateless architecture" revision
+25. âœ?**Â§7.5 execution_trace_id** â€?Updated generation rule (deprecated session IDs, request-level identifiers)
 
 ### Â§8 Privacy
-26. âœ… **Cold Storage Contract** â€” Added 4-point behavior contract (write immutability, read verification, retention governance, location traceability)
+26. âœ?**Cold Storage Contract** â€?Added 4-point behavior contract (write immutability, read verification, retention governance, location traceability)
 
 ### Â§9 Versioning & Upgrade
-27. âœ… **Â§9.2 Core Advantage** â€” Updated to emphasize "any compliance change reflected in audit.hash"
-28. âœ… **Â§9.6 Dual Hash** â€” Simplified transition text (removed legacy/new validator distinction)
+27. âœ?**Â§9.2 Core Advantage** â€?Updated to emphasize "any compliance change reflected in audit.hash"
+28. âœ?**Â§9.6 Dual Hash** â€?Simplified transition text (removed legacy/new validator distinction)
 
 ### Â§10 Long-Term Maintenance
-29. âœ… **Â§10.1 Diagram** â€” Removed extra `JCS(extensions)` line, removed "as core #15" reference
-30. âœ… **Â§10.2 Evolution Table** â€” Aligned validator behavior descriptions with Chinese version
+29. âœ?**Â§10.1 Diagram** â€?Removed extra `JCS(extensions)` line, removed "as core #15" reference
+30. âœ?**Â§10.2 Evolution Table** â€?Aligned validator behavior descriptions with Chinese version
 
 ### Â§11 Extension Zone
-31. âœ… **Â§11.2 Cache Strategy** â€” Added local cache with `last_fetched`/`valid_until` and `semantics_unresolved` degradation
+31. âœ?**Â§11.2 Cache Strategy** â€?Added local cache with `last_fetched`/`valid_until` and `semantics_unresolved` degradation
 
 ### Â§13 Vector Set
-32. âœ… **Â§13.3 Schema Trimming** â€” Added note: "Schema trimming is already completed by DO generator"
-33. âœ… **Â§13.3 Step Text** â€” Aligned 5-step verification wording with Chinese version
-34. âœ… **Â§13.4 AV-008** â€” Anonymized (removed specific vector ID references, made generic canary description)
+32. âœ?**Â§13.3 Schema Trimming** â€?Added note: "Schema trimming is already completed by DO generator"
+33. âœ?**Â§13.3 Step Text** â€?Aligned 5-step verification wording with Chinese version
+34. âœ?**Â§13.4 AV-008** â€?Anonymized (removed specific vector ID references, made generic canary description)
 
 ### Â§14 Request for Comments
-35. âœ… **Feedback Items** â€” Removed AV-008 explicit mention (#3), removed #7, kept #6, aligned all 6 items with Chinese
+35. âœ?**Feedback Items** â€?Removed AV-008 explicit mention (#3), removed #7, kept #6, aligned all 6 items with Chinese
 
 ---
 
 ## Appendix E Status
 
-âœ… **Confirmed deleted** â€” English version does not contain Appendix E (matches Chinese version)
+âœ?**Confirmed deleted** â€?English version does not contain Appendix E (matches Chinese version)
 
 ---
 
 ## Technical Details
 
 ### Files Modified
-- `WHITEPAPER-v1.2-DRAFT-3.en.md` â€” 35 discrete changes applied
+- `RFC 001-v1.2-DRAFT-3.en.md` â€?35 discrete changes applied
 
 ### Control Character Fix
-- Line 178: Removed `\x07` (bell character) corruption in "udit.hash" â†’ "`audit.hash`"
+- Line 178: Removed `\x07` (bell character) corruption in "udit.hash" â†?"`audit.hash`"
 - Reformatted code fences from backtick-single to triple-backtick blocks
 
 ### High-Frequency Error Points Addressed
-- âœ… CORE field count: 15 â†’ 14 (all occurrences)
-- âœ… JURISDICTION field count: 9 â†’ 10 (all occurrences)
-- âœ… Baseline deployment fields: 15 â†’ 14
-- âœ… Field numbering: #16-#24 â†’ #15-#24
-- âœ… confidence_score type: float(string) â†’ integer(0~100)
+- âœ?CORE field count: 15 â†?14 (all occurrences)
+- âœ?JURISDICTION field count: 9 â†?10 (all occurrences)
+- âœ?Baseline deployment fields: 15 â†?14
+- âœ?Field numbering: #16-#24 â†?#15-#24
+- âœ?confidence_score type: float(string) â†?integer(0~100)
 
 ---
 
@@ -139,7 +139,7 @@ node scripts/verify.js
 
 ## Conclusion
 
-All known discrepancies between Chinese and English whitepapers have been resolved. The English version now accurately reflects:
+All known discrepancies between Chinese and English RFC 001s have been resolved. The English version now accurately reflects:
 - Field count corrections (14 CORE + 10 JURISDICTION)
 - New constraints (raw data pass-through, DoS protection)
 - New fields (signing_key_id)
@@ -150,4 +150,4 @@ All known discrepancies between Chinese and English whitepapers have been resolv
 - Schema cache expiration strategy
 - Part III governance header
 
-**Status**: Ready for review âœ…
+**Status**: Ready for review âœ?

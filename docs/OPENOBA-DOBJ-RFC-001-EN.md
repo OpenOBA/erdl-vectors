@@ -1,14 +1,21 @@
-# ERDL Decision Object v1.3 — Enterprise AI Agent Audit Infrastructure Standard
+# RFC 001 — ERDL Decision Object v1.3 · Enterprise AI Agent Audit Decision Record Standard
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **Whitepaper · Request for Comments (RFC)**
+> **RFC Number**: OPENOBA-DOBJ-RFC-001
+>
+> **Title**: ERDL Decision Object v1.3 — Enterprise AI Agent Audit Decision Record Standard
 >
 > **Version**: Draft 4 · 2026-07-29
-> **Authors**: OpenOBA Team
+> **Author**: Tang Haoran (OpenOBA AI Executive)
+> **Maintainer**: OpenOBA (https://openoba.com)
+> **Language**: English (中文版: OPENOBA-DOBJ-RFC-001-CN.md)
+>
 > **Requested Commenters**: Erik Newton (Concordia), Christopher Hopley (chopmob-cloud / AlgoVoi), Regulatory Compliance Experts, Joint Audit Committee
-> **Status**: Request for Comments — Not a final version.
-> **v1.3 Changes**: Fix Erik Newton's three issues (E1: spec-code alignment, E2: chain position tampering detection restored, E3: canonical_hex moved to separate answers file) + fix Chris Hopley's security issues (S2: dual-hash downgrade fix, S3: schema_ref SSRF hardening) + internal consistency fix (C3: §3.3 override clause). All design details are subject to adjustment upon receiving feedback.
+> **Status**: Request for Comments — Not a final version. All design details are subject to adjustment upon receiving feedback.
+> **Feedback Deadline**: 2026-08-29 (30-day comment period)
+>
+> **v1.3 Changes**: Fix Erik Newton's three issues (E1: spec-code alignment, E2: chain position tampering detection restored, E3: canonical_hex moved to separate answers file) + fix Chris Hopley's security issues (S2: dual-hash downgrade fix, S3: schema_ref SSRF hardening) + internal consistency fix (C3: §3.3 override clause) + add LGPD/DPDP jurisdiction coverage + async audit queue reliability constraints + SMB minimal deployment mode + measured performance benchmarks + Appendix C threat model. All design details are subject to adjustment upon receiving feedback.
 >
 > **Keyword Interpretation**: The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/rfc2119/) and [RFC 8174](https://datatracker.ietf.org/doc/rfc8174/).
 >
@@ -16,8 +23,9 @@
 > - Draft 1 (2026-07-27): Initial version, 23-field design
 > - Draft 2 (2026-07-27): Revised per Joint Audit Committee feedback, expanded to 24 fields, added JCS numeric constraints, hot/cold separation privacy scheme, cross-version audit chain anchoring
 > - Draft 3 (2026-07-27): Introduced flat hashing architecture — extensions participate directly in main JCS, reinforcing extension-zone tamper resistance
+> - Draft 4 (2026-07-29): v1.3 third-party audit fixes + formal RFC numbering (OPENOBA-DOBJ-RFC-001), 14 regulatory framework coverage, threat model appendix, measured performance benchmarks
 >
-> **Abstract**: This whitepaper presents the ERDL Decision Object v1.3 design — a cross-implementation, tamper-proof, multi-jurisdiction-compatible audit decision record standard for enterprise AI Agents. The design is built on JCS (RFC 8785) + SHA-256 cryptographic foundations, technically aligned with IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00), and covers audit requirements across 14 major global regulatory frameworks including EU AI Act, GB/Z 185, NIST AI RMF, COSO 2026, LGPD, and DPDP. The DO contains 24 top-level fields (CORE 14 + JURISDICTION 10), achieves on-demand adaptation through a jurisdiction activation mechanism, and ensures integrity through flat hashing architecture — all fields uniformly participate in JCS, and any tampering directly changes audit.hash.
+> **Abstract**: This RFC presents the ERDL Decision Object v1.3 design — a cross-implementation, tamper-proof, multi-jurisdiction-compatible audit decision record standard for enterprise AI Agents. The design is built on JCS (RFC 8785) + SHA-256 cryptographic foundations, technically aligned with IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00), and covers audit requirements across 14 major global regulatory frameworks including EU AI Act, GB/Z 185, NIST AI RMF, COSO 2026, LGPD, and DPDP. The DO contains 24 top-level fields (CORE 14 + JURISDICTION 10), achieves on-demand adaptation through a jurisdiction activation mechanism, and ensures integrity through flat hashing architecture — all fields uniformly participate in JCS, and any tampering directly changes audit.hash.
 
 ---
 
@@ -1299,4 +1307,4 @@ The DO protocol adheres to the following security-by-default principles:
 
 > *"Deterministic architecture, not prompt engineering. Neutrality is tested, not declared."*
 >
-> -- OpenOBA · 2026.07.29 · ERDL Decision Object v1.3 Request for Comments (Draft 4)
+> -- OpenOBA · 2026.07.29 · RFC 001 (OPENOBA-DOBJ-RFC-001) · Draft 4 · Request for Comments
