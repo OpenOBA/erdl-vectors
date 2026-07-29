@@ -17,7 +17,7 @@
 5. [Your Engine's Role: Populating Decision Objects](#5-your-engines-role-populating-decision-objects)
 6. [Testing Against the Vector Set](#6-testing-against-the-vector-set)
 7. [Common Pitfalls](#7-common-pitfalls)
-8. [Answers File Separation (v1.3)](#8-answers-file-separation-v13)
+8. [Answers File and Diagnostic Anchor (v1.3.1)](#8-answers-file-and-diagnostic-anchor-v131)
 9. [Language-Specific JCS Notes](#9-language-specific-jcs-notes)
 10. [Compatibility Levels](#10-compatibility-levels)
 11. [Reference Implementations](#11-reference-implementations)
@@ -152,7 +152,7 @@ def jcs_number(n: float) -> str:
         raise ValueError('JCS: NaN/Infinity not allowed')
     # Python float repr is close to ES6 but not identical for edge cases
     # The safest approach: if your engine produces DOs, use integer arithmetic where possible
-    # For verification, the pre-computed canonical_hex fields bypass this entirely
+    # For verification, your implementation must match the reference.
     return str(n)  # good enough for the integer-heavy DO vector set
 ```
 
@@ -260,7 +260,7 @@ Note: `audit.hash`, `signature`, and `signing_key_id` are NOT included in the ha
 
 ## 6. Testing Against the Vector Set
 
-### Step 1: Verify canonical_hex (JCS is correct)
+### Step 1: Verify audit.hash (Five-Step)
 
 ```bash
 node scripts/verify.js --vectors=decision-object-vectors-v1.3.json
@@ -342,20 +342,28 @@ Language-specific recommendations:
 
 If your runner reports all 12 audit vectors as MATCH, your five-step verification is NOT computing from scratch — you're comparing pre-computed hashes. The vector set includes one intentionally stale audit vector where `audit.hash` does not match the independently computed hash. Only a runner that recalculates the hash (not just reads stored values) will detect the MISMATCH.
 
-> ⚠️ **Important**: A runner should NEVER special-case any vector by id. All 12 audit vectors go through the same five-step pipeline regardless of their identity. The stale vector's `canonical_hex` matches another valid vector's — if you skip the hash computation and look up pre-computed values, you'll report MATCH where you should report MISMATCH.
+> ⚠️ **Important**: A runner should NEVER special-case any vector by id. All 12 audit vectors go through the same five-step pipeline regardless of their identity. AV-013's tampered `previous_hash` in the DO body differs from the one used to compute the stored `audit.hash` — only a runner that independently computes JCS+SHA-256 (including `previous_hash` in the preimage) will detect this mismatch.
 
 ### P2: Timestamp format
 
 The vector set uses `'2026-07-28T00:00:00.000Z'`. Your engine should use ISO 8601 with milliseconds and `Z` suffix.
 
-## 8. Answers File Separation (v1.3)
+## 8. Answers File and Diagnostic Anchor (v1.3.1)
 
-v1.3 moves all \`canonical_hex\` values from the vector file to a separate \`decision-object-answers-v1.3.json\`. This eliminates the shortcut where a runner computes SHA-256 directly from the published canonical bytes without implementing JCS.
+v1.3.1 removes ALL `canonical_hex` fields from the vector file. AV vectors now carry `diag_hash` (first 14 characters of `audit.hash`, i.e. `"sha256:"` + 8 hex digits) as a one-way SHA-256 debug anchor. Full canonical_hex answers remain in a separate `decision-object-answers-v1.3.json` file.
 
-- The vector file contains NO \`canonical_hex\` fields
-- The answers file exists for debugging only
-- Conformance runners MUST NOT read the answers file — they MUST implement their own JCS and compute canonical_hex from the DO fields
+### What this means for runners
+
+- The vector file contains ZERO canonical bytes — **no JCS output is exposed**
+- `diag_hash` is an SHA-256 prefix — **cannot** be inverted to recover JCS output
+- `diag_hash` helps debug: "my result starts with `x`, the answer starts with `y`"
+- The answers file is for **development diagnostics only**
+- Conformance runners MUST NOT read the answers file — they MUST implement their own JCS
 - CI/CD compliance pipelines should make the answers file inaccessible to the verifier
+
+### Why this change
+
+v1.2's `canonical_hex` in the vector file was a structural vulnerability — a runner could SHA-256 the pre-computed canonical bytes without implementing JCS and falsely pass verification. v1.3 moved `canonical_hex` to a separate file; v1.3.1 removes it entirely from the vector file, replacing it with a one-way hash prefix that cannot be used for verification.
 
 ## 9. Language-Specific JCS Notes
 

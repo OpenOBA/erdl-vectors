@@ -11,7 +11,7 @@
 ### Source: Erik Newton (Concordia) — Cross-implementation verification
 - **E1**: RFC 001 §13.3 now matches verify.js — both delete only `audit.hash` (not entire `audit` object)
 - **E2**: `audit.previous_hash` and `audit.commitment` restored to JCS preimage — chain position tampering now cryptographically detectable
-- **E3**: `canonical_hex` moved to separate answers file (`decision-object-answers-v1.3.json`) — eliminates SHA-256-only shortcut
+- **E3**: `canonical_hex` fully removed from vector file; replaced with `diag_hash` (one-way SHA-256 prefix) on AV vectors. Full answers in separate `decision-object-answers-v1.3.json` (v1.3.1 hardening)
 
 ### Source: Chris Hopley (AlgoVoi) — Independent technical critique
 - **C1**: Self-referencing exclusion for `policies[].hash` and `profile_hash` — confirmed correct

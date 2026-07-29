@@ -25,6 +25,8 @@ We are deeply grateful for their contributions, which transformed a specificatio
 
 This repository contains the authoritative set of **101 cross-implementation test vectors** for the ERDL (Entity-Rule Definition Language) Decision Object v1.3 protocol. Each vector is a complete, self-verifiable Decision Object — the standardized, tamper-evident audit format for AI Agent rule evaluation decisions.
 
+> **v1.3.1**: `canonical_hex` fully removed from the vector file. AV vectors now carry `diag_hash` (first 14 chars of `audit.hash`) as a one-way SHA-256 debug anchor — it cannot be used to bypass JCS implementation. See [CHANGELOG.md](CHANGELOG.md).
+
 ### Core Guarantees
 
 | Guarantee | Mechanism |
