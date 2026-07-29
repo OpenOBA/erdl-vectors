@@ -2,7 +2,7 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **目标读者**: 想在自己的 ERDL 规则引擎中实现 Decision Object v1.2 支持的开发者  
+> **目标读者**: 想在自己的 ERDL 规则引擎中实现 Decision Object v1.3 支持的开发者  
 > **前提**: 理解 JSON、SHA-256、RFC 8785 (JCS)  
 > **时间**: 读完本文约 15 分钟，实现基础 Runner 约 2-4 小时  
 
@@ -62,8 +62,9 @@ def verify_do(decision_object: dict) -> tuple[bool, str, str]:
     clone = json.loads(json.dumps(decision_object))
 
     # Step 2: Delete self-referencing fields
-    # (extensions stays — participates directly in main JCS)
-    del clone['audit']
+    # Only delete audit.hash — previous_hash and commitment MUST stay in JCS preimage
+    # extensions stays — participates directly in main JCS
+    del clone['audit']['hash']
     del clone['signature']
     del clone['signing_key_id']
 
@@ -90,10 +91,10 @@ Step 1: Deep-clone the decision_object
         → clone = JSON.parse(JSON.stringify(decision_object))
 
 Step 2: Delete self-referencing / external fields
-        → delete clone.audit
+        → delete clone.audit.hash
         → delete clone.signature
         → delete clone.signing_key_id
-        (extensions stays in the tree — participates directly in main JCS)
+        (extensions stays, audit.previous_hash stays, audit.commitment stays)
         → (defensive) delete any __-prefixed internal fields
 
 Step 3: JCS canonicalize the entire object
@@ -283,7 +284,7 @@ Run all 63 static DO vectors through your engine's evaluate → produce DO → v
 
 ### P0: Using the wrong hash formula
 
-The audit hash covers the **entire DO minus audit/signature/signing_key_id**. `extensions` participates directly in the main JCS. If you hash the entire DO including `audit` → circular dependency → always wrong.
+The audit hash covers the **entire DO minus audit.hash/signature/signing_key_id**. `extensions`, `audit.previous_hash`, and `audit.commitment` participate directly in the main JCS. If you delete the entire `audit` object → `previous_hash` and `commitment` excluded from hash → chain position tampering undetectable.
 
 ### P0: Self-referential hash fields — forget to exclude the hash key
 
@@ -343,7 +344,16 @@ If your runner reports all 12 audit vectors as MATCH, your five-step verificatio
 
 The vector set uses `'2026-07-28T00:00:00.000Z'`. Your engine should use ISO 8601 with milliseconds and `Z` suffix.
 
-## 8. Language-Specific JCS Notes
+## 8. Answers File Separation (v1.3)
+
+v1.3 moves all \`canonical_hex\` values from the vector file to a separate \`decision-object-answers-v1.3.json\`. This eliminates the shortcut where a runner computes SHA-256 directly from the published canonical bytes without implementing JCS.
+
+- The vector file contains NO \`canonical_hex\` fields
+- The answers file exists for debugging only
+- Conformance runners MUST implement their own JCS and compute \`canonical_hex\` from the DO fields
+- CI/CD compliance pipelines should make the answers file inaccessible to the verifier
+
+## 9. Language-Specific JCS Notes
 
 The JCS constraints in Whitepaper §3.1 apply across all languages. Below are known pitfalls and recommended practices for common implementation languages.
 
@@ -402,7 +412,7 @@ The JCS constraints in Whitepaper §3.1 apply across all languages. Below are kn
 |:-----:|:-------:|-------------|
 | **L1** | 28 | Basic: JCS + SHA-256 correct, DO structure valid |
 | **L2** | 45 | Verified: all v1.1 vectors pass, dynamic vectors supported |
-| **L3** | 101 | Full: all v1.2 vectors, including AV-008 stale regression detection |
+| **L3** | 101 | Full: all v1.3 vectors, including AV-013 chain integrity canary |
 
 Start with L1. Most runners pass L1 within a few hours. L2 and L3 add edge cases that flush out JCS number formatting and null-handling bugs.
 
@@ -410,7 +420,7 @@ Start with L1. Most runners pass L1 within a few hours. L2 and L3 add edge cases
 
 | Language | File | Notes |
 |----------|------|-------|
-| **JavaScript (Node.js)** | `scripts/verify.js` | Zero-dependency, self-built JCS, 380 lines |
+| **JavaScript (Node.js)** | `scripts/verify.js` | Zero-dependency, self-built JCS, v1.3 |
 | **JavaScript (Node.js)** | `scripts/generate-vectors.cjs` | Generator with `json-canonicalize` JCS library |
 | **TypeScript** | `test/verify-comprehensive.test.ts` | 88 tests covering JCS edge cases |
 

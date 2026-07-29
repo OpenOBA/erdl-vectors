@@ -1,11 +1,11 @@
-# DESIGN: generate-vectors.cjs — v1.2 向量生成器设计
+# DESIGN: generate-vectors.cjs — v1.3 向量生成器设计
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> 版本: 2.0 (完全重写) · 2026-07-28
-> 状态: Released · 2026-07-28
-> 权威源: SPEC v1.1 §3.4 + 白皮书 Draft 3 §13
-> 策略: 从零构建，不继承 v1.0/v1.1 向量数据
+> 版本: 2.1 · 2026-07-29
+> 状态: Released
+> 权威源: SPEC v1.1 §3.4 + 白皮书 Draft 4 §13
+> 策略: v1.2 → v1.3 升级（含第三方审计修复）
 
 ---
 

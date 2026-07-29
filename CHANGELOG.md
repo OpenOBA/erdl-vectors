@@ -2,6 +2,34 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
+## v1.3.0 (2026-07-29)
+
+### Bug Fixes (Third-Party Audit)
+- **E1 (Erik Newton)**: Whitepaper §13.3 now matches verify.js — both delete only `audit.hash` (not entire `audit` object). Previously, `delete clone.audit` removed `previous_hash` and `commitment` from the JCS preimage.
+- **E2 (Erik Newton)**: Chain position tampering detection restored. `audit.previous_hash` and `audit.commitment` now participate in JCS → any tampering with a record's position in the chain changes `audit.hash`.
+- **E3 (Erik Newton)**: `canonical_hex` moved from vector file to separate `decision-object-answers-v1.3.json`. Conformance runners MUST NOT read the answers file — this eliminates the SHA-256-only shortcut attack.
+- **S2 (Chris Hopley)**: §9.6 dual-hash transition — "verify every hash present" replaces "at least one" (CWE-757 algorithm downgrade fix).
+- **S3 (Chris Hopley)**: §11.2 schema_ref SSRF hardening confirmed (offline-first, allowlisted, size-capped).
+- **C3 (Chris Hopley)**: §3.3 explicitly overrides §3.1(5) for `extensions` empty array retention.
+- **C2 (Chris Hopley)**: Numeric canonicalization constraint added (§3.1 constraint 8) — prevention measure for string-encoded decimal ambiguity.
+
+### Design Changes
+- All 75 DO vectors now carry full `audit` object: `hash` + `previous_hash` + `commitment`
+- AV-008 (stale regression canary) replaced by AV-013 (chain position tampering canary)
+- AV-013 strategy: `audit.previous_hash` in DO body tampered to point outside chain, but `audit.hash` computed with original `previous_hash`. Correct runners detect mismatch.
+- Audit vector count remains 12 (AV-001~AV-012 + AV-013)
+
+### Documentation
+- Whitepaper: v1.2 DRAFT-3 → v1.3 DRAFT-4 (CN + EN)
+- Runner's Guide: Step 2 deletion logic updated; Answers file section added
+- DESIGN documents: verify.js v1.2 → v1.3
+- ALIGNMENT-REPORT: v1.3 upgrade summary
+
+### Verification
+- ✅ verify.js: 63/63 DO audit.hash self-consistent
+- ✅ verify.js: 11/11 AV MATCH + AV-013 EXPECTED_MISMATCH (chain canary detected)
+- Baseline: commit `3131548` (v1.2 DRAFT-3, clean working tree)
+
 ## v1.2.0 (2026-07-28)
 
 ### Decision Vectors

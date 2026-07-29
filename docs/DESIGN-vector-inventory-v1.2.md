@@ -1,10 +1,10 @@
-# DESIGN: Vector Set v1.2 — 全量清单与技术陷阱继承
+# DESIGN: Vector Set v1.3 — 全量清单与技术陷阱继承
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> 版本: 1.0 · 2026-07-28
-> 状态: Released · 2026-07-28
-> 对标: 白皮书 Draft 3 §13.2 + SPEC v1.1 §3.4
+> 版本: 1.1 · 2026-07-29
+> 状态: Released
+> 对标: 白皮书 Draft 4 §13.2 + SPEC v1.1 §3.4
 
 ---
 

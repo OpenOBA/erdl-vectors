@@ -1,26 +1,28 @@
 #!/usr/bin/env node
 /**
- * verify.js — ERDL Decision Object v1.2 Cross-Implementation Verifier
+ * verify.js — ERDL Decision Object v1.3 Cross-Implementation Verifier
  *
- * Zero-dependency verification of decision-object-vectors-v1.2.json.
+ * Zero-dependency verification of decision-object-vectors-v1.3.json.
  * Self-built JCS (RFC 8785) + SHA-256, cross-implementation verifiable.
  *
  * Usage: node verify.js [path/to/vectors.json]
  *
- * Verification steps (Whitepaper §13.3):
+ * Verification steps (Whitepaper §13.3, v1.3):
  *   1. Parse JSON → deep clone decision_object
- *   2. Delete audit / signature / signing_key_id
- *      (extensions stays — participates directly in main JCS)
+ *   2. Delete audit.hash / signature / signing_key_id
+ *      (extensions, audit.previous_hash, audit.commitment stay)
  *   3. JCS serialize remaining fields
  *   4. SHA-256
  *   5. Compare with stored audit.hash
  *
- * Special: AV-008 EXPECTED_MISMATCH — canonical_hex matches AV-003
- *          but audit.hash is a hardcoded v1.1 legacy value.
+ * Special: AV-013 EXPECTED_MISMATCH — chain position tampering canary.
+ *          audit.previous_hash points outside the chain.
+ *          Only a runner that independently computes JCS+SHA-256
+ *          (including previous_hash in the preimage) will detect it.
  *
  * Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
  * Author: Tang Haoran — OpenOBA AI Executive
- * Date: 2026-07-28
+ * Date: 2026-07-29
  *
  * RFC 8785 (JCS) implementation notes:
  *   - Numbers: ES6 Number.prototype.toString() — String(n) in JS
@@ -140,8 +142,10 @@ function verifyDO(vectorId, decisionObject) {
   const clone = JSON.parse(JSON.stringify(decisionObject));
 
   // Step 2: Delete self-referencing / external fields
-  // (extensions STAYS in the tree — participates directly in main JCS)
-  delete clone.audit;
+  // Only delete audit.hash (not the whole audit object —
+  // audit.previous_hash and audit.commitment MUST stay in the JCS preimage)
+  // extensions STAYS in the tree — participates directly in main JCS
+  delete clone.audit.hash;
   delete clone.signature;
   delete clone.signing_key_id;
 
@@ -173,7 +177,7 @@ function verifyDO(vectorId, decisionObject) {
 
 function main() {
   const args = process.argv.slice(2);
-  const vectorsPath = args[0] || path.join(__dirname, '..', 'decision-object-vectors-v1.2.json');
+  const vectorsPath = args[0] || path.join(__dirname, '..', 'decision-object-vectors-v1.3.json');
 
   if (!fs.existsSync(vectorsPath)) {
     console.error('ERROR: Vectors file not found: ' + vectorsPath);
@@ -210,10 +214,8 @@ function main() {
       console.error('ERROR: vector ' + (vec.id || '?') + ' is missing decision_object')
       process.exit(1)
     }
-    if (!vec.canonical_hex || typeof vec.canonical_hex !== 'string') {
-      console.error('ERROR: vector ' + (vec.id || '?') + ' is missing canonical_hex')
-      process.exit(1)
-    }
+    // v1.3: canonical_hex moved to answers file (E3 fix)
+    // Static DOs no longer carry canonical_hex
   }
   for (const av of data.audit_vectors) {
     if (!av.decision_object || !av.decision_object.audit || !av.decision_object.audit.hash) {
@@ -275,32 +277,33 @@ function main() {
   console.log('');
 
   // ── Verify SELF-CONTAINED static DOs ──
-  console.log('── Static DO Canonical Bytes Self-Consistency ──');
+  console.log('── Static DO Audit Hash Self-Consistency ──');
   let doPasses = 0;
   let doFails = 0;
   for (const vec of data.vectors) {
-    // Verify that DO's canonical_hex matches self-JCS
+    // v1.3: Verify audit.hash only (canonical_hex moved to answers file)
     const clone = JSON.parse(JSON.stringify(vec.decision_object));
-    delete clone.audit;
+    const storedHash = clone.audit.hash;
+    delete clone.audit.hash;
     delete clone.signature;
     delete clone.signing_key_id;
     delete clone.extensions_validation;
     delete clone.canonical_hex;
     const selfJcs = jcsCanonicalize(clone);
-    const selfCanonical = Buffer.from(selfJcs, 'utf8').toString('hex');
+    const computedHash = 'sha256:' + sha256(selfJcs);
 
-    if (selfCanonical === vec.canonical_hex) {
+    if (computedHash === storedHash) {
       doPasses++;
     } else {
       doFails++;
       if (doFails <= 3) {
-        console.log('  ✗ ' + vec.id + ' canonical_hex mismatch');
+        console.log('  ✗ ' + vec.id + ' audit.hash mismatch');
       }
     }
   }
-  console.log('  ✓ ' + doPasses + ' / ' + data.vectors.length + ' DO canonical_hex self-consistent');
+  console.log('  ✓ ' + doPasses + ' / ' + data.vectors.length + ' DO audit.hash self-consistent');
   if (doFails > 0) {
-    console.log('  ✗ ' + doFails + ' FAILURES — check JCS implementation vs json-canonicalize');
+    console.log('  ✗ ' + doFails + ' FAILURES — check JCS implementation');
   }
   console.log('');
 
@@ -321,13 +324,14 @@ function main() {
     const canHexMatch = result.canonical_hex === avVec.canonical_hex;
 
     let status;
-    if (id === 'AV-008') {
-      // AV-008: EXPECTED MISMATCH (stale regression vector)
-      if (!result.passed && canHexMatch) {
+    if (id === 'AV-013') {
+      // AV-013: EXPECTED MISMATCH (chain position tampering canary)
+      // audit.previous_hash points outside chain → hash must not match
+      if (!result.passed) {
         status = '✓ EXPECTED_MISMATCH';
         passes++;
       } else if (result.passed) {
-        status = '✗ FALSE_PASS (AV-008 should mismatch but passed — cached/shorthand validator?)';
+        status = '✗ FALSE_PASS (AV-013 should mismatch — previous_hash excluded from JCS?)';
         errors++;
       } else {
         status = '✗ ERROR: ' + result.error;
@@ -366,24 +370,24 @@ function main() {
   console.log('');
 
   if (av.length > 0) {
-    const expectedPassCount = 11; // 12 AVs minus AV-008
-    const expectedMismatchCount = 1; // AV-008: stale regression, MUST mismatch
+    const expectedPassCount = 11; // 12 AVs minus AV-013
+    const expectedMismatchCount = 1; // AV-013: chain position tampering canary
 
-    // passes includes AV-008 (counted as EXPECTED_MISMATCH in passes)
-    const matchCount = passes - 1; // exclude AV-008
-    const staleMismatchCount = passes - matchCount; // AV-008 (the one expected mismatch)
+    // passes includes AV-013 (counted as EXPECTED_MISMATCH in passes)
+    const matchCount = passes - 1; // exclude AV-013
+    const canaryMismatchCount = passes - matchCount; // AV-013 (the one expected mismatch)
     
-    console.log('  Expected: ' + expectedPassCount + ' MATCH + ' + expectedMismatchCount + ' MISMATCH (AV-008)');
-    console.log('  Got:      ' + matchCount + ' MATCH + ' + staleMismatchCount + ' MISMATCH (AV-008)');
+    console.log('  Expected: ' + expectedPassCount + ' MATCH + ' + expectedMismatchCount + ' MISMATCH (AV-013)');
+    console.log('  Got:      ' + matchCount + ' MATCH + ' + canaryMismatchCount + ' MISMATCH (AV-013)');
     console.log('');
 
-    if (matchCount === expectedPassCount && staleMismatchCount === expectedMismatchCount && mismatches === 0 && errors === 0) {
+    if (matchCount === expectedPassCount && canaryMismatchCount === expectedMismatchCount && mismatches === 0 && errors === 0) {
       console.log('  ╔══════════════════════════════════════╗');
       console.log('  ║  ✅ ALL VERIFICATIONS PASSED         ║');
-      console.log('  ║  11/11 MATCH + AV-008 STALE DETECTED ║');
+      console.log('  ║  11/11 MATCH + AV-013 CHAIN CANARY DETECTED ║');
       console.log('  ╚══════════════════════════════════════╝');
       console.log('');
-      console.log('  Decision Object v1.2 vectors are cross-implementation verifiable.');
+      console.log('  Decision Object v1.3 vectors are cross-implementation verifiable.');
       process.exit(0);
     } else {
       console.log('  ╔══════════════════════════════════════╗');

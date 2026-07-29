@@ -1,12 +1,35 @@
 # English Whitepaper Alignment Report
 
-**Date**: 2026-07-29  
-**Task**: Align English whitepaper with Chinese authoritative source  
+**Date**: 2026-07-29
+**Task**: v1.3 upgrade — align all documents after third-party audit (Erik Newton + Chris Hopley)
 **Status**: ✅ COMPLETE
 
 ---
 
-## Summary
+## v1.3 Changes Summary
+
+### Source: Erik Newton (Concordia) — Cross-implementation verification
+- **E1**: Whitepaper §13.3 now matches verify.js — both delete only `audit.hash` (not entire `audit` object)
+- **E2**: `audit.previous_hash` and `audit.commitment` restored to JCS preimage — chain position tampering now cryptographically detectable
+- **E3**: `canonical_hex` moved to separate answers file (`decision-object-answers-v1.3.json`) — eliminates SHA-256-only shortcut
+
+### Source: Chris Hopley (AlgoVoi) — Independent technical critique
+- **C1**: Self-referencing exclusion for `policies[].hash` and `profile_hash` — confirmed correct in both whitepaper and vectors
+- **C2**: Numeric canonicalization constraint added (§3.1 constraint 8) — prevention measure, no active bug found
+- **C3**: §3.3 explicitly overrides §3.1(5) for `extensions` empty array retention
+- **S2**: Dual-hash transition (§9.6) — "verify every hash present" replaces "at least one" (CWE-757 fix)
+- **S3**: `schema_ref` SSRF hardening confirmed present (§11.2)
+
+### Internal
+- **D1**: All 75 DO vectors now carry full `audit` object: `hash` + `previous_hash` + `commitment`
+- AV-008 (stale regression canary) replaced by AV-013 (chain position tampering canary)
+- Whitepaper upgraded: v1.2 DRAFT-3 → v1.3 DRAFT-4 (CN + EN)
+- Runner's Guide, DESIGN documents, CHANGELOG updated
+
+### Verification
+- ✅ verify.js: 63/63 DO audit.hash self-consistent
+- ✅ verify.js: 11/11 AV MATCH + AV-013 EXPECTED_MISMATCH
+- ✅ npm test: all tests pass
 
 Successfully aligned `WHITEPAPER-v1.2-DRAFT-3.en.md` with the Chinese version. All 20 known discrepancies have been resolved.
 

@@ -393,7 +393,7 @@ describe('JCS — 跨实现一致性', () => {
 // 集成测试：验证生成的 vectors 文件
 // ═══════════════════════════════════════════════
 describe('集成 — 已生成 vectors 文件验证', () => {
-  const vectorsPath = path.join(__dirname, '..', 'decision-object-vectors-v1.2.json')
+  const vectorsPath = path.join(__dirname, '..', 'decision-object-vectors-v1.3.json')
   let data: any
 
   beforeAll(() => {
@@ -409,7 +409,7 @@ describe('集成 — 已生成 vectors 文件验证', () => {
 
   it('has correct spec and version', () => {
     expect(data.spec).toBe('decision-object-v1.0')
-    expect(data.version).toBe('1.2.0')
+    expect(data.version).toBe('1.3.0')
   })
 
   it('has 63 static DO vectors', () => {
@@ -422,53 +422,56 @@ describe('集成 — 已生成 vectors 文件验证', () => {
     }
   })
 
-  it('all 63 DOs have canonical_hex', () => {
+  it('all 63 DOs have full audit object (hash + previous_hash + commitment)', () => {
     for (const vec of data.vectors) {
-      expect(vec.canonical_hex).toBeDefined()
-      expect(typeof vec.canonical_hex).toBe('string')
-      // Hex string: even length, hex chars
-      expect(vec.canonical_hex).toMatch(/^[a-f0-9]+$/)
-      expect(vec.canonical_hex.length % 2).toBe(0)
+      const audit = vec.decision_object.audit
+      expect(audit).toBeDefined()
+      expect(audit.hash).toMatch(/^sha256:[a-f0-9]{64}$/)
+      expect('previous_hash' in audit).toBe(true)
+      expect('commitment' in audit).toBe(true)
+      // v1.3: canonical_hex moved to answers file
+      expect(vec.canonical_hex).toBeUndefined()
     }
   })
 
-  it('all 63 DOs canonical_hex self-consistent', () => {
+  it('all 63 DOs audit.hash self-consistent', () => {
     let passed = 0
     for (const vec of data.vectors) {
       const clone = JSON.parse(JSON.stringify(vec.decision_object))
-      // Flat hashing: delete audit/signature/signing_key_id, extensions stays
-      delete clone.audit
+      const storedHash = clone.audit.hash
+      // v1.3: delete only audit.hash, keep previous_hash + commitment
+      delete clone.audit.hash
       delete clone.signature
       delete clone.signing_key_id
       delete clone.extensions_validation
       delete clone.canonical_hex
       const selfJcs = jcsCanonicalize(clone)
-      const selfCanonical = Buffer.from(selfJcs, 'utf8').toString('hex')
-      if (selfCanonical === vec.canonical_hex) passed++
+      const computedHash = 'sha256:' + sha256(selfJcs)
+      if (computedHash === storedHash) passed++
     }
     expect(passed).toBe(63)
   })
 
-  it('has 12 audit vectors', () => {
+  it('has 12 audit vectors (AV-008 removed, AV-013 added)', () => {
     expect(data.audit_vectors).toHaveLength(12)
-  })
-
-  it('AV-001 through AV-012 are sequential and correct', () => {
     const ids = data.audit_vectors.map((a: any) => a.id)
-    for (let i = 1; i <= 12; i++) {
-      const id = `AV-${String(i).padStart(3, '0')}`
-      expect(ids).toContain(id)
-    }
+    expect(ids).toContain('AV-001')
+    expect(ids).toContain('AV-007')
+    expect(ids).not.toContain('AV-008')
+    expect(ids).toContain('AV-009')
+    expect(ids).toContain('AV-012')
+    expect(ids).toContain('AV-013')
   })
 
-  it('AV-008 is the stale regression vector', () => {
-    const av8 = data.audit_vectors.find((a: any) => a.id === 'AV-008')
-    expect(av8).toBeDefined()
-    expect(av8.expected_result).toBe('MISMATCH')
-    expect(av8.note).toContain('STALE')
+  it('AV-013 is the chain integrity canary', () => {
+    const av13 = data.audit_vectors.find((a: any) => a.id === 'AV-013')
+    expect(av13).toBeDefined()
+    expect(av13.category).toBe('audit-hash')
+    expect(av13.purpose).toContain('chain')
+    expect(av13.note).toContain('MISMATCH')
   })
 
-  it('audit hash verification: 11 MATCH + 1 MISMATCH (AV-008)', () => {
+  it('audit hash verification: 11 MATCH + 1 MISMATCH (AV-013)', () => {
     const avs = data.audit_vectors
     let matchCount = 0
     let mismatchCount = 0
@@ -477,17 +480,17 @@ describe('集成 — 已生成 vectors 文件验证', () => {
       const doObj = avVec.decision_object
       const clone = JSON.parse(JSON.stringify(doObj))
 
-      // 5-step flat verification
-      delete clone.audit
-      delete clone.signature
-      delete clone.signing_key_id
-      delete clone.extensions_validation
+      // v1.3: delete only audit.hash, keep previous_hash + commitment
+      delete clone.audit.hash;
+      delete clone.signature;
+      delete clone.signing_key_id;
+      delete clone.extensions_validation;
 
       const canonicalFull = jcsCanonicalize(clone)
       const computedHash = 'sha256:' + sha256(canonicalFull)
       const storedHash = doObj.audit.hash
 
-      if (avVec.id === 'AV-008') {
+      if (avVec.id === 'AV-013') {
         // Must mismatch
         expect(computedHash).not.toBe(storedHash)
         const computedBytes = Buffer.from(canonicalFull, 'utf8').toString('hex')
@@ -628,7 +631,7 @@ describe('集成 — 已生成 vectors 文件验证', () => {
 // CLI 端到端测试
 // ═══════════════════════════════════════════════
 describe('CLI — 端到端', () => {
-  const vectorsPath = path.join(__dirname, '..', 'decision-object-vectors-v1.2.json')
+  const vectorsPath = path.join(__dirname, '..', 'decision-object-vectors-v1.3.json')
   const verifyPath = path.join(__dirname, '..', 'scripts', 'verify.js')
 
   beforeAll(() => {
@@ -646,7 +649,7 @@ describe('CLI — 端到端', () => {
       timeout: 30000,
     })
     expect(result).toContain('ALL VERIFICATIONS PASSED')
-    expect(result).toContain('AV-008 STALE DETECTED')
+    expect(result).toContain('AV-013 CHAIN CANARY DETECTED')
   })
 
   it('verify.js rejects missing file', () => {
@@ -668,7 +671,7 @@ describe('CLI — 端到端', () => {
     if (fs.existsSync(genPath)) {
       // Don't actually run generation (it's slow), just verify the script exists
       const content = fs.readFileSync(genPath, 'utf8')
-      expect(content).toContain('decision-object-vectors-v1.2.json')
+      expect(content).toContain('decision-object-vectors-v1.3.json')
       expect(content).toContain('buildDO')
     }
   })
