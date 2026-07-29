@@ -21,13 +21,30 @@
 
 ### Documentation
 - Whitepaper: v1.2 DRAFT-3 → v1.3 DRAFT-4 (CN + EN)
-- Runner's Guide: Step 2 deletion logic updated; Answers file section added
-- DESIGN documents: verify.js v1.2 → v1.3
+- Runner's Guide: Step 2 deletion logic updated; Answers file section added; §5 field list corrected; §9/§10/§11 numbering fixed
+- DESIGN documents: verify.js v1.2 → v1.3; generate §5 aligned; CLI docs synced to actual impl
 - ALIGNMENT-REPORT: v1.3 upgrade summary
+
+### Full-Project Audit (2026-07-29)
+- Test count corrected: 153→152 (66 gen + 86 ver); "v1.2 protocol"→"v1.3 protocol" in README CN/EN
+- LICENSE file added (MIT)
+- §3.1(8): `priority`→`policies[].version` (removed reference to undefined Schema field)
+- §4.2 #24: clarified "signature preimage = JCS preimage"
+
+### RFC Preparation
+- Regulatory 12→14: LGPD (Brazil) + DPDP (India) added to §6.1, §8, Appendix B; all references updated
+- §9.4: 5 queue reliability constraints (durable writes, at-least-once, WAL, crash recovery, missing DO alert)
+- §9.5: SMB minimal deployment mode (NATIVE + JSONL, 1 vCPU/512MB); progressive upgrade path (50/500 Tool Calls/s)
+- §9.4: performance benchmarks (Node.js v24: ~110 µs/DO, ~8 ms/75 DO)
+- Appendix C: Threat Model (STRIDE — 13 threats, 10 mitigated, 3 accepted); risk acceptance statement
+- §14: expanded 8→10 RFC items
+- erdl-landing SPEC v1.1: DEFER decision type added to §3.4/3.5/3.6/12.3/Appendix E (separate repo)
 
 ### Verification
 - ✅ verify.js: 63/63 DO audit.hash self-consistent
 - ✅ verify.js: 11/11 AV MATCH + AV-013 EXPECTED_MISMATCH (chain canary detected)
+- ✅ vitest: 152/152 passed (66 generator + 86 verifier)
+- ✅ CN↔EN whitepaper: cross-references aligned
 - Baseline: commit `3131548` (v1.2 DRAFT-3, clean working tree)
 
 ## v1.2.0 (2026-07-28)
@@ -47,7 +64,7 @@
 
 ### Verification
 - **Zero-dependency verifier**: `verify.js` uses self-built JCS (no npm deps) → truly cross-implementation verifiable
-- **Stale regression canary**: AV-008 intentionally mismatches — catches validators that skip five-step verification
+- **Stale regression canary**: AV-008 intentionally mismatches — catches validators that skip five-step verification (replaced by AV-013 chain integrity canary in v1.3)
 - **152 tests**: JCS RFC 8785 compliance, SHA-256 determinism, 5-step verification, tamper detection, full vector integrity (66 generator + 86 verifier as of v1.3.0)
 
 ### Security
