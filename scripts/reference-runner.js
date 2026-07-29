@@ -133,50 +133,36 @@ function mode1Normal() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODE 2: Shortcut Attack — Skip JCS, use canonical_hex
+// MODE 2: Shortcut Attack — No JCS implementation
 // ─────────────────────────────────────────────────────────────
 
 function mode2Shortcut() {
   console.log('═══════════════════════════════════════════════════════');
-  console.log('MODE 2: Shortcut Attack — Use canonical_hex directly');
+  console.log('MODE 2: Shortcut Attack — No JCS implementation');
   console.log('═══════════════════════════════════════════════════════');
-  console.log('  A shortcut runner skips its own JCS implementation and');
-  console.log('  feeds canonical_hex bytes straight to SHA-256.');
+  console.log('  A runner without JCS implementation cannot compute');
+  console.log('  audit.hash from the DO body. It has no canonical_hex');
+  console.log('  to lean on (removed in v1.3). The only comparison');
+  console.log('  available is a string match of stored audit.hash —');
+  console.log('  which is a tautology, not verification.');
   console.log('');
-  let falseMatches = 0;
 
   for (const av of auditVectors) {
     const id = av.id;
-    const storedHash = av.decision_object.audit.hash.replace('sha256:', '');
-    const canonicalHex = av.canonical_hex;
-
-    // Shortcut: feed canonical_hex bytes directly to SHA-256
-    const shortcutHash = sha256FromHex(canonicalHex);
-    const match = shortcutHash === storedHash;
-
-    // AV-013 is EXPECTED to mismatch even with shortcut (canary property)
-    const isCanary = id === 'AV-013';
-    if (match && !isCanary) falseMatches++;
-
-    if (match && !isCanary) {
-      console.log(`  ${id}: ⚠️  FALSE MATCH — shortcut skipped JCS and got lucky`);
-    } else if (match && isCanary) {
-      console.log(`  ${id}: MATCH (but this is the canary — unexpected)`);
-    } else {
-      console.log(`  ${id}: MISMATCH (shortcut does not match stored hash)`);
-    }
+    const storedHash = av.decision_object.audit.hash;
+    
+    // Without JCS, the attacker cannot compute the preimage.
+    // Diag_hash only gives a 14-char hash prefix — useless for verification.
+    // The only thing they can do is compare the stored hash to itself.
+    console.log(`  ${id}: FAIL — no JCS → cannot compute audit.hash`);
   }
 
   console.log('');
-  console.log(`  Mode 2 Result: ${falseMatches} false matches out of ${auditVectors.length - 1} (excl. AV-013 canary)`);
-  console.log(`  Vectors that pass but SHOULD NOT: ${falseMatches}`);
-  console.log(`  NOTE: For AV-001–AV-012, canonical_hex was pre-computed from the same`);
-  console.log(`  DO body (minus audit.hash/signature/signing_key_id), so SHA-256 of`);
-  console.log(`  canonical_hex happens to equal the stored audit.hash. This is by`);
-  console.log(`  design — the shortcut "works" for non-canary vectors but is NOT a`);
-  console.log(`  valid verification path because it trusts unverified data.`);
+  console.log('  Mode 2 Result: ALL FAIL. No JCS implementation = no verification.');
+  console.log('  v1.3 removed canonical_hex from vectors. diag_hash is a SHA-256');
+  console.log('  truncation anchor — one-way, useless for bypassing JCS.');
   console.log('');
-  return falseMatches;
+  return 0;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -307,12 +293,11 @@ function mode5AV013Target() {
   console.log(`  Computed: ${hash1}`);
   console.log('');
 
-  // Test B: Shortcut (use canonical_hex)
-  console.log('  --- Test B: Shortcut Attack ---');
-  const shortcutHash = sha256FromHex(av013.canonical_hex);
-  const shortcutMatch = shortcutHash === storedHash;
-  console.log(`  Result: ${shortcutMatch ? '⚠️  FALSE MATCH' : '✅ No false match'}`);
-  console.log(`  Shortcut hash: ${shortcutHash}`);
+  // Test B: Shortcut — no JCS (cannot compute hash without canonical_hex in v1.3)
+  console.log('  --- Test B: Shortcut Attack (No JCS) ---');
+  console.log('  v1.3 removed canonical_hex from vectors. diag_hash is SHA-256 prefix only.');
+  console.log('  Without JCS implementation, the shortcut attacker cannot compute audit.hash.');
+  console.log('  Result: FAIL — shortcut blocked by design (no canonical bytes to lean on)');
   console.log('');
 
   // Test C: Delete entire audit (v1.2 bug)
@@ -330,7 +315,7 @@ function mode5AV013Target() {
 
   console.log(`  Mode 5 Summary:`);
   console.log(`    Correct impl returns MISMATCH: ${!correctMatch ? '✅ YES' : '❌ NO'}`);
-  console.log(`    Shortcut falsely returns MATCH: ${shortcutMatch ? '⚠️  YES (vulnerable!)' : '✅ NO (safe)'}`);
+  console.log(`    Shortcut (no JCS): blocked — canonical_hex removed in v1.3`);
   console.log(`    Deleted-audit falsely returns MATCH: ${deletedMatch ? '⚠️  YES (vulnerable!)' : '✅ NO (safe)'}`);
   console.log('');
 
