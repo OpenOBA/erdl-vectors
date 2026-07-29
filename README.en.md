@@ -120,7 +120,7 @@ npm test
 | AV-005 | DO-017 | Low-reputation agent (ESCALATE) |
 | AV-006 | DO-024 | Unless exemption (ALLOW) |
 | AV-007 | DO-027 | Null-safe field access (PASS) |
-| AV-013 | DO-051 | 链位置篡改金丝雀 — previous_hash 指向链外但 hash 按篡改前计算 |
+| AV-013 | DO-051 | Chain position tampering canary — the stored audit.hash was computed with the correct previous_hash, but the DO body carries a tampered previous_hash pointing outside the chain. A correct runner recomputing from the body detects the mismatch |
 | AV-009 | DO-021 | Auto-correction (CORRECT) |
 | AV-010 | DO-031 | Anomaly notification (NOTIFY) |
 | AV-011 | DO-038 | Snapshot rollback (ROLLBACK) |
