@@ -199,7 +199,7 @@ audit.hash 计算公式（五步验证法）：
   Step 2: 物理删除自引用/外部字段
           DELETE audit.hash + DELETE signature + DELETE signing_key_id
           （extensions 保留在对象中，参与后续 JCS）
-  Step 3: JCS(CORE + JURISDICTION + EXTENSIONS) → canonical_full
+  Step 3: JCS(CORE + JURISDICTION + EXTENSIONS + audit.previous_hash + audit.commitment) → canonical_full
   Step 4: SHA-256(canonical_full) → recomputed hash
   Step 5: Compare recomputed hash with stored audit.hash
 ```
@@ -1050,15 +1050,18 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 │  │     直接参与主 JCS           │  不可由 ERDL 自身修改        │
 │  └─────────────┬───────────────┘                         │
 │                │                                          │
-│           JCS(core + jurisdiction + extensions)           │
+│           JCS(core + jurisdiction + extensions + previous_hash + commitment)           │
 │                │                                          │
 │  ┌─────────────┴───────────────┐                         │
 │  │  audit.hash = SHA-256(      │                         │
 │  │    JCS(core + jurisdiction  │                         │
-│  │      + extensions)           │                         │
+│  │      + extensions           │                         │
+│  │      + previous_hash        │                         │
+│  │      + commitment)          │                         │
 │  │        )                    │                         │
-│  │    ↑ extensions 直接参与    │                         │
-│  │      JCS 序列化              │                         │
+│  │    ↑ extensions、previous_hash、│                         │
+│  │      commitment 直接参与         │                         │
+│  │      主 JCS 序列化               │                         │
 │  │  )                          │                         │
 │  └─────────────────────────────┘                         │
 └──────────────────────────────────────────────────────────┘
@@ -1141,7 +1144,7 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 以下不变量在任何未来版本中保持不变，确保所有历史 DO 可被任意版本的验证器验证：
 
 1. `spec` 始终为 `"decision-object-v1.0"`（版本区分通过 `compliance_profile.profile_id` 完成，如 `"erdl-compliance-v1.2"`）
-2. `audit.hash` 始终使用平面哈希公式（JCS(core+jurisdiction+extensions) → SHA-256）
+2. `audit.hash` 始终使用平面哈希公式（JCS(core+jurisdiction+extensions+previous_hash+commitment) → SHA-256）
 3. 密码学原语：JCS (RFC 8785) + SHA-256 (FIPS 180-4)（参数化：未来可配置更强的哈希算法，但 SHA-256 作为默认仍被支持）
 4. 五步验证法的基本流程（删除 audit.hash/signature/signing_key_id、JCS+SHA-256 全部字段、比对存储哈希）
 
