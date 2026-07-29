@@ -121,7 +121,7 @@ npm test
 | AV-005 | DO-017 | 低信誉 Agent 升级（ESCALATE） |
 | AV-006 | DO-024 | Unless 豁免触发（ALLOW） |
 | AV-007 | DO-027 | 空值安全字段访问（PASS） |
-| AV-013 | DO-051 | 链位置篡改金丝雀 — previous_hash 指向链外但 hash 按篡改前计算 |
+| AV-013 | DO-051 | 链位置篡改金丝雀 — stored hash 用正确的 previous_hash 计算，但 DO body 携带的 previous_hash 已被篡改指向链外。正确 runner 重算时会因 previous_hash 不一致而检测到 mismatch |
 | AV-009 | DO-021 | 自动修正（CORRECT） |
 | AV-010 | DO-031 | 异常通知（NOTIFY） |
 | AV-011 | DO-038 | 快照回滚（ROLLBACK） |
