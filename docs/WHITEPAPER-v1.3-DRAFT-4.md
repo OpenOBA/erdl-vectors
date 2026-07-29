@@ -17,7 +17,7 @@
 > - Draft 2（2026-07-27）：联合审计委员会意见修订，扩展至 24 字段，增加 JCS 数值约束、冷热分离隐私方案、跨版本审计链锚定
 > - Draft 3（2026-07-27）：引入平面哈希架构——extensions 直接参与主 JCS，消除中间层完整性缺口，强化扩展区防篡改保证
 >
-> **摘要**：本白皮书提出 ERDL Decision Object v1.2 设计方案——一个面向企业 AI Agent 的跨实现、防篡改、多辖区兼容的审计决策记录标准。方案基于 JCS (RFC 8785) + SHA-256 密码学基础，与 IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00) 技术对齐，覆盖 EU AI Act、GB/Z 185、NIST AI RMF、COSO 2026 等 12 个全球主要监管框架的审计要求。DO 包含 24 个顶层字段（CORE 14 + JURISDICTION 10），通过辖区激活机制实现按需适配，通过平面哈希架构确保完整性依赖密码学而非验证流程——所有字段统一参与 JCS，任何篡改直接改变 audit.hash。
+> **摘要**：本白皮书提出 ERDL Decision Object v1.3 设计方案——一个面向企业 AI Agent 的跨实现、防篡改、多辖区兼容的审计决策记录标准。方案基于 JCS (RFC 8785) + SHA-256 密码学基础，与 IETF Agent Audit Trail (draft-sharif-agent-audit-trail-00) 技术对齐，覆盖 EU AI Act、GB/Z 185、NIST AI RMF、COSO 2026 等 12 个全球主要监管框架的审计要求。DO 包含 24 个顶层字段（CORE 14 + JURISDICTION 10），通过辖区激活机制实现按需适配，通过平面哈希架构确保完整性依赖密码学而非验证流程——所有字段统一参与 JCS，任何篡改直接改变 audit.hash。
 
 ---
 

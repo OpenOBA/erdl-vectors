@@ -73,7 +73,7 @@ Its core promise:
 
 > **Given the same rule set and context, any conformant ERDL implementation MUST produce byte-identical Decision Objects.**
 
-### 1.3 Why v1.2
+### 1.3 Why v1.3
 
 v1.0 and v1.1 have been validated by three independent implementations (Rulsynor/TypeScript [OpenOBA], Concordia/Python [Erik Newton], chopmob-cloud/Python [Christopher Hopley]). However, engineering practice exposed several issues requiring correction:
 

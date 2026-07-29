@@ -26,7 +26,7 @@
 
 A **Runner** is any piece of code that can take an ERDL Decision Object and validate its `audit.hash`. The canonical Runner is `scripts/verify.js` in this repository — a zero-dependency Node.js script that you can study, copy, or translate to your language of choice.
 
-You don't need to implement the **Generator**. The Generator produces the static test vectors (`decision-object-vectors-v1.2.json`). You only need to implement verification — taking a Decision Object and checking that its `audit.hash` is correct.
+You don't need to implement the **Generator**. The Generator produces the static test vectors (`decision-object-vectors-v1.3.json`). You only need to implement verification — taking a Decision Object and checking that its `audit.hash` is correct.
 
 ## 2. Minimal Runner in 40 Lines (Pseudocode)
 

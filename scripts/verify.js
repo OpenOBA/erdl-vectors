@@ -186,7 +186,7 @@ function main() {
   }
 
   console.log('═══════════════════════════════════════════════');
-  console.log('  ERDL Decision Object v1.2 Vector Verifier');
+  console.log('  ERDL Decision Object v1.3 Vector Verifier');
   console.log('═══════════════════════════════════════════════');
   console.log('  File: ' + vectorsPath);
   console.log('');

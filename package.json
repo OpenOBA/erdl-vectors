@@ -1,7 +1,7 @@
 {
   "name": "erdl-vectors",
-  "version": "1.2.0",
-  "description": "ERDL Decision Object v1.2 Cross-Implementation Test Vectors — 101 deterministic, tamper-evident audit vectors for AI Agent rule evaluation.",
+  "version": "1.3.0",
+  "description": "ERDL Decision Object v1.3 Cross-Implementation Test Vectors — 101 deterministic, tamper-evident audit vectors for AI Agent rule evaluation.",
   "main": "scripts/verify.js",
   "keywords": [
     "erdl",
