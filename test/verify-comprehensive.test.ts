@@ -681,7 +681,7 @@ describe('CLI — 端到端', () => {
 // 审计哈希篡改检测
 // ═══════════════════════════════════════════════
 describe('审计哈希 — 篡改检测', () => {
-  const vectorsPath = path.join(__dirname, '..', 'decision-object-vectors-v1.2.json')
+  const vectorsPath = path.join(__dirname, '..', 'decision-object-vectors-v1.3.json')
   let data: any
 
   beforeAll(() => {
