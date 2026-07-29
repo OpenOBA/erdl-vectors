@@ -257,7 +257,7 @@ IETF draft-sharif-agent-audit-trail-00 uses exactly the same cryptographic primi
 | 21 | `sanitized_context` | string | PII-containing scenarios / GDPR compliance |
 | 22 | `confidence_score` | integer | NIST AI RMF compliance (0~100, integer, representing percentage; e.g., 95 means 95%) |
 | 23 | `signature` | string (Base64url) | HIPAA / PCI DSS (critical decisions). ECDSA P-256 signature covering all DO content except audit/signature/signing_key_id |
-| 24 | `signing_key_id` | string | Companion to `signature` field, identifies the public key version used for signature verification. Auditors use this ID to retrieve the corresponding public key from KMS. Does not participate in JCS serialization, does not participate in signature preimage — its role is purely key metadata; changing key_id does not affect the signature value |
+| 24 | `signing_key_id` | string | Companion to `signature` field, identifies the public key version used for signature verification. Auditors use this ID to retrieve the corresponding public key from KMS. Does not participate in JCS serialization, does not participate in signature preimage (the signature preimage is identical to the JCS preimage — both use the exact same field set, excluding audit.hash, signature, and signing_key_id). Its role is purely key metadata; changing key_id does not affect the signature value |
 
 > **Numbering Rule**: CORE #1–#14 (permanently frozen), JURISDICTION #15–#24 (activated on demand), EXTENSIONS is an open-ended extension zone and is not numbered.
 

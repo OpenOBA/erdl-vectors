@@ -261,7 +261,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | 21 | `sanitized_context` | string | 含 PII 场景 / GDPR 合规 |
 | 22 | `confidence_score` | integer | NIST AI RMF 合规（0~100，整数，表示百分比；如 95 表示 95%） |
 | 23 | `signature` | string (Base64url) | HIPAA / PCI DSS（critical 决策）。ECDSA P-256 签名，覆盖除 audit/signature/signing_key_id 外的全部 DO 内容 |
-| 24 | `signing_key_id` | string | 配套 `signature` 字段，标识用于验证签名的公钥版本。审计员通过此 ID 从 KMS 拉取对应公钥。不参与 JCS 序列化，不参与签名原像——其角色纯粹为密钥元数据，更换 key_id 不影响签名值 |
+| 24 | `signing_key_id` | string | 配套 `signature` 字段，标识用于验证签名的公钥版本。审计员通过此 ID 从 KMS 拉取对应公钥。不参与 JCS 序列化，不参与签名原像（签名原像 = JCS 原像，两者使用完全相同的字段集——均排除 audit.hash、signature、signing_key_id 三个字段）。其角色纯粹为密钥元数据，更换 key_id 不影响签名值 |
 
 > **编号规则**：CORE #1–#14（永久冻结），JURISDICTION #15–#24（按需激活），EXTENSIONS 为开放式扩展区不编号。
 
