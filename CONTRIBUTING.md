@@ -19,8 +19,8 @@ npm run verify
 npm test
 
 # 4. Confirm determinism (hash must match across runs)
-npm run generate && sha256sum decision-object-vectors-v1.2.json
-npm run generate && sha256sum decision-object-vectors-v1.2.json  # same hash
+npm run generate && sha256sum decision-object-vectors-v1.3.json
+npm run generate && sha256sum decision-object-vectors-v1.3.json  # same hash
 ```
 
 ## Adding a New Static Vector
@@ -34,7 +34,7 @@ npm run generate && sha256sum decision-object-vectors-v1.2.json  # same hash
 
 1. Add an entry to `avMapping[]` in `scripts/generate-vectors.cjs`
 2. Reference an existing DO vector (must be statically generated)
-3. AV-008 is the stale regression canary — do not modify its hash or purpose
+3. AV-013 is the chain integrity canary — do not modify its hash or purpose
 4. Regenerate and verify
 
 ## Modifying verify.js

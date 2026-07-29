@@ -14,7 +14,7 @@ import * as path from 'node:path'
 import * as crypto from 'node:crypto'
 
 // Load generated vectors
-const vectorsPath = path.join(__dirname, '..', 'decision-object-vectors-v1.2.json')
+const vectorsPath = path.join(__dirname, '..', 'decision-object-vectors-v1.3.json')
 let data: any
 
 beforeAll(() => {
@@ -25,13 +25,28 @@ function sha256(str: string): string {
   return crypto.createHash('sha256').update(str, 'utf8').digest('hex')
 }
 
+function jcsCanonicalize(value: any): string {
+  if (value === null) return 'null';
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'number') { if (!isFinite(value)) throw new Error('NaN'); return String(value); }
+  if (typeof value === 'string') return JSON.stringify(value);
+  if (Array.isArray(value)) { return '[' + value.map(v => jcsCanonicalize(v)).join(',') + ']'; }
+  if (typeof value === 'object') {
+    const keys = Object.keys(value).sort();
+    const members: string[] = [];
+    for (const k of keys) { const v = value[k]; if (v === undefined) continue; members.push(JSON.stringify(k) + ':' + jcsCanonicalize(v)); }
+    return '{' + members.join(',') + '}';
+  }
+  throw new Error('JCS: unsupported type ' + typeof value);
+}
+
 // ═══════════════════════════════════════════════
 // 输出文件完整性
 // ═══════════════════════════════════════════════
 describe('输出 — 完整性', () => {
-  it('文件大小在合理范围内 (>500KB, <1MB)', () => {
+  it('文件大小在合理范围内 (>450KB, <1MB)', () => {
     const stat = fs.statSync(vectorsPath)
-    expect(stat.size).toBeGreaterThan(500 * 1024)
+    expect(stat.size).toBeGreaterThan(450 * 1024)
     expect(stat.size).toBeLessThan(1024 * 1024)
   })
 
@@ -66,8 +81,8 @@ describe('63 DO 向量 — 结构', () => {
     vectors = data.vectors
   })
 
-  it('每个 DO 都有必需的 10 个顶层字段', () => {
-    const required = ['id', 'category', 'scenario', 'description', 'decision_type', 'rules', 'context', 'expected', 'decision_object', 'canonical_hex']
+  it('每个 DO 都有必需的 9 个顶层字段 (v1.3: canonical_hex 移到答案文件)', () => {
+    const required = ['id', 'category', 'scenario', 'description', 'decision_type', 'rules', 'context', 'expected', 'decision_object']
     for (const vec of vectors) {
       for (const field of required) {
         expect(vec[field]).toBeDefined()
@@ -421,39 +436,38 @@ describe('审计向量', () => {
     const avs = data.audit_vectors
     const doIds = new Set(data.vectors.map((v: any) => v.id))
     for (const av of avs) {
-      if (av.id === 'AV-008') {
-        expect(av.vector_ref).toBe('AV-003')
+      if (av.id === 'AV-013') {
+        expect(av.purpose).toContain('chain')
         continue
       }
       expect(doIds.has(av.vector_ref), `${av.id} refs ${av.vector_ref} which should be a DO`).toBe(true)
     }
   })
 
-  it('每个 AV (除 AV-008) 的 canonical_hex 匹配其引用的 DO', () => {
+  it('每个 AV (除 AV-013) 的 canonical_hex 可以从 DO body 独立重算', () => {
     const avs = data.audit_vectors
     for (const av of avs) {
-      if (av.id === 'AV-008') {
-        // AV-008 refs AV-003, canonical bytes should match AV-003
-        const av3 = avs.find((a: any) => a.id === 'AV-003')
-        expect(av.canonical_hex).toBe(av3.canonical_hex)
+      if (av.id === 'AV-013') {
+        // AV-013 is the chain integrity canary
+        expect(av.canonical_hex).toBeDefined()
         continue
       }
-      const refVector = data.vectors.find((v: any) => v.id === av.vector_ref)
-      expect(refVector).toBeDefined()
-      expect(av.canonical_hex).toBe(refVector.canonical_hex)
+      // Recompute canonical_hex from DO body
+      const clone = JSON.parse(JSON.stringify(av.decision_object))
+      delete clone.audit.hash
+      delete clone.signature
+      delete clone.signing_key_id
+      const computed = Buffer.from(jcsCanonicalize(clone), 'utf8').toString('hex')
+      expect(av.canonical_hex).toBe(computed)
     }
   })
 
-  it('AV-008 有 source_commit 和 stale regression 标记', () => {
-    const av8 = data.audit_vectors.find((a: any) => a.id === 'AV-008')
-    expect(av8.source_commit).toBeDefined()
-    expect(av8.expected_result).toBe('MISMATCH')
-    expect(av8.note).toContain('STALE REGRESSION')
-  })
-
-  it('AV-008 的 audit.hash 是故意的旧值', () => {
-    const av8 = data.audit_vectors.find((a: any) => a.id === 'AV-008')
-    expect(av8.decision_object.audit.hash).toBe('sha256:342b4e9652101d0b75ef39bed7f5a7e6de4d890618ec6eeafe3a9a3490ddb64d')
+  it('AV-013 是链完整性金丝雀', () => {
+    const av13 = data.audit_vectors.find((a: any) => a.id === 'AV-013')
+    expect(av13).toBeDefined()
+    expect(av13.category).toBe('audit-hash')
+    expect(av13.purpose).toContain('chain')
+    expect(av13.note).toContain('MISMATCH')
   })
 })
 
@@ -462,7 +476,7 @@ describe('审计向量', () => {
 // ═══════════════════════════════════════════════
 describe('元数据', () => {
   it('版本为 1.2.0', () => {
-    expect(data.version).toBe('1.2.0')
+    expect(data.version).toBe('1.3.0')
   })
 
   it('spec 为 decision-object-v1.0', () => {

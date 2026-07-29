@@ -108,7 +108,7 @@ function serializeNumber(num) {
 Usage: node scripts/verify.js [OPTIONS]
 
 Options:
-  --vectors=<path>   Path to vector set JSON (default: ./decision-object-vectors-v1.2.json)
+  --vectors=<path>   Path to vector set JSON (default: ./decision-object-vectors-v1.3.json)
   --level=<L1|L2|L3> Compatibility level (default: L3)
   --format=<text|json> Output format (default: text)
   --verbose          Show per-vector canonical_bytes and audit.hash details
@@ -116,7 +116,7 @@ Options:
   --help             Show this help
 
 Examples:
-  node verify.js --vectors=decision-object-vectors-v1.2.json --level=L3
+  node verify.js --vectors=decision-object-vectors-v1.3.json --level=L3
   node verify.js --level=L1 --format=json
   node verify.js --verbose 2>&1 | grep MISMATCH
 ```
@@ -325,7 +325,7 @@ function main(args) → exitCode
 node scripts/generate-vectors.cjs
 
 # 验证器验证自己生成的向量
-node scripts/verify.js --vectors=decision-object-vectors-v1.2.json --level=L3
+node scripts/verify.js --vectors=decision-object-vectors-v1.3.json --level=L3
 
 # 期望输出: 11/12 PASS, 1 expected failure (AV-013)
 ```
