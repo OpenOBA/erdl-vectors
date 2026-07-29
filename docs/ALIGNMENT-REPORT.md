@@ -34,8 +34,8 @@
 Successfully aligned `WHITEPAPER-v1.2-DRAFT-3.en.md` with the Chinese version. All 20 known discrepancies have been resolved.
 
 **Verification Results**:
-- ✅ 154/154 vitest tests passed
-- ✅ verify.js: 11 MATCH + 1 EXPECTED_MISMATCH (AV-008)
+- ✅ 152/152 vitest tests passed (66 generator + 86 verifier)
+- ✅ verify.js: 11 MATCH + 1 EXPECTED_MISMATCH (AV-013 — chain position tampering canary)
 - ✅ All structural checks passed
 
 ---

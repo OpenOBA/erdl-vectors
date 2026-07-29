@@ -23,7 +23,7 @@ We are deeply grateful for their contributions, which transformed a specificatio
 
 ## Overview
 
-This repository contains the authoritative set of **101 cross-implementation test vectors** for the ERDL (Entity-Rule Definition Language) Decision Object v1.2 protocol. Each vector is a complete, self-verifiable Decision Object — the standardized, tamper-evident audit format for AI Agent rule evaluation decisions.
+This repository contains the authoritative set of **101 cross-implementation test vectors** for the ERDL (Entity-Rule Definition Language) Decision Object v1.3 protocol. Each vector is a complete, self-verifiable Decision Object — the standardized, tamper-evident audit format for AI Agent rule evaluation decisions.
 
 ### Core Guarantees
 
@@ -74,7 +74,7 @@ node scripts/generate-vectors.cjs
 
 ```bash
 npm test
-# → 153 tests covering JCS, SHA-256, five-step verification, and full vector integrity
+# → 152 tests covering JCS, SHA-256, five-step verification, and full vector integrity
 ```
 
 ## Vector Set Composition

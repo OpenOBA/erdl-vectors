@@ -221,8 +221,8 @@ Step 3: 计算 policies[].hash (JCS 升级)
 
 Step 4: 深拷贝 → 以下在拷贝上操作
 
-Step 5: 删除自引用/外部字段
-        delete clone.audit
+Step 5: 删除自引用/外部字段（v1.3 修正：仅删 audit.hash，保留 previous_hash + commitment）
+        delete clone.audit.hash
         delete clone.signature
         delete clone.signing_key_id
         // extensions 保留在对象中，直接参与后续 JCS
