@@ -198,12 +198,12 @@ audit.hash calculation formula (Five-Step Verification):
   Step 2: Physically delete self-referencing / external fields
           DELETE audit.hash + DELETE signature + DELETE signing_key_id
           (extensions remains in the object, participating in subsequent JCS)
-  Step 3: JCS(CORE + JURISDICTION + EXTENSIONS) → canonical_full
+  Step 3: JCS(CORE + JURISDICTION + EXTENSIONS + audit.previous_hash + audit.commitment) → canonical_full
   Step 4: SHA-256(canonical_full) → recomputed hash
   Step 5: Compare recomputed hash with stored audit.hash
 ```
 
-**Design Principle**: The flat architecture ensures integrity depends on cryptography, not process. Extensions participate directly in the main JCS. Tampering with any field (including data inside extensions) changes `audit.hash`. The same applies to signatures — signature is stripped in Step 2, but extensions remain in the signature preimage, ensuring the non-repudiation required by HIPAA/PCI DSS covers all decision data.
+**Design Principle**: The flat architecture ensures integrity depends on cryptography, not process. Extensions, audit.previous_hash, and audit.commitment participate directly in the main JCS. Tampering with any field (including data inside extensions) changes `audit.hash`. The same applies to signatures — signature is stripped in Step 2, but extensions remain in the signature preimage, ensuring the non-repudiation required by HIPAA/PCI DSS covers all decision data.
 
 ### 3.4 Chain Anchoring
 
@@ -1047,15 +1047,18 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 │  │     Directly participates in main JCS   │  MUST NOT be modified by ERDL itself    │
 │  └─────────────┬───────────────┘                         │
 │                │                                          │
-│           JCS(core + jurisdiction + extensions)           │
+│           JCS(core + jurisdiction + extensions + previous_hash + commitment)           │
 │                │                                          │
 │  ┌─────────────┴───────────────┐                         │
 │  │  audit.hash = SHA-256(      │                         │
 │  │    JCS(core + jurisdiction  │                         │
-│  │      + extensions)           │                         │
-│  │    ↑ extensions directly     │                         │
-│  │      participate in         │                         │
-│  │      JCS serialization      │                         │
+│  │      + extensions           │                         │
+│  │      + previous_hash        │                         │
+│  │      + commitment)          │                         │
+│  │    ↑ all fields including   │                         │
+│  │      previous_hash and      │                         │
+│  │      commitment participate │                         │
+│  │      directly in main JCS   │                         │
 │  │  )                          │                         │
 │  └─────────────────────────────┘                         │
 └──────────────────────────────────────────────────────────┘
@@ -1138,7 +1141,7 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 The following invariants remain unchanged in any future version, ensuring all historical DOs can be verified by any version of the validator:
 
 1. `spec` is always `"decision-object-v1.0"` (version differentiation is achieved through `compliance_profile.profile_id`, e.g., `"erdl-compliance-v1.2"`)
-2. `audit.hash` always uses the flat hashing formula (JCS(core+jurisdiction+extensions) → SHA-256)
+2. `audit.hash` always uses the flat hashing formula (JCS(core+jurisdiction+extensions+previous_hash+commitment) → SHA-256)
 3. Cryptographic primitives: JCS (RFC 8785) + SHA-256 (FIPS 180-4) (parameterized: future stronger hash algorithms can be configured, but SHA-256 remains supported as default)
 4. The basic flow of the five-step verification method (delete audit.hash/signature/signing_key_id, JCS+SHA-256 all fields, compare stored hash)
 
