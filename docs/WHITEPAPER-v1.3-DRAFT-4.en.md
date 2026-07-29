@@ -33,7 +33,7 @@
 5. Omni-Directional Compatibility × On-Demand Adaptation: Jurisdiction Activation Mechanism
 6. 12 Regulatory Framework Compatibility
 7. Ecosystem Compatibility (Three-Party Audit Perspectives / IETF AAT / MCP / A2A / Agent Frameworks / OpenTelemetry / Audit Report Output)
-8. Privacy and Data Minimization Design
+8. Privacy and Data Minimization Design (GDPR / LGPD / DPDP)
 9. Regulatory Versioning and Upgrade Path
 
 **Part III: Governance and Evolution**
@@ -443,6 +443,8 @@ Globally deployed Agents may be simultaneously subject to regulations from multi
 | PCI DSS v4.0.1 | Global | Contractually Enforced |
 | Colorado SB 205 | US-CO | Mandatory |
 | Singapore MGF for Agentic AI | SG | Best Practice |
+| LGPD (Lei Geral de Proteção de Dados) | BR | Mandatory |
+| DPDP (Digital Personal Data Protection Act) 2023 | IN | Mandatory |
 | CAICT Trusted AI Agent Assessment 2.0 | CN | Industry Authoritative |
 
 ### 6.2 Per-Framework Key Requirement Coverage
@@ -838,9 +840,9 @@ When `result.decision` is `DENY`/`EMERGENCY_HALT`/`QUARANTINE`, a SOAR playbook 
 
 ---
 
-## 8. Privacy and Data Minimization Design
+## 8. Privacy and Data Minimization Design (GDPR / LGPD / DPDP)
 
-**Scenario: Coexistence of GDPR Right to Erasure and Tamper-Proof Hash Chain**
+**Scenario: Coexistence of the Right to Erasure (GDPR Art.17 / LGPD Art.18 / DPDP §12) and Tamper-Proof Hash Chain**
 
 GDPR Article 17 grants data subjects the right to delete their personal data. However, the Decision Object is solidified via hash chains — if a DO's `context` contains user PII, direct deletion would break the entire hash chain.
 
@@ -862,7 +864,7 @@ GDPR Article 17 grants data subjects the right to delete their personal data. Ho
 │                                                 │
 │  DO-001.context.raw → User Zhang San, CC 1234... │  ← Original PII
 │                                                 │
-│  GDPR deletion request → Delete original in cold storage │
+│  GDPR/LGPD/DPDP deletion request → Delete original in cold storage │
 │  Audit chain unchanged → context_snapshot_hash still verifiable │
 │  Regulatory review → Key semantics via sanitized_context   │
 └─────────────────────────────────────────────────┘
@@ -871,7 +873,7 @@ GDPR Article 17 grants data subjects the right to delete their personal data. Ho
 **Core Principles**:
 1. Audit chain stores only Hashes — no raw PII
 2. Original Context falls into cold storage — supports physical deletion
-3. GDPR deletion = Delete original records in cold storage
+3. GDPR/LGPD/DPDP deletion = Delete original records in cold storage
 4. Cold storage retention policy follows each jurisdiction's statutory minimum retention period
 5. The boundary between hot/cold storage is defined by the `context_snapshot_hash` and `sanitized_context` fields
 
@@ -949,6 +951,14 @@ Agent Main Thread                Audit Worker Cluster
 ```
 
 The Agent main thread only generates the DO plain JSON and pushes it to an in-memory queue; a sidecar Audit Worker cluster asynchronously performs cryptographic operations and persistence. This architecture reduces the DO generation latency impact on the Agent main flow to <1ms.
+
+> ⚠️ **Queue Reliability Constraints**: The performance benefits of async architecture depend on the message queue not losing DOs. Queue loss = missing DO = audit chain break = inability to prove compliance. The following reliability requirements apply:
+>
+> 1. **Durable Writes**: The message queue MUST support disk-persistent writes (e.g., Kafka `acks=all`, Redis Stream `XADD ... MAXLEN` synced to disk). Pure in-memory buffering with deferred async flush is prohibited — DOs not yet flushed to disk are permanently lost on process crash
+> 2. **At-Least-Once Delivery**: Worker processing MUST support idempotent deduplication; the queue MUST guarantee at-least-once delivery semantics. Use `decision_id` as the idempotency key
+> 3. **Write-Ahead Log (WAL) Safeguard**: The DO plain JSON SHOULD be written to a local write-ahead log (append-only CSV or JSONL file) before queue submission, as the last line of defense when the message queue is unavailable
+> 4. **Worker Crash Recovery**: After a Worker crash and restart, unfinished batches MUST be replayed. This can be implemented via the message queue's consumer group offset tracking or completion markers in the WAL
+> 5. **Missing DO Alert**: When consecutive DO gaps are detected (e.g., `audit.previous_hash` chain break), an alert MUST be triggered — missing evidence may have been maliciously deleted rather than lost to queue failure
 
 ### 9.5 Storage Optimization Guide
 
