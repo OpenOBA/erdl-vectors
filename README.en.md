@@ -42,11 +42,11 @@ This repository contains the authoritative set of **101 cross-implementation tes
 ```
 $ node scripts/generate-vectors.cjs
 $ sha256sum decision-object-vectors-v1.3.json
+24b88b81f96663f7624d31388de72699bdf7f29496752cb4efc539fc17a1b678  # v1.3.1 vector set (current)
 ├── decision-object-answers-v1.3.json      # Answers file (development debug; conformance runners MUST NOT read) / 答案文件（开发调试，合规运行不可读）
-a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369
 
-$ node scripts/generate-vectors.cjs  # second run
-$ sha256sum decision-object-vectors-v1.3.json
+$ node scripts/generate-vectors.cjs  # regenerate (v1.2 format — for legacy verification)
+$ sha256sum decision-object-vectors-v1.2.json
 a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369  # identical
 ```
 

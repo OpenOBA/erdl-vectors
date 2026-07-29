@@ -44,9 +44,11 @@ $ sha256sum decision-object-vectors-v1.3.json
 ├── decision-object-answers-v1.3.json      # 答案文件（开发调试，合规运行不可读） / Answers file (development debug; conformance runners MUST NOT read)
 700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca
 
-$ node scripts/generate-vectors.cjs  # 第二次运行
-$ sha256sum decision-object-vectors-v1.3.json
+$ node scripts/generate-vectors.cjs  # regenerate (v1.2 format — for legacy verification)
+$ sha256sum decision-object-vectors-v1.2.json
 a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369  # 完全一致
+$ sha256sum decision-object-vectors-v1.3.json
+24b88b81f96663f7624d31388de72699bdf7f29496752cb4efc539fc17a1b678  # v1.3 vector set (current)
 ```
 
 不使用 `Date.now()`，不使用 `crypto.randomBytes()`。冻结时间戳（`2026-07-29T00:00:00.000Z`）+ 确定性计数器 → **精确可复现**。
