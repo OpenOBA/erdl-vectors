@@ -259,10 +259,10 @@ Note: `audit`, `signature`, and `signing_key_id` are NOT included in the hash. `
 ### Step 1: Verify canonical_hex (JCS is correct)
 
 ```bash
-node scripts/verify.js --vectors=decision-object-vectors-v1.2.json
+node scripts/verify.js --vectors=decision-object-vectors-v1.3.json
 ```
 
-Expected reference output (from our verify.js): `ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-008 STALE DETECTED`
+Expected reference output (from our verify.js): `ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-013 CHAIN CANARY DETECTED`
 
 With your runner, do the same: for each of the 12 audit hash vectors, run the five-step verification. You should get 11 MATCH + 1 MISMATCH. If all 12 report MATCH, your verifier is not independently computing the hash — it is comparing pre-computed values.
 
@@ -350,7 +350,7 @@ v1.3 moves all \`canonical_hex\` values from the vector file to a separate \`dec
 
 - The vector file contains NO \`canonical_hex\` fields
 - The answers file exists for debugging only
-- Conformance runners MUST implement their own JCS and compute \`canonical_hex\` from the DO fields
+- Conformance runners MUST NOT read the answers file — they MUST implement their own JCS and compute canonical_hex from the DO fields
 - CI/CD compliance pipelines should make the answers file inaccessible to the verifier
 
 ## 9. Language-Specific JCS Notes

@@ -133,9 +133,9 @@ exists   → DO-049 (DENY: context.high_risk_flag exists and is true)
 
 ---
 
-## 4. v1.2 元数据注入
+## 4. v1.3 元数据注入
 
-每条 DO 在生成后必须注入以下 v1.2 字段才能计算 `audit.hash`。
+每条 DO 在生成后必须注入以下字段才能计算 `audit.hash`。**v1.3 特别要求**：`audit` 对象必须包含三个字段——`hash`、`previous_hash`、`commitment`。
 
 ### 4.1 常量填充（全激活模式）
 
