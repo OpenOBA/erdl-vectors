@@ -76,7 +76,7 @@
 15. §4.2 Field Numbering — Renumbered #16-#24 → #15-#24
 16. §4.2 #22 confidence_score — Changed from "float (string)" to "integer (0~100)"
 17. §4.2 #23 signature — Simplified description
-18. §4.2 #24 signing_key_id — Added new field with "不参与签名原像，纯粹元数据" description
+18. §4.2 #24 signing_key_id — Added new field with signature preimage exclusion clarification
 19. §4.2 Numbering Rule — Added comment: "CORE #1-#14, JURISDICTION #15-#24, EXTENSIONS unnumbered"
 20. §4.3 schema_ref — Minor text update
 21. §4.4 evaluation.confidence_score — Changed type from "float (string)" to "integer"
