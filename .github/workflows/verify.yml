@@ -1,5 +1,7 @@
 name: ERDL Decision Object Verification
 on:
+  push:
+    branches: [master, main]
   pull_request:
     paths:
       - 'submissions/*.json'
