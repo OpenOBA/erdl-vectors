@@ -19,7 +19,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Verify v1.3 vectors
-        run: node scripts/verify.js
+        run: |
+          echo "Node version: $(node -v)"
+          echo "Files in root:"
+          ls -la *.json
+          node scripts/verify.js
 
       - name: Find submissions
         id: find
