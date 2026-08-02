@@ -166,28 +166,31 @@ See RFC 001 ([Chinese](docs/OPENOBA-DOBJ-RFC-001-CN.md) / [English](docs/OPENOBA
 
 ```
 erdl-vectors/
-├── decision-object-vectors-v1.3.json   # 101 vectors (~495 KB)
+├── decision-object-vectors-v1.3.json        # 101 vectors (75 static DO+AV)
 ├── scripts/
-│   ├── generate-vectors.cjs            # Deterministic vector generator
-│   ├── verify.js                       # Zero-dependency five-step verifier
-│   └── reference-runner.js             # Third-party reference runner (independent JCS impl)
+│   ├── generate-vectors.cjs                 # Deterministic vector generator (v1.3 constants)
+│   ├── verify.js                            # Zero-dependency five-step verifier
+│   └── reference-runner.js                  # Third-party reference runner (independent JCS impl)
 ├── test/
-│   ├── generate-comprehensive.test.ts  # 67 generator integrity tests
-│   └── verify-comprehensive.test.ts    # 86 JCS/verification/audit tests
+│   ├── generate-comprehensive.test.ts       # Generator integrity tests
+│   └── verify-comprehensive.test.ts         # JCS/verification/audit tests
 ├── docs/
-│   ├── RUNNERS-GUIDE.md                # Implementation guide for Runner developers
-│   ├── DESIGN-generate-vectors-v1.2.md # Generator architecture
-│   ├── DESIGN-vector-inventory-v1.2.md # Full 63 DO inventory
-│   ├── DESIGN-verify-js-v1.3.md        # Verifier architecture
-│   ├── ALIGNMENT-REPORT.md             # Cross-document alignment audit report
-│   ├── OPENOBA-DOBJ-RFC-001-CN.md      # RFC 001 (Chinese)
-│   └── OPENOBA-DOBJ-RFC-001-EN.md      # RFC 001 (English)
-├── CHANGELOG.md                        # Version history
-├── CONTRIBUTING.md                     # Contribution guidelines
-├── LICENSE                             # MIT License
+│   ├── OPENOBA-DOBJ-RFC-001-CN.md           # RFC 001 (Chinese)
+│   ├── OPENOBA-DOBJ-RFC-001-EN.md           # RFC 001 (English)
+│   ├── RUNNERS-GUIDE.md                     # Implementation guide for Runner developers
+│   ├── ALIGNMENT-REPORT.md                  # Cross-document alignment audit report
+│   ├── DESIGN-verify-js-v1.3.md             # Verifier architecture
+│   └── archive/                             # Historical design documents
+│       ├── DESIGN-generate-vectors-v1.2.md
+│       └── DESIGN-vector-inventory-v1.2.md
+├── submissions/                             # Third-party runner submissions
+│   └── README.md
+├── CHANGELOG.md                             # Version history
+├── CONTRIBUTING.md                          # Contribution guidelines
+├── LICENSE                                  # MIT License
 ├── package.json
-├── README.md                           # 中文版
-└── README.en.md                        # This file (English)
+├── README.md                                # 中文版
+└── README.en.md                             # This file (English)
 ```
 
 ## Compatibility Levels

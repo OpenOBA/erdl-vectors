@@ -166,28 +166,31 @@ npm test
 
 ```
 erdl-vectors/
-├── decision-object-vectors-v1.3.json   # 101 条向量（~495 KB）
+├── decision-object-vectors-v1.3.json        # 101 条向量（75 条静态 DO+AV）
 ├── scripts/
-│   ├── generate-vectors.cjs            # 确定性向量生成器
-│   ├── verify.js                       # 零依赖五步验证器
-│   └── reference-runner.js             # 第三方参考 Runner（独立 JCS 实现）
+│   ├── generate-vectors.cjs                 # 确定性向量生成器（v1.3 常量）
+│   ├── verify.js                            # 零依赖五步验证器
+│   └── reference-runner.js                  # 第三方参考 Runner（独立 JCS 实现）
 ├── test/
-│   ├── generate-comprehensive.test.ts  # 67 项生成器完整性测试
-│   └── verify-comprehensive.test.ts    # 86 项 JCS/验证/审计测试
+│   ├── generate-comprehensive.test.ts       # 生成器完整性测试
+│   └── verify-comprehensive.test.ts         # JCS/验证/审计测试
 ├── docs/
-│   ├── RUNNERS-GUIDE.md                # Runner 实现者指南
-│   ├── DESIGN-generate-vectors-v1.2.md # 生成器架构设计
-│   ├── DESIGN-vector-inventory-v1.2.md # 完整 63 DO 清单
-│   ├── DESIGN-verify-js-v1.3.md        # 验证器架构设计
-│   ├── ALIGNMENT-REPORT.md             # 跨文档对齐审计报告
-│   ├── OPENOBA-DOBJ-RFC-001-CN.md      # RFC 001（中文版）
-│   └── OPENOBA-DOBJ-RFC-001-EN.md      # RFC 001（英文版）
-├── CHANGELOG.md                        # 版本历史
-├── CONTRIBUTING.md                     # 贡献指南
-├── LICENSE                             # MIT 许可证
+│   ├── OPENOBA-DOBJ-RFC-001-CN.md           # RFC 001（中文版）
+│   ├── OPENOBA-DOBJ-RFC-001-EN.md           # RFC 001（English）
+│   ├── RUNNERS-GUIDE.md                     # Runner 实现者指南
+│   ├── ALIGNMENT-REPORT.md                  # 跨文档对齐审计报告
+│   ├── DESIGN-verify-js-v1.3.md             # 验证器架构设计
+│   └── archive/                             # 历史设计文档
+│       ├── DESIGN-generate-vectors-v1.2.md
+│       └── DESIGN-vector-inventory-v1.2.md
+├── submissions/                             # 第三方 runner 提交目录
+│   └── README.md
+├── CHANGELOG.md                             # 版本历史
+├── CONTRIBUTING.md                          # 贡献指南
+├── LICENSE                                  # MIT 许可证
 ├── package.json
-├── README.md                           # 本文件（中文版）
-└── README.en.md                        # English version
+├── README.md                                # 本文件（中文版）
+└── README.en.md                             # English version
 ```
 
 ## 兼容等级
