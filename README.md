@@ -2,7 +2,7 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **版本**：v1.3.0 · 2026-07-29  
+> **版本**：v1.3.1 · 2026-08-02  
 > **状态**：已发布  
 > **维护方**：OpenOBA (https://openoba.com)  
 > **许可**：MIT
