@@ -16,7 +16,7 @@ The ERDL Decision Object is the standardized, tamper-evident audit trail for AI 
 This project would not have been possible without the generous support of our collaborators:
 
 - **Christopher Hopley (chopmob-cloud / AlgoVoi)** — independent technical critic. His review of the ERDL Decision Object v1.2 draft identified critical issues including self-referential hash exclusion gaps, cross-engine string-to-number canonicalization inconsistencies, and layered integrity weaknesses, directly leading to the adoption of the flat hashing architecture. **In the v1.3 audit, he built a clean-room RFC 8785 JCS + SHA-256 checker to verify the spec's internal consistency, reporting four technical findings (C1-C4) and three security findings (S1-S3) — including the dual-hash algorithm downgrade (CWE-757) and schema_ref SSRF attack surface that directly drove §9.6 and §11.2 security hardening.** His deep understanding of JCS RFC 8785 canonicalization and compliance auditing shaped the protocol's rigor.
-- **Erik Newton (Concordia)** — the first independent Runner implementer and the originator of the principle "neutrality is tested, not declared." He established the "three independent implementations, one open specification, no single owner" standardization path in A2A Discussion #2031. His Python-based verification engine confirmed the first 5 audit vectors byte-for-byte, later extended to all 28 compliance vectors — proving JCS+SHA-256 cross-implementation verification works in practice. During the v1.1 freeze-period audit, he independently identified the `expected_sha256` structural risk, leading to stale regression vectors. **In the v1.3 audit, he verified all 12 AV vectors (AV-001 – AV-012) with his independent RFC 8785 canonicalizer, confirming 11 byte-perfect matches and AV-008 correctly failing — "a clean result." He also identified three critical issues: spec-code deletion inconsistency (E1), previous_hash/commitment exclusion enabling chain position tampering (E2), and canonical_hex leaking JCS answers (E3) — directly driving the v1.3 audit structure fix, AV-013 chain integrity canary, and answers file separation architecture.**
+- **Erik Newton (Concordia)** — the first independent Runner implementer and the originator of the principle "neutrality is tested, not declared." He established the "three independent implementations, one open specification, no single owner" standardization path in A2A Discussion #2031. His Python-based verification engine confirmed the first 5 audit vectors byte-for-byte, later extended to all 28 compliance vectors — proving JCS+SHA-256 cross-implementation verification works in practice. During the v1.1 freeze-period audit, he independently identified the `expected_sha256` structural risk, leading to stale regression vectors. **In the v1.3 audit, he verified all 12 AV vectors (AV-001 – AV-012) with his independent RFC 8785 canonicalizer, confirming 11 byte-perfect matches and AV-013 (superseded AV-008) correctly failing — "a clean result." He also identified three critical issues: spec-code deletion inconsistency (E1), previous_hash/commitment exclusion enabling chain position tampering (E2), and canonical_hex leaking JCS answers (E3) — directly driving the v1.3 audit structure fix, AV-013 chain integrity canary, and answers file separation architecture.**
 - **Rulsynor Team** — the reference ERDL rule engine serving as the canonical implementation against which all vectors are generated and validated. Their production-grade engine provided real-world constraints that shaped the Decision Object's field design, from agent identity metadata to compliance profile structure.
 
 We are deeply grateful for their contributions, which transformed a specification into a verified, cross-implementation standard.
@@ -43,9 +43,8 @@ This repository contains the authoritative set of **101 cross-implementation tes
 $ node scripts/generate-vectors.cjs
 $ sha256sum decision-object-vectors-v1.3.json
 24b88b81f96663f7624d31388de72699bdf7f29496752cb4efc539fc17a1b678  # v1.3.1 vector set (current)
-├── decision-object-answers-v1.3.json      # Answers file (development debug; conformance runners MUST NOT read) / 答案文件（开发调试，合规运行不可读）
 
-$ node scripts/generate-vectors.cjs  # regenerate (v1.2 format — for legacy verification)
+$ node scripts/generate-vectors.cjs  # regenerate (v1.3 format — for legacy verification)
 $ sha256sum decision-object-vectors-v1.2.json
 a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369  # identical
 ```
@@ -152,7 +151,7 @@ Any validator that excludes `previous_hash` from the JCS preimage will **pass AV
 
 ## Compliance Profile
 
-All vectors embed the `erdl-compliance-v1.2` profile with references to:
+All vectors embed the `erdl-compliance-v1.3` profile with references to:
 
 | Framework | Jurisdiction | Effective Date |
 |-----------|-------------|----------------|
@@ -168,7 +167,6 @@ See RFC 001 ([Chinese](docs/OPENOBA-DOBJ-RFC-001-CN.md) / [English](docs/OPENOBA
 ```
 erdl-vectors/
 ├── decision-object-vectors-v1.3.json   # 101 vectors (~495 KB)
-├── decision-object-answers-v1.3.json   # Answers file (development debug; conformance runners MUST NOT read)
 ├── scripts/
 │   ├── generate-vectors.cjs            # Deterministic vector generator
 │   ├── verify.js                       # Zero-dependency five-step verifier
@@ -198,7 +196,7 @@ erdl-vectors/
 |:-----:|-------------|:-------:|
 | **L1 — Basic** | v1.0 Decision Object structure + JCS + SHA-256 | 28 |
 | **L2 — Verified** | v1.1 all vectors + dynamic vectors | 45 |
-| **L3 — Full** | v1.2 all 101 vectors including chain integrity detection | 101 |
+| **L3 — Full** | v1.3 all 101 vectors including chain integrity detection | 101 |
 
 ## For Runner Implementers
 

@@ -245,7 +245,7 @@ describe('策略哈希 (Policy Hashing)', () => {
 describe('合规配置 (Compliance Profile)', () => {
   it('profile_id 正确', () => {
     for (const vec of data.vectors) {
-      expect(vec.decision_object.compliance_profile.profile_id).toBe('erdl-compliance-v1.2')
+      expect(vec.decision_object.compliance_profile.profile_id).toBe('erdl-compliance-v1.3')
     }
   })
 
