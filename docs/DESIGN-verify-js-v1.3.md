@@ -85,7 +85,7 @@ function verifyAuditVector(av) {
 
 ### AV-013 Special Handling
 
-AV-013 is the chain position tampering canary using the AV-008 pattern. Its `audit.previous_hash` in the DO body is tampered to `sha256:ffff...` (pointing outside the chain). The stored `audit.hash` is the digest a regressed runner (deleting the entire `audit` object, excluding `previous_hash` from the JCS preimage) would compute.
+AV-013 is the chain position tampering canary using the AV-013 pattern (superseded AV-008 in v1.3.1). Its `audit.previous_hash` in the DO body is tampered to `sha256:ffff...` (pointing outside the chain). The stored `audit.hash` is the digest a regressed runner (deleting the entire `audit` object, excluding `previous_hash` from the JCS preimage) would compute.
 
 - **Correct implementation** (only delete audit.hash, includes previous_hash): detects MISMATCH ✓
 - **Regressed implementation** (delete entire audit, no previous_hash in JCS): falsely reports MATCH — **canary catches this** ✓

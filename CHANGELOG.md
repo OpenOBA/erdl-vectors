@@ -1,5 +1,15 @@
 # Changelog — ERDL Decision Object Test Vectors
 
+## [v1.3.1] — 2026-08-02
+
+### Changed
+- RFC-001 version normalization: all v1.2 references updated to v1.3 to match actual published version (v1.2 was an unpublished intermediate design)
+- Answers file withdrawn from repository per E1-E3 principles (answers file enables SHA-256-only shortcut runners)
+- Vector data fixes: compliance_profile.profile_id updated from erdl-compliance-v1.2 to erdl-compliance-v1.3; agent.version updated from v1.2.0 to v1.3.0
+- AV-008 documentation: clarified AV-008 was superseded by AV-013 as the chain integrity canary in v1.3
+- Cross-referenced RFC-001 CN/EN alignment verified — 14 frameworks, Appendix C, all sections consistent
+
+
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
 ## v1.3.1 (2026-07-29)

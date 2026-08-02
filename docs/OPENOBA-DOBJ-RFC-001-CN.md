@@ -83,22 +83,22 @@ ERDL Decision Object（DO）为 Agent 决策提供一个**机器可读、跨实�
 
 > **给定相同的规则集和上下文，任何兼容的 ERDL 实现必须产生逐字节一致的 Decision Object。**
 
-### 1.3 为什么是 v1.2
+### 1.3 为什么需要 v1.3
 
 v1.0 和 v1.1 已被三个独立实现验证通过（Rulsynor/TypeScript [OpenOBA]、Concordia/Python [Erik Newton]、chopmob-cloud/Python [Christopher Hopley]）。但工程实践中暴露出若干需要修正的问题：
 
-| 事项 | 来源 | v1.2 解决方案 |
+| 事项 | 来源 | v1.3 解决方案 |
 |------|------|----------|
 | `policies[].hash` 使用 `JSON.stringify`（非确定性） | 2026-07-27 独立审计报告 CQ-3 | 全链路 JCS (RFC 8785) |
-| v1.1 DO 覆盖 7/10 决策类型，AV 覆盖 6/10（NOTIFY/ROLLBACK/QUARANTINE 的审计哈希向量缺失；DELEGATE 在 v1.2 SPEC 中已定义，向量集预留至 v1.3） | 内部审计 | DO+AV 覆盖 13 种外部决策类型（10+3 WORKFLOW），DELEGATE 预留 v1.3 |
-| `expected_sha256` 作为答案密钥被移除，但没有替代机制确保验证完整性 | Erik Newton, A2A #2031 | AV-008 陈旧回归向量 + 五步验证法 |
-| 缺少法规版本化与辖区适配机制 | ERDL v1.2 设计 | `compliance_profile` + CORE × JURISDICTION 分层 |
-| 缺少 Schema 冻结与合规演进的长期架构保障 | ERDL v1.2 设计 | 平面哈希 + content-addressable schema reference |
-| v1.0/v1.1 → v1.2 迁移路径 | ERDL v1.2 设计 | 破坏性变更范围声明 + 跨版本审计链锚定（见 §1.4） |
+| v1.1 DO 覆盖 7/10 决策类型，AV 覆盖 6/10（NOTIFY/ROLLBACK/QUARANTINE 的审计哈希向量缺失；DELEGATE 在 SPEC v1.2 中已定义，向量集 v1.3 预留） | 内部审计 | DO+AV 覆盖 13 种外部决策类型（10+3 WORKFLOW），DELEGATE 预留 v1.3 |
+| `expected_sha256` 作为答案密钥被移除，但没有替代机制确保验证完整性 | Erik Newton, A2A #2031 | AV-008 陈旧回归向量（已被 AV-013 替代）+ 五步验证法 |
+| 缺少法规版本化与辖区适配机制 | ERDL v1.3 设计 | `compliance_profile` + CORE × JURISDICTION 分层 |
+| 缺少 Schema 冻结与合规演进的长期架构保障 | ERDL v1.3 设计 | 平面哈希 + content-addressable schema reference |
+| v1.0/v1.1 → v1.3 迁移路径 | ERDL v1.3 设计 | 破坏性变更范围声明 + 跨版本审计链锚定（见 §1.4） |
 
 ### 1.4 v1.0/v1.1 向后兼容声明
 
-**v1.2 是一个破坏性版本变更。** 以下变动导致 v1.2 DO 的 `audit.hash` 与 v1.0/v1.1 完全不兼容：
+**v1.3 是一个破坏性版本变更。** 以下变动导致 v1.3 DO 的 `audit.hash` 与 v1.0/v1.1 完全不兼容：
 
 1. `policies[].hash` 计算方式变更（JSON.stringify → JCS canonicalize）
 2. `rule_set_version` 参与 JCS 序列化（v1.1 无此字段）
@@ -106,7 +106,7 @@ v1.0 和 v1.1 已被三个独立实现验证通过（Rulsynor/TypeScript [OpenOB
 
 **v1.0 和 v1.1 文件保持冻结（frozen）状态。** 现有三方验证结果作为历史档案保留。
 
-**v1.2 发布后，所有新实现应针对 v1.2 的 101 条向量集进行验证。** Erik Newton (Concordia) 和 Christopher Hopley (chopmob-cloud) 已受邀对 v1.2 向量进行独立重新验证。验证通过后，v1.0/v1.1 向量集将被标注为"已由 v1.2 替代"。
+**v1.3 发布后，所有新实现应针对 v1.3 的 101 条向量集进行验证。** Erik Newton (Concordia) 和 Christopher Hopley (chopmob-cloud) 已受邀对 v1.3 向量进行独立重新验证。验证通过后，v1.0/v1.1 向量集将被标注为"已由 v1.3 替代"。
 
 ### 1.5 征求意见的目的
 
@@ -115,7 +115,7 @@ v1.0 和 v1.1 已被三个独立实现验证通过（Rulsynor/TypeScript [OpenOB
 - **Christopher Hopley (chopmob-cloud / AlgoVoi)**：合规 substrate 模型与跨验证愿景的提出者。独立审计了 v1.1 的 c3f22df 事故（em-dash 空格修复导致 3/7 向量 audit.hash 不匹配，commit c3f22df → 5cff368）
 - **监管合规专家与联合审计委员会**：对 DO 字段设计与 14 监管框架的兼容性、平面哈希架构的长期可维护性进行审查
 
-所有收到的反馈将在 v1.2 正式发布前公开记录并逐条回应。
+所有收到的反馈将在 v1.3 正式发布前公开记录并逐条回应。
 
 ---
 
@@ -160,7 +160,7 @@ JCS (RFC 8785 §3.2.2.3) 基于 IEEE 754 双精度规范序列化 JSON number。
 | JavaScript | 仅支持双精度浮点。大整数（>2^53）精度丢失 |
 | Go | `json.Marshal` 默认将整数序列化为不含小数点的形式 |
 
-**v1.2 强制约束**：
+**v1.3 强制约束**：
 
 1. **整数类型**（`evaluation.total_evaluated`、`total_matched`、`evaluation_duration_ms`、`policies[].version`、`ring` 等）MUST 由各实现保证输出为不带小数点的整数形式，且值域 MUST 在 JavaScript 安全整数范围（-(2^53-1) 至 2^53-1）内
 2. **浮点/金额类型**（如 extensions 中的财务相关字段）MUST 使用字符串表达（如 `"100.50"`），禁止使用原生 number 类型
@@ -178,7 +178,7 @@ JCS (RFC 8785 §3.2.2.3) 基于 IEEE 754 双精度规范序列化 JSON number。
 
 ### 3.2 全链路 JCS
 
-v1.1 中 `policies[].hash` 使用了 `JSON.stringify`。`JSON.stringify` 不保证 key 顺序——ES2015+ 在实际实现中按插入顺序序列化，但该行为不在规范中保证。不同 Node.js 版本或不同语言实现可能产生不同的字节序列。v1.2 将全部哈希统一为 JCS：
+v1.1 中 `policies[].hash` 使用了 `JSON.stringify`。`JSON.stringify` 不保证 key 顺序——ES2015+ 在实际实现中按插入顺序序列化，但该行为不在规范中保证。不同 Node.js 版本或不同语言实现可能产生不同的字节序列。v1.3 将全部哈希统一为 JCS：
 
 ```
 policies[].hash = SHA-256(JCS(policy))
@@ -188,7 +188,7 @@ policies[].hash = SHA-256(JCS(policy))
 
 ### 3.3 平面哈希架构
 
-v1.2 的 `audit.hash` 采用平面哈希架构——Decision Object 的所有字段（CORE + JURISDICTION + EXTENSIONS）统一参与 JCS 序列化，形成单一的密码学摘要。任何字段的篡改都会直接改变 `audit.hash`，完整性保障在密码学层面而非流程层面。
+v1.3 的 `audit.hash` 采用平面哈希架构——Decision Object 的所有字段（CORE + JURISDICTION + EXTENSIONS）统一参与 JCS 序列化，形成单一的密码学摘要。任何字段的篡改都会直接改变 `audit.hash`，完整性保障在密码学层面而非流程层面。
 
 > **extensions 空数组保留**：§3.1 约束 5（Omit over Null）规定空数组 `[]` MUST 在 JCS 前物理删除。**extensions 字段不适用此规则**——当 DO 无扩展数据时，extensions MUST 保留为 `[]` 并参与后续 JCS 序列化。§3.3 对 extensions 字段的规定优先于 §3.1(5)。
 
@@ -225,7 +225,7 @@ audit.hash 计算公式（五步验证法）：
 
 IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 
-| 对齐项 | ERDL DO v1.2 | IETF AAT |
+| 对齐项 | ERDL DO v1.3 | IETF AAT |
 |---------|-------------|----------|
 | 规范化 | JCS (RFC 8785) | JCS (RFC 8785) ✅ 一致 |
 | 摘要 | SHA-256 (FIPS 180-4) | SHA-256 (FIPS 180-4) ✅ 一致 |
@@ -382,7 +382,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 ```json
 {
   "compliance_profile": {
-    "profile_id": "erdl-compliance-v1.2",
+    "profile_id": "erdl-compliance-v1.3",
     "profile_hash": "sha256:a1b2c3...",
     "jurisdictions": ["EU", "CN"],
     "industries": ["financial-services"],
@@ -488,7 +488,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | 算法备案 | — | — | — | — | ✅ | — | — | — | — | — | — |
 | 隐私/被遗忘权 | ✅ (GDPR) | — | — | — | ✅ (PIPL) | — | ✅ | — | — | — | — |
 
-**注**：DELEGATE 在 SPEC v1.2 中已定义但向量集预留至 v1.3。
+**注**：DELEGATE 在 SPEC v1.2 中已定义，向量集 v1.3 预留。
 
 **全部 24 项跨框架要求通过 DO 的 24 字段 + 冷热分离架构完整覆盖。**
 
@@ -646,9 +646,9 @@ A2A 是 Google 推动的 Agent 间通信标准。ERDL DO 的集成路径：
 {
   "extensions": {
     "erdl": {
-      "spec_version": "v1.2",
+      "spec_version": "v1.3",
       "compliance_profile": {
-        "profile_id": "erdl-compliance-v1.2",
+        "profile_id": "erdl-compliance-v1.3",
         "jurisdictions": ["EU"],
         "industries": ["financial-services"]
       },
@@ -741,7 +741,7 @@ GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
 
 ```json
 {
-  "report_type": "ERDL-Audit-Report-v1.2",
+  "report_type": "ERDL-Audit-Report-v1.3",
   "report_id": "018c4a3e-0000-7000-8000-000000000099",
   "generated_at": "2026-07-27T15:00:00.000Z",
   "query": {
@@ -786,7 +786,7 @@ GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
     "chain_verified": true
   },
   "compliance_profile_applied": {
-    "profile_id": "erdl-compliance-v1.2",
+    "profile_id": "erdl-compliance-v1.3",
     "jurisdictions": ["EU"],
     "industries": ["financial-services"],
     "activated_fields": ["model_id", "impact_assessment_id", "agent.known_limitations", "human_oversight"]
@@ -858,7 +858,7 @@ GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
 
 GDPR Article 17 赋予数据主体删除其个人数据的权利。但 Decision Object 通过 Hash 链固化——如果 DO 的 `context` 包含用户 PII，直接删除会导致整条哈希链断裂。
 
-**v1.2 冷热分离方案**：
+**v1.3 冷热分离方案**：
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -933,13 +933,13 @@ ERDL 不规定冷存储的具体实现（S3 Glacier、Azure Cool Blob、本地�
 
 **核心优势**：extensions 条目直接参与主 JCS 序列化。任何合规要求的变更——无论是新增字段还是修改现有字段——都会直接反映在 `audit.hash` 中，确保审计链的完整性由密码学保证。
 
-### 9.3 跨版本审计链锚定（v1.1 → v1.2）
+### 9.3 跨版本审计链锚定（v1.1 → v1.3）
 
-`audit.previous_hash` 仅是一个指向上一条 DO 最终 `audit.hash` 值的字符串引用——它不参与"被引用记录的 JCS 序列化"。v1.2 的第一条 DO 的 `audit.previous_hash` 可以直接填入 v1.1 最后一条 DO 的 `audit.hash` 值，证据链不因此断裂。
+`audit.previous_hash` 仅是一个指向上一条 DO 最终 `audit.hash` 值的字符串引用——它不参与"被引用记录的 JCS 序列化"。v1.3 的第一条 DO 的 `audit.previous_hash` 可以直接填入 v1.1 最后一条 DO 的 `audit.hash` 值，证据链不因此断裂。
 
 ### 9.4 异步审计架构（性能工程指南）
 
-v1.2 DO 生成需要执行：1x extensions JCS + SHA-256、1x 主对象 JCS + SHA-256、可选的 1x ECDSA P-256 签名。整套密码学操作耗时约 2-5ms（Node.js，V8 优化后）到 25ms（Python/GIL）。对于每秒处理 100+ Tool Call 的高频 Agent，建议采用异步审计架构：
+v1.3 DO 生成需要执行：1x extensions JCS + SHA-256、1x 主对象 JCS + SHA-256、可选的 1x ECDSA P-256 签名。整套密码学操作耗时约 2-5ms（Node.js，V8 优化后）到 25ms（Python/GIL）。对于每秒处理 100+ Tool Call 的高频 Agent，建议采用异步审计架构：
 
 ```
 Agent 主线程                    审计 Worker 集群
@@ -1070,7 +1070,7 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 
 | 年份 | 事件 | 对 DO 的影响 | 验证器行为 |
 |------|------|------------|-----------|
-| 2026 | v1.2 发布 | CORE 14 + JURISDICTION 10 发布 | 全量验证 |
+| 2026 | v1.3 发布 | CORE 14 + JURISDICTION 10 发布 | 全量验证 |
 | 2028 | 新 EU AI Act Amendment 要求碳排放记录 | extensions 区追加条目 | audit.hash 自动覆盖新字段 |
 | 2030 | 量子计算威胁 SHA-256 | 启动双哈希过渡方案 | 参见 §9.6 |
 | 2032 | 新国际条约要求 Agent 决策记录包含人权影响评估 | extensions 区追加条目 | audit.hash 自动覆盖全部字段 |
@@ -1142,7 +1142,7 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 
 以下不变量在任何未来版本中保持不变，确保所有历史 DO 可被任意版本的验证器验证：
 
-1. `spec` 始终为 `"decision-object-v1.0"`（版本区分通过 `compliance_profile.profile_id` 完成，如 `"erdl-compliance-v1.2"`）
+1. `spec` 始终为 `"decision-object-v1.0"`（版本区分通过 `compliance_profile.profile_id` 完成，如 `"erdl-compliance-v1.3"`）
 2. `audit.hash` 始终使用平面哈希公式（JCS(core+jurisdiction+extensions+previous_hash+commitment) → SHA-256）
 3. 密码学原语：JCS (RFC 8785) + SHA-256 (FIPS 180-4)（参数化：未来可配置更强的哈希算法，但 SHA-256 作为默认仍被支持）
 4. 五步验证法的基本流程（删除 audit.hash/signature/signing_key_id、JCS+SHA-256 全部字段、比对存储哈希）
@@ -1175,7 +1175,7 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 |------|:---:|------|
 | 静态决策向量 | 63 | 13 种外部决策类型 + 13 运算符全覆盖 + 空值传播/类型安全/速率限制边缘情况穷尽 |
 | 动态决策向量 | 26 | 时间戳(10) + 种子(8) + 状态(8) |
-| 审计哈希向量 | 12 | AV-001~AV-012 + AV-013（链完整性金丝雀） |
+| 审计哈希向量 | 12 | AV-001~AV-007 + AV-009~AV-013（含 AV-013 链完整性金丝雀，AV-008 已被 AV-013 替代） |
 | **总计** | **101** | |
 
 **注**：v1.3.1 从向量文件中完全移除了 `canonical_hex`（JCS 直接输出的十六进制编码）。AV 向量改用 `diag_hash`（`audit.hash` 前 14 字符，即 `"sha256:" + 8 位十六进制）作为调试锚点——SHA-256 是单向函数，`diag_hash` 不能反推 JCS 输出，无法用于绕过 JCS 实现的作弊。完整 `canonical_hex` 答案集保存在独立答案文件 `decision-object-answers-v1.3.json` 中，仅供开发诊断使用。合规运行 MUST NOT 读取答案文件。
@@ -1198,7 +1198,7 @@ Step 4: SHA-256 (FIPS 180-4) → recomputed hash
 Step 5: Compare recomputed hash with stored audit.hash
 ```
 
-**关键变动（v1.3 vs v1.2）**：v1.2 错误地删除了整个 `audit` 对象（`DELETE clone.audit`），导致 `audit.previous_hash` 和 `audit.commitment` 被排除在 JCS 原像之外。v1.3 修正为仅删除 `audit.hash`，确保链完整性检测覆盖 `previous_hash`——任何篡改链中记录位置的行为都会改变 `audit.hash`。
+**关键变动（v1.3 vs v1.2（v1.2 是未发布的中间设计版））**：v1.2 错误地删除了整个 `audit` 对象（`DELETE clone.audit`），导致 `audit.previous_hash` 和 `audit.commitment` 被排除在 JCS 原像之外。v1.3 修正为仅删除 `audit.hash`，确保链完整性检测覆盖 `previous_hash`——任何篡改链中记录位置的行为都会改变 `audit.hash`。
 
 ### 13.4 链完整性金丝雀（AV-013）
 
@@ -1207,7 +1207,7 @@ Step 5: Compare recomputed hash with stored audit.hash
 - **正确 runner**（只删 `audit.hash`，含 `previous_hash` 在 JCS 原像中）：MISMATCH——因为 body 中携带的篡改 `previous_hash` 与计算 `audit.hash` 时所用的不同
 - **Regressed runner**（删整个 `audit` 对象，不含 `previous_hash` 在 JCS 原像中）：MATCH——因为 `previous_hash` 被忽略，两个 body 产生相同的摘要。金丝雀**捕获此回归**。
 
-此设计延续 v1.1 AV-008 的模式：stored hash = regressed runner 会算出的值，使包含和不包含 `previous_hash` 的实现在金丝雀上产生可区分的不同结果。
+此设计延续 v1.1 AV-008 的模式（v1.3 中 AV-008 已被 AV-013 替代作为链完整性金丝雀）：stored hash = regressed runner 会算出的值，使包含和不包含 `previous_hash` 的实现在金丝雀上产生可区分的不同结果。
 
 > 验证器不得通过硬编码向量 ID 来特殊处理此向量。所有 12 条审计向量 MUST 经过相同的五步验证流程。
 

@@ -86,18 +86,18 @@ Its core promise:
 
 v1.0 and v1.1 have been validated by three independent implementations (Rulsynor/TypeScript [OpenOBA], Concordia/Python [Erik Newton], chopmob-cloud/Python [Christopher Hopley]). However, engineering practice exposed several issues requiring correction:
 
-| Issue | Source | v1.2 Solution |
+| Issue | Source | v1.3 Solution |
 |-------|--------|---------------|
 | `policies[].hash` uses `JSON.stringify` (non-deterministic) | Independent audit report CQ-3, 2026-07-27 | End-to-end JCS (RFC 8785) |
-| v1.1 DO covers 7/10 decision types, AV covers 6/10 (audit hash vectors missing for NOTIFY/ROLLBACK/QUARANTINE; DELEGATE defined in v1.2 SPEC, vector set deferred to v1.3) | Internal audit | DO+AV cover 13 external decision types (10+3 WORKFLOW), DELEGATE deferred to v1.3 |
-| `expected_sha256` removed as answer key without replacement mechanism for verification integrity | Erik Newton, A2A #2031 | AV-008 stale regression vector + five-step verification method |
-| Missing regulation versioning and jurisdiction adaptation mechanism | ERDL v1.2 design | `compliance_profile` + CORE × JURISDICTION layering |
-| Missing long-term architectural guarantee for Schema Freeze and Compliance Evolution | ERDL v1.2 design | Flat hashing + content-addressable schema reference |
-| v1.0/v1.1 → v1.2 migration path | ERDL v1.2 design | Breaking change scope declaration + cross-version audit chain anchoring (see §1.4) |
+| v1.1 DO covers 7/10 decision types, AV covers 6/10 (audit hash vectors missing for NOTIFY/ROLLBACK/QUARANTINE; DELEGATE defined in SPEC v1.2, vector set reserved for v1.3) | Internal audit | DO+AV cover 13 external decision types (10+3 WORKFLOW), DELEGATE deferred to v1.3 |
+| `expected_sha256` removed as answer key without replacement mechanism for verification integrity | Erik Newton, A2A #2031 | AV-008 stale regression vector (superseded by AV-013) + five-step verification method |
+| Missing regulation versioning and jurisdiction adaptation mechanism | ERDL v1.3 design | `compliance_profile` + CORE × JURISDICTION layering |
+| Missing long-term architectural guarantee for Schema Freeze and Compliance Evolution | ERDL v1.3 design | Flat hashing + content-addressable schema reference |
+| v1.0/v1.1 → v1.3 migration path | ERDL v1.3 design | Breaking change scope declaration + cross-version audit chain anchoring (see §1.4) |
 
 ### 1.4 v1.0/v1.1 Backward Compatibility Statement
 
-**v1.2 is a breaking version change.** The following changes render the v1.2 DO's `audit.hash` completely incompatible with v1.0/v1.1:
+**v1.3 is a breaking version change.** The following changes render the v1.3 DO's `audit.hash` completely incompatible with v1.0/v1.1:
 
 1. `policies[].hash` computation method changed (JSON.stringify → JCS canonicalize)
 2. `rule_set_version` participates in JCS serialization (v1.1 had no such field)
@@ -105,7 +105,7 @@ v1.0 and v1.1 have been validated by three independent implementations (Rulsynor
 
 **v1.0 and v1.1 remain frozen.** Existing three-party verification results are preserved as historical archives.
 
-**After v1.2 release, all new implementations SHOULD validate against the v1.2 101-vector set.** Erik Newton (Concordia) and Christopher Hopley (chopmob-cloud) have been invited to perform independent re-verification against the v1.2 vectors. Once verified, the v1.0/v1.1 vector sets will be marked "superseded by v1.2."
+**After v1.3 release, all new implementations SHOULD validate against the v1.3 101-vector set.** Erik Newton (Concordia) and Christopher Hopley (chopmob-cloud) have been invited to perform independent re-verification against the v1.3 vectors. Once verified, the v1.0/v1.1 vector sets will be marked "superseded by v1.3."
 
 ### 1.5 Purpose of Request for Comments
 
@@ -114,7 +114,7 @@ This whitepaper is a **Request for Comments (RFC)**, sent to:
 - **Christopher Hopley (chopmob-cloud / AlgoVoi)**: Proposer of the compliance substrate model and cross-validation vision. Independently audited the v1.1 c3f22df incident (em-dash space fix causing 3/7 vector audit.hash mismatches, commit c3f22df → 5cff368)
 - **Regulatory Compliance Experts and the Joint Audit Committee**: For review of DO field design against 14 regulatory frameworks, and the long-term maintainability of the flat hashing architecture
 
-All received feedback will be publicly recorded and responded to item by item before the final v1.2 release.
+All received feedback will be publicly recorded and responded to item by item before the final v1.3 release.
 
 ---
 
@@ -159,7 +159,7 @@ JCS (RFC 8785 §3.2.2.3) serializes JSON numbers based on the IEEE 754 double-pr
 | JavaScript | Only supports double-precision floating-point. Large integers (>2^53) lose precision |
 | Go | `json.Marshal` by default serializes integers without decimal points |
 
-**v1.2 Mandatory Constraints**:
+**v1.3 Mandatory Constraints**:
 
 1. **Integer types** (`evaluation.total_evaluated`, `total_matched`, `evaluation_duration_ms`, `policies[].version`, `ring`, etc.) MUST be guaranteed by each implementation to output as integers without decimal points, and their value ranges MUST fall within JavaScript's safe integer range (-(2^53-1) to 2^53-1)
 2. **Float/monetary types** (e.g., finance-related fields in extensions) MUST use string representation (e.g., `"100.50"`); native number types are forbidden
@@ -177,7 +177,7 @@ JCS (RFC 8785 §3.2.2.3) serializes JSON numbers based on the IEEE 754 double-pr
 
 ### 3.2 End-to-End JCS
 
-In v1.1, `policies[].hash` used `JSON.stringify`. `JSON.stringify` does not guarantee key ordering — ES2015+ in practice serializes in insertion order, but this behavior is not guaranteed by the specification. Different Node.js versions or different language implementations may produce different byte sequences. v1.2 unifies all hashes to JCS:
+In v1.1, `policies[].hash` used `JSON.stringify`. `JSON.stringify` does not guarantee key ordering — ES2015+ in practice serializes in insertion order, but this behavior is not guaranteed by the specification. Different Node.js versions or different language implementations may produce different byte sequences. v1.3 unifies all hashes to JCS:
 
 ```
 policies[].hash = SHA-256(JCS(policy))
@@ -189,7 +189,7 @@ policies[].hash = SHA-256(JCS(policy))
 
 > **Extensions empty array retention**: §3.1 Constraint 5 (Omit over Null) requires empty arrays `[]` to be physically deleted before JCS. **This does not apply to the extensions field** — when a DO has no extension data, extensions MUST be retained as `[]` and participate in subsequent JCS serialization. §3.3 governs the `extensions` field regardless of §3.1(5).
 
-v1.2's `audit.hash` adopts a flat hashing architecture — all Decision Object fields (CORE + JURISDICTION + EXTENSIONS) participate in a single JCS serialization, producing a single cryptographic digest. Any field tampering directly changes `audit.hash`. Integrity is guaranteed at the cryptographic level, not the procedural level.
+v1.3's `audit.hash` adopts a flat hashing architecture — all Decision Object fields (CORE + JURISDICTION + EXTENSIONS) participate in a single JCS serialization, producing a single cryptographic digest. Any field tampering directly changes `audit.hash`. Integrity is guaranteed at the cryptographic level, not the procedural level.
 
 ```
 audit.hash calculation formula (Five-Step Verification):
@@ -222,7 +222,7 @@ Each DO is linked to the previous DO's `audit.hash` via `audit.previous_hash`, f
 
 IETF draft-sharif-agent-audit-trail-00 uses exactly the same cryptographic primitives:
 
-| Alignment Item | ERDL DO v1.2 | IETF AAT |
+| Alignment Item | ERDL DO v1.3 | IETF AAT |
 |---------|-------------|----------|
 | Normalization | JCS (RFC 8785) | JCS (RFC 8785) ✓ Consistent |
 | Digest | SHA-256 (FIPS 180-4) | SHA-256 (FIPS 180-4) ✓ Consistent |
@@ -379,7 +379,7 @@ Globally deployed Agents may be simultaneously subject to regulations from multi
 ```json
 {
   "compliance_profile": {
-    "profile_id": "erdl-compliance-v1.2",
+    "profile_id": "erdl-compliance-v1.3",
     "profile_hash": "sha256:a1b2c3...",
     "jurisdictions": ["EU", "CN"],
     "industries": ["financial-services"],
@@ -485,7 +485,7 @@ Globally deployed Agents may be simultaneously subject to regulations from multi
 | Algorithm filing | — | — | — | — | ✓ | — | — | — | — | — | — |
 | Privacy/Right to erasure | ✓ (GDPR) | — | — | — | ✓ (PIPL) | — | ✓ | — | — | — | — |
 
-**Note**: DELEGATE is defined in v1.2 SPEC but the vector set is reserved for v1.3.
+**Note**: DELEGATE is defined in SPEC v1.2 but the vector set is reserved for v1.3.
 
 **All 24 cross-framework requirements are fully covered through the DO's 24 fields plus the hot/cold separation architecture.**
 
@@ -643,9 +643,9 @@ Standard JSON structure of the `erdl` extension:
 {
   "extensions": {
     "erdl": {
-      "spec_version": "v1.2",
+      "spec_version": "v1.3",
       "compliance_profile": {
-        "profile_id": "erdl-compliance-v1.2",
+        "profile_id": "erdl-compliance-v1.3",
         "jurisdictions": ["EU"],
         "industries": ["financial-services"]
       },
@@ -738,7 +738,7 @@ GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
 
 ```json
 {
-  "report_type": "ERDL-Audit-Report-v1.2",
+  "report_type": "ERDL-Audit-Report-v1.3",
   "report_id": "018c4a3e-0000-7000-8000-000000000099",
   "generated_at": "2026-07-27T15:00:00.000Z",
   "query": {
@@ -783,7 +783,7 @@ GET /api/audit/decisions?from=2026-07-01&to=2026-07-27
     "chain_verified": true
   },
   "compliance_profile_applied": {
-    "profile_id": "erdl-compliance-v1.2",
+    "profile_id": "erdl-compliance-v1.3",
     "jurisdictions": ["EU"],
     "industries": ["financial-services"],
     "activated_fields": ["model_id", "impact_assessment_id", "agent.known_limitations", "human_oversight"]
@@ -855,7 +855,7 @@ When `result.decision` is `DENY`/`EMERGENCY_HALT`/`QUARANTINE`, a SOAR playbook 
 
 GDPR Article 17 grants data subjects the right to delete their personal data. However, the Decision Object is solidified via hash chains — if a DO's `context` contains user PII, direct deletion would break the entire hash chain.
 
-**v1.2 Hot/Cold Separation Scheme**:
+**v1.3 Hot/Cold Separation Scheme**:
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -930,13 +930,13 @@ Do not add fields to CORE or JURISDICTION. Carry them through self-describing en
 
 **Core advantage**: Extension entries directly participate in the main JCS serialization. Any compliance requirement change — whether adding new fields or modifying existing ones — is directly reflected in `audit.hash`, ensuring audit chain integrity is guaranteed by cryptography.
 
-### 9.3 Cross-Version Audit Chain Anchoring (v1.1 → v1.2)
+### 9.3 Cross-Version Audit Chain Anchoring (v1.1 → v1.3)
 
-`audit.previous_hash` is merely a string reference pointing to the previous DO's final `audit.hash` value — it does not participate in "JCS serialization of the referenced record." The first v1.2 DO's `audit.previous_hash` can directly be set to the last v1.1 DO's `audit.hash` value; the evidence chain is not broken by this.
+`audit.previous_hash` is merely a string reference pointing to the previous DO's final `audit.hash` value — it does not participate in "JCS serialization of the referenced record." The first v1.3 DO's `audit.previous_hash` can directly be set to the last v1.1 DO's `audit.hash` value; the evidence chain is not broken by this.
 
 ### 9.4 Asynchronous Audit Architecture (Performance Engineering Guide)
 
-v1.2 DO generation requires execution of: 1× extensions JCS + SHA-256, 1× main object JCS + SHA-256, optional 1× ECDSA P-256 signature. The complete set of cryptographic operations takes approximately 2-5ms (Node.js, V8 optimized) to 25ms (Python/GIL). For high-frequency Agents handling 100+ Tool Calls per second, an asynchronous audit architecture is recommended:
+v1.3 DO generation requires execution of: 1× extensions JCS + SHA-256, 1× main object JCS + SHA-256, optional 1× ECDSA P-256 signature. The complete set of cryptographic operations takes approximately 2-5ms (Node.js, V8 optimized) to 25ms (Python/GIL). For high-frequency Agents handling 100+ Tool Calls per second, an asynchronous audit architecture is recommended:
 
 ```
 Agent Main Thread                Audit Worker Cluster
@@ -1068,7 +1068,7 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 
 | Year | Event | Impact on DO | Validator Behavior |
 |------|-------|-------------|--------------------|
-| 2026 | v1.2 released | CORE 14 + JURISDICTION 10 released | Full validation |
+| 2026 | v1.3 released | CORE 14 + JURISDICTION 10 released | Full validation |
 | 2028 | New EU AI Act Amendment requires carbon footprint recording | Append entry to extensions zone | audit.hash automatically covers new fields |
 | 2030 | Quantum computing threatens SHA-256 | Activate dual-hash transition scheme | See §9.6 |
 | 2032 | New international treaty requires Agent decision records to include human rights impact assessment | Append entry to extensions zone | audit.hash automatically covers all fields |
@@ -1140,7 +1140,7 @@ When SHA-256 is marked as Legacy (but not Deprecated) in the future (e.g., 2035)
 
 The following invariants remain unchanged in any future version, ensuring all historical DOs can be verified by any version of the validator:
 
-1. `spec` is always `"decision-object-v1.0"` (version differentiation is achieved through `compliance_profile.profile_id`, e.g., `"erdl-compliance-v1.2"`)
+1. `spec` is always `"decision-object-v1.0"` (version differentiation is achieved through `compliance_profile.profile_id`, e.g., `"erdl-compliance-v1.3"`)
 2. `audit.hash` always uses the flat hashing formula (JCS(core+jurisdiction+extensions+previous_hash+commitment) → SHA-256)
 3. Cryptographic primitives: JCS (RFC 8785) + SHA-256 (FIPS 180-4) (parameterized: future stronger hash algorithms can be configured, but SHA-256 remains supported as default)
 4. The basic flow of the five-step verification method (delete audit.hash/signature/signing_key_id, JCS+SHA-256 all fields, compare stored hash)
@@ -1173,7 +1173,7 @@ Neutrality is tested, not declared.
 |----------|:-----:|-------------|
 | Static Decision Vectors | 63 | 13 decision types + 13 operator full coverage |
 | Dynamic Decision Vectors | 26 | Temporal(10) + Seeded(8) + Stateful(8) |
-| Audit Hash Vectors | 12 | AV-001~AV-012 + AV-013 (chain integrity canary) |
+| Audit Hash Vectors | 12 | AV-001~AV-007 + AV-009~AV-013 (incl. AV-013 chain integrity canary; AV-008 superseded by AV-013) |
 | **Total** | **101** | |
 
 **Note**: v1.3.1 completely removes `canonical_hex` (the hex-encoding of JCS direct output) from the vector file. AV vectors now carry `diag_hash` (`audit.hash` first 14 characters, i.e., `"sha256:"` + 8 hex digits) as a debug anchor — SHA-256 is a one-way function; `diag_hash` cannot invert to recover JCS output and cannot be used to bypass JCS implementation. Full `canonical_hex` answers remain in the separate answers file `decision-object-answers-v1.3.json` for development diagnostics only. Conformance runners MUST NOT read the answers file.
@@ -1196,7 +1196,7 @@ Step 4: SHA-256 (FIPS 180-4) → recomputed hash
 Step 5: Compare recomputed hash with stored audit.hash
 ```
 
-**Critical change (v1.3 vs v1.2)**: v1.2 incorrectly deleted the entire `audit` object (`DELETE clone.audit`), which removed `audit.previous_hash` and `audit.commitment` from the JCS preimage. v1.3 corrects this to only delete `audit.hash`, ensuring chain integrity detection covers `previous_hash` — any tampering with a record's position in the chain changes `audit.hash`.
+**Critical change (v1.3 vs v1.2 (v1.2 is an unpublished intermediate design version))**: v1.2 incorrectly deleted the entire `audit` object (`DELETE clone.audit`), which removed `audit.previous_hash` and `audit.commitment` from the JCS preimage. v1.3 corrects this to only delete `audit.hash`, ensuring chain integrity detection covers `previous_hash` — any tampering with a record's position in the chain changes `audit.hash`.
 
 ### 13.4 Chain Integrity Canary (AV-013)
 
