@@ -63,6 +63,18 @@ node scripts/verify.js path/to/vectors.json
 
 Expected: `ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-013 CHAIN CANARY DETECTED`
 
+### Clean-Room Verification (CI)
+
+```bash
+# CI auto-runs (.github/workflows/clean-room-verify.yml):
+# Step 0: Assert ERDL SDK NOT importable (hard fail)
+# Step 1: npm install (json-canonicalize only, no ERDL SDK)
+# Step 2: node scripts/verify.js (self-built JCS + SHA-256)
+# Step 3: Output → conformance/CONFORMANCE.md
+```
+
+The clean-room verifier uses only Node.js built-in `crypto` and self-built JCS (RFC 8785). Zero ERDL SDK dependency. CONFORMANCE.md is auto-generated and checked in on every CI run.
+
 ### Generate vectors from scratch (maintainer use)
 
 ```bash
