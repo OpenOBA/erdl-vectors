@@ -16,7 +16,7 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 本项目能够顺利完成，离不开以下合作者的鼎力支持：
 
 - **Christopher Hopley（chopmob-cloud / AlgoVoi）** — 独立技术审阅者。在 v1.2 白皮书草案的审查中，他发现了自引用哈希排除规则缺位、字符串小数跨引擎不一致、分层完整性缺口等关键问题，推动了平面哈希架构的确立。**在 v1.3 审计中，他写了一个洁净室 RFC 8785 JCS + SHA-256 检查器，验证了规范文本的内部一致性，报告了四个技术发现（C1-C4）和三个安全问题（S1-S3）——其中双哈希算法降级（CWE-757）和 schema_ref SSRF 攻击面的发现直接推动了 §9.6 和 §11.2 的安全加固。**他对 JCS RFC 8785 规范化与合规审计的深刻理解，对协议设计的严谨性产生了重要影响。
-- **Erik Newton（Concordia）** — 首个独立 Runner 实现者，也是"中立性不是宣称的，是测出来的"原则的提出者。他在 A2A Discussion #2031 中确立了"三个独立实现、一个开放规范、没有单一所有者"的标准化路径，为 ERDL 从开源项目走向基础设施标准奠定了方法论基础。他用 Python 构建了 Decision Object 验证引擎，在 Node.js 实现之外首次逐字节验证了前 5 个审计向量（AV-001 – AV-005），后扩展至全部 28 条合规向量，以实践证明了 JCS+SHA-256 跨实现验证的技术可行性。在 v1.1 冻结期审计中，他独立发现 `expected_sha256` 作为答案密钥的结构性风险，推动了陈旧回归向量的引入。**在 v1.3 审计中，他用自己的独立 RFC 8785 规范化器验证了全部 12 个 AV 向量（AV-001 – AV-012），确认 11 个逐字节一致 + AV-013 (superseded AV-008) 正确失败——"a clean result"。他同时发现白皮书与代码删除策略不一致（E1）、previous_hash/commitment 排除导致链位置篡改不可检测（E2）、canonical_hex 泄露 JCS 答案（E3）三个关键问题——直接推动了 v1.3 的 audit 结构修复、AV-013 链完整性金丝雀设计、以及答案文件分离架构。**
+- **Erik Newton（Concordia）** — 首个独立 Runner 实现者，也是"中立性不是宣称的，是测出来的"原则的提出者。他在 A2A Discussion #2031 中确立了"三个独立实现、一个开放规范、没有单一所有者"的标准化路径，为 ERDL 从开源项目走向基础设施标准奠定了方法论基础。他用 Python 构建了 Decision Object 验证引擎，在 Node.js 实现之外首次逐字节验证了前 5 个审计向量，后扩展至全部 13 条，以实践证明了 JCS+SHA-256 跨实现验证的技术可行性。在 v1.1 冻结期审计中，他独立发现 `expected_sha256` 作为答案密钥的结构性风险。**在 v1.3 审计中，他用自己的独立 RFC 8785 规范化器验证了全部 12 个 AV 向量，确认 11 个逐字节一致 + AV-013 正确失败。他同时发现 E1-E3 三个关键问题，直接推动了 v1.3 的 audit 结构修复、AV-013 链完整性金丝雀设计、以及答案文件分离架构。在 v1.3.2 中，他提出并验证了 generated-artifact + clean-room + IMPLEMENTATIONS.md registry 的 CI/CD 架构——1,500 向量规模的生产级证明——为规范中立的合规验证提供了工程基础。**
 - **Rulsynor 团队** — 作为 ERDL 规则引擎的参考实现，Rulsynor 是所有测试向量生成与验证的基准。其生产级引擎为 Decision Object 的字段设计提供了真实世界的约束输入——从 Agent 身份元数据到合规配置结构——确保协议定义经得起工程实践的检验。
 
 我们对此深表感谢。正是他们的贡献，将一份规范转化为经过多方独立验证的跨实现标准。
@@ -63,6 +63,18 @@ node scripts/verify.js path/to/vectors.json
 ```
 
 预期输出：`ALL VERIFICATIONS PASSED · 11/11 MATCH + CHAIN CANARY DETECTED`
+
+### Clean-Room Verification (CI)
+
+```bash
+# CI 自动运行（.github/workflows/clean-room-verify.yml）：
+# Step 0: 断言 ERDL SDK 不可 import（硬失败）
+# Step 1: npm install（仅 json-canonicalize，不含 ERDL SDK）
+# Step 2: node scripts/verify.js（自建 JCS + SHA-256）
+# Step 3: 输出 → conformance/CONFORMANCE.md
+```
+
+洁净室验证器仅使用 Node.js 内建 `crypto` 模块和自我实现的 JCS（RFC 8785）。不依赖任何 ERDL SDK。每次 CI 运行自动生成 `conformance/CONFORMANCE.md` 并 check-in。
 
 ### 从零生成向量（维护者使用）
 
@@ -167,6 +179,10 @@ npm test
 ```
 erdl-vectors/
 ├── decision-object-vectors-v1.3.json        # 101 条向量（75 条静态 DO+AV）
+├── conformance/                             # Clean-room CI conformance artifacts
+│   ├── CONFORMANCE.md                       # Auto-generated per-run verification report
+│   └── README.md                            # Conformance directory documentation
+├── IMPLEMENTATIONS.md                       # Cross-implementation registry (measurements only)
 ├── scripts/
 │   ├── generate-vectors.cjs                 # 确定性向量生成器（v1.3 常量）
 │   ├── verify.js                            # 零依赖五步验证器

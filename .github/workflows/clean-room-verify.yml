@@ -1,0 +1,65 @@
+name: ERDL Decision Object Clean-Room Verification
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    paths:
+      - 'decision-object-vectors-v1.3.json'
+      - 'scripts/verify.js'
+      - 'scripts/reference-runner.js'
+      - '.github/workflows/clean-room-verify.yml'
+      - 'submissions/*.json'
+  workflow_dispatch:
+
+jobs:
+  clean-room-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ═══ Step 0: Clean-room — assert ERDL SDK is NOT importable ═══
+      - name: Clean-Room Check (SDK absence)
+        run: |
+          if npm list @openoba-ai/erdl-mcp 2>/dev/null | grep -q "@openoba-ai/erdl-mcp"; then
+            echo "FAIL: ERDL SDK is importable — clean-room violation"
+            exit 1
+          fi
+          if node -e "require('@openoba-ai/erdl-mcp')" 2>/dev/null; then
+            echo "FAIL: ERDL SDK resolved at runtime — clean-room violation"
+            exit 1
+          fi
+          echo "PASS: ERDL SDK not importable — clean-room confirmed"
+
+      # ═══ Step 1: Install JCS library only (not ERDL SDK) ═══
+      - name: Install dependencies
+        run: npm install
+
+      # ═══ Step 2: Self-built JCS+SHA-256 Verification ═══
+      - name: Verify v1.3 vectors (Five-Step JCS+SHA-256)
+        run: node scripts/verify.js decision-object-vectors-v1.3.json
+
+      # ═══ Step 3: Generate CONFORMANCE.md ═══
+      - name: Generate CONFORMANCE.md
+        run: node scripts/verify.js decision-object-vectors-v1.3.json --ci
+
+      # ═══ Step 4: Commit CONFORMANCE.md if changed ═══
+      - name: Commit CONFORMANCE.md (if changed)
+        run: |
+          if ! git diff --exit-code conformance/CONFORMANCE.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add conformance/CONFORMANCE.md
+            git commit -m "ci: update CONFORMANCE.md [skip ci]"
+            git push
+          fi
+
+      # ═══ Step 5: Cross-verify runner submissions ═══
+      - name: Cross-verify runner submissions
+        if: hashFiles('submissions/*.json') != ''
+        run: |
+          for f in submissions/*.json; do
+            [ -f "$f" ] || continue
+            echo "Checking: $f"
+            node scripts/verify.js decision-object-vectors-v1.3.json "$f"
+          done

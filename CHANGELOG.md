@@ -2,6 +2,20 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
+## v1.3.2 (2026-08-05)
+
+### CI/CD — Clean-Room Verification Architecture
+- **Clean-Room Workflow**: New `.github/workflows/clean-room-verify.yml` — SDK absence check at startup (hard fail if `@openoba-ai/erdl-mcp` is importable), self-built JCS+SHA-256 verification, auto-generated CONFORMANCE.md
+- **CONFORMANCE.md**: New `conformance/CONFORMANCE.md` — auto-generated per-run verification report (63/63 DO + 12/12 AV)
+- **IMPLEMENTATIONS.md**: New cross-implementation registry — measurements-only, no endorsement. Concordia 13/13 (Erik Newton) + OpenOBA Clean-Room 101/101
+- **conformance/README.md**: Documentation for the conformance artifact pipeline
+- **Erik Newton contribution**: generated-artifact pattern + clean-room sequencing adopted as CI architecture foundation
+
+### Documentation
+- README.md: Added Clean-Room Verification section; repository structure updated with conformance/ and IMPLEMENTATIONS.md
+- Erik Newton acknowledgment expanded to include CI/CD architecture contribution
+- All references to AV count unified to 13 (AV-001–AV-012 + AV-013)
+
 ## v1.3.1 (2026-08-02)
 
 ### Vector Data Fixes (7 vectors)
