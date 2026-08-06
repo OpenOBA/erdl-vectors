@@ -2,7 +2,7 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **Version**: v1.3.1 · 2026-07-29  
+> **Version**: v1.3.3 · 2026-08-06  
 > **Status**: Released  
 > **Maintainer**: OpenOBA (https://openoba.com)  
 > **License**: MIT
@@ -25,7 +25,7 @@ We are deeply grateful for their contributions, which transformed a specificatio
 
 This repository contains the authoritative set of **101 cross-implementation test vectors** for the ERDL (Entity-Rule Definition Language) Decision Object v1.3 protocol. Each vector is a complete, self-verifiable Decision Object — the standardized, tamper-evident audit format for AI Agent rule evaluation decisions.
 
-> **v1.3.1**: `canonical_hex` fully removed from the vector file. AV vectors now carry `diag_hash` (first 14 chars of `audit.hash`) as a one-way SHA-256 debug anchor — it cannot be used to bypass JCS implementation. See [CHANGELOG.md](CHANGELOG.md).
+> **v1.3.3**: Dual verification (Erik Newton feedback) — the clean-room verifier now runs two independent checks: Check 1 (audit.hash self-consistency, five-step JCS+SHA-256) and Check 2 (answers file cross-comparison, independent oracle). A runner must pass **both** checks to be considered verified. AV-013 canary correctly discriminates under dual verification: Check 1 MISMATCH + Check 2 MATCH. See [CHANGELOG.md](CHANGELOG.md).
 
 ### Core Guarantees
 
@@ -42,7 +42,7 @@ This repository contains the authoritative set of **101 cross-implementation tes
 ```
 $ node scripts/generate-vectors.cjs
 $ sha256sum decision-object-vectors-v1.3.json
-24b88b81f96663f7624d31388de72699bdf7f29496752cb4efc539fc17a1b678  # v1.3.1 vector set (current)
+24b88b81f96663f7624d31388de72699bdf7f29496752cb4efc539fc17a1b678  # v1.3.3 vector set (current)
 
 $ node scripts/generate-vectors.cjs  # regenerate (v1.3 format — for legacy verification)
 $ sha256sum decision-object-vectors-v1.2.json
@@ -53,7 +53,7 @@ No `Date.now()`, no `crypto.randomBytes()`. Frozen timestamp (`2026-07-29T00:00:
 
 ## Quick Start
 
-### Verify an existing vectors file
+### Check 1: Audit Hash Self-Consistency
 
 ```bash
 npm install
@@ -63,17 +63,32 @@ node scripts/verify.js path/to/vectors.json
 
 Expected: `ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-013 CHAIN CANARY DETECTED`
 
+### Check 2: Answers File Cross-Comparison (Dual Verification)
+
+```bash
+node scripts/verify.js --answers decision-object-answers-v1.3.json
+```
+
+Expected: `DUAL VERIFICATION PASSED · Check 1 ✓ + Check 2 ✓ + AV-013 canary active`
+
+### CI Mode (Generate CONFORMANCE.md)
+
+```bash
+node scripts/verify.js --answers decision-object-answers-v1.3.json --ci
+```
+
 ### Clean-Room Verification (CI)
 
 ```bash
 # CI auto-runs (.github/workflows/clean-room-verify.yml):
 # Step 0: Assert ERDL SDK NOT importable (hard fail)
 # Step 1: npm install (json-canonicalize only, no ERDL SDK)
-# Step 2: node scripts/verify.js (self-built JCS + SHA-256)
-# Step 3: Output → conformance/CONFORMANCE.md
+# Step 2: Check 1 — Audit hash self-consistency (self-built JCS + SHA-256)
+# Step 3: Check 2 — Answers file cross-comparison (independent oracle)
+# Step 4: Dual verification → conformance/CONFORMANCE.md
 ```
 
-The clean-room verifier uses only Node.js built-in `crypto` and self-built JCS (RFC 8785). Zero ERDL SDK dependency. CONFORMANCE.md is auto-generated and checked in on every CI run.
+The clean-room verifier uses only Node.js built-in `crypto` and self-built JCS (RFC 8785). Zero ERDL SDK dependency. Dual verification ensures a runner must pass both independent checks — the July lesson was that a runner could pass one while never checking the other. CONFORMANCE.md is auto-generated and checked in on every CI run.
 
 ### Generate vectors from scratch (maintainer use)
 
