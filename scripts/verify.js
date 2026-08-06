@@ -167,7 +167,6 @@ function verifyDO(vectorId, decisionObject) {
 
   // Step 3: JCS Serialize
   const canonicalFull = jcsCanonicalize(clone);
-  const canonicalHex = Buffer.from(canonicalFull, 'utf8').toString('hex');
 
   // Step 4: SHA-256
   const computedHash = 'sha256:' + sha256(canonicalFull);
@@ -177,7 +176,6 @@ function verifyDO(vectorId, decisionObject) {
 
   return {
     passed: computedHash === storedHash,
-    canonical_hex: canonicalHex,
     computedHash,
     storedHash
   };
@@ -665,6 +663,9 @@ function generateConformance(c1Ok, c2Ok, answersData, doPasses, doTotal, c1Passe
     content += '| Metric | Value |\n';
     content += '|--------|-------|\n';
     content += '| AV canonical bytes vs answers file     | ' + c2AVmatches + ' / ' + avTotal + ' MATCH |\n';
+    if (c2AVmismatches > 0) {
+      content += '| AV MISMATCHES                           | ' + c2AVmismatches + ' |\n';
+    }
     content += '| AV-013 Check 2                          | MATCH ✓ (canary correctly discriminates) |\n';
     content += '| Check 2 Result                          | **' + (c2Ok ? 'PASS' : 'FAIL') + '** |\n\n';
   }

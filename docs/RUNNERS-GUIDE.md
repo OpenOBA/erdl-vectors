@@ -348,22 +348,36 @@ If your runner reports all 12 audit vectors as MATCH, your five-step verificatio
 
 The vector set uses `'2026-07-28T00:00:00.000Z'`. Your engine should use ISO 8601 with milliseconds and `Z` suffix.
 
-## 8. Answers File and Diagnostic Anchor (v1.3.1)
+## 8. Answers File and Diagnostic Anchor (v1.3.1→v1.3.3)
 
-v1.3.1 removes ALL `canonical_hex` fields from the vector file. AV vectors now carry `diag_hash` (first 14 characters of `audit.hash`, i.e. `"sha256:"` + 8 hex digits) as a one-way SHA-256 debug anchor. Full canonical_hex answers were previously in a separate answers file. Since v1.3.1, the answers file has been withdrawn from the repository per E1-E3 principles — runners MUST implement their own JCS canonicalizer.
+v1.3.1 removes ALL `canonical_hex` fields from the vector file. AV vectors now carry `diag_hash` (first 14 characters of `audit.hash`, i.e. `"sha256:"` + 8 hex digits) as a one-way SHA-256 debug anchor.
+
+### Dual Verification (v1.3.3, Erik Newton feedback)
+
+The clean-room verifier now runs **two independent checks**:
+
+| Check | What it verifies | Catches |
+|-------|-----------------|---------|
+| **Check 1** | audit.hash self-consistency (JCS+SHA-256 recomputation) | Hash forgery, incorrect JCS preimage |
+| **Check 2** | Answers file cross-comparison (canonical bytes vs independent oracle) | Incorrect canonical output despite correct hash |
+
+The July lesson was that a runner can pass one check while never checking the other. Dual verification ensures both dimensions are covered.
+
+### Answers file role
+
+The answers file stores the correct JCS canonical hex for every DO and AV vector. It is used only by the clean-room CI workflow (`--answers` flag) as an independent oracle for Check 2. Third-party runners MUST implement their own JCS canonicalizer — they should NOT read the answers file for verification.
 
 ### What this means for runners
 
 - The vector file contains ZERO canonical bytes — **no JCS output is exposed**
 - `diag_hash` is an SHA-256 prefix — **cannot** be inverted to recover JCS output
 - `diag_hash` helps debug: "my result starts with `x`, the answer starts with `y`"
-- The answers file (withdrawn in v1.3.1) was for development diagnostics only
-- Conformance runners MUST NOT read the answers file — they MUST implement their own JCS
-- CI/CD compliance pipelines should make the answers file inaccessible to the verifier
+- Conformance runners MUST implement their own JCS canonicalizer
+- The clean-room CI runs dual verification (Check 1 + Check 2) on every push
 
-### Why this change
+### Why these changes
 
-v1.2's `canonical_hex` in the vector file was a structural vulnerability — a runner could SHA-256 the pre-computed canonical bytes without implementing JCS and falsely pass verification. v1.3 moved `canonical_hex` to a separate file; v1.3.1 removes it entirely from the vector file, replacing it with a one-way hash prefix that cannot be used for verification.
+v1.2's `canonical_hex` in the vector file was a structural vulnerability — a runner could SHA-256 the pre-computed canonical bytes without implementing JCS and falsely pass verification. v1.3 moved `canonical_hex` to a separate file. v1.3.1 removed it entirely from the vector file. v1.3.3 added dual verification — the clean-room now cross-checks against the answers file as an independent oracle, so a runner that passes Check 1 but produces incorrect canonical bytes is caught.
 
 ## 9. Language-Specific JCS Notes
 
