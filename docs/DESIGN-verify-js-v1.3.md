@@ -2,9 +2,9 @@
 
 > Copyright (c) 2026 Tang Qixin. All rights reserved.
 
-> Version: 1.3 · 2026-07-29
+> Version: 1.3.3 · 2026-08-06
 > Status: Released
-> Goal: Cross-language, cross-implementation, zero-dependency DO verifier supporting L1/L2/L3 compatibility
+> Goal: Cross-language, cross-implementation, zero-dependency DO verifier with dual verification (Check 1 audit.hash + Check 2 answers file)
 
 ---
 
@@ -14,6 +14,7 @@
 |------|-------------|
 | **Zero-dependency** | Uses only Node.js built-in modules (`crypto`, `fs`, `path`) |
 | **Single file** | `scripts/verify.js` — copy to any Node.js environment and run |
+| **Dual verification** | Check 1: audit.hash self-consistency + Check 2: answers file cross-comparison |
 | **Three-level compatibility** | L1 Basic (28) / L2 Verified (45) / L3 Full (101) |
 | **Portable** | Pure algorithm implementation, translatable to Python/Go/Rust |
 | **Self-documenting** | Code serves as living documentation of verification logic |
@@ -40,59 +41,68 @@ Optional fields with `null`, `undefined`, or `[]` must be physically deleted (`d
 ## 3. CLI Interface
 
 ```
-Usage: node scripts/verify.js [path/to/vectors.json]
+Usage: node scripts/verify.js [path/to/vectors.json] [--answers <path>] [--ci]
 
-The verifier accepts a single positional argument — the path to the vector set JSON.
-Defaults to `./decision-object-vectors-v1.3.json`.
+Arguments:
+  path/to/vectors.json    Vector set JSON (default: ./decision-object-vectors-v1.3.json)
+  --answers <path>        Answers file for Check 2 cross-comparison (independent oracle)
+  --ci                    CI mode: generate conformance/CONFORMANCE.md
+
+Modes:
+  Single (no --answers):  Check 1 only — audit.hash self-consistency
+  Dual (with --answers):  Check 1 + Check 2 — dual verification
+  CI (with --ci):         Full dual verification + CONFORMANCE.md generation
 
 Examples:
   node verify.js
   node verify.js decision-object-vectors-v1.3.json
-  node verify.js path/to/custom-vectors.json
+  node verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json
+  node verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json --ci
 ```
 
 ## 4. Verification Logic
 
+### 4.1 Check 1: Audit Hash Self-Consistency
+
+Five-step JCS (RFC 8785) + SHA-256 verification per RFC 001 §13.3:
+1. Deep clone decision_object
+2. Delete audit.hash / signature / signing_key_id (keep audit.previous_hash + audit.commitment)
+3. JCS serialize remaining fields
+4. SHA-256 hash
+5. Compare with stored audit.hash
+
+### 4.2 Check 2: Answers File Cross-Comparison (Erik Newton, 2026-08-06)
+
+Independent oracle verification: recomputed canonical bytes are compared against the pre-generated answers file. This catches runners that pass Check 1 but produce incorrect canonical bytes, and vice versa.
+
+The July lesson: a runner can pass one check while never checking the other. A runner must pass **both** checks to be considered verified.
+
 ```javascript
-function verifyAuditVector(av) {
-  // 1. Deep clone
-  const clone = JSON.parse(JSON.stringify(av.decision_object));
-
-  // 2. Extract claimed hash
-  const claimedHash = clone.audit.hash;
-
-  // 3. Delete self-referencing/signature fields
-  //    (only audit.hash — keep previous_hash and commitment)
-  delete clone.audit.hash;
-  delete clone.signature;
-  delete clone.signing_key_id;
-
-  // 4. JCS (CORE + JURISDICTION + EXTENSIONS + audit.previous_hash + audit.commitment)
-  const canonicalStr = jcsCanonicalize(clone);
-
-  // 5. SHA-256
-  const recomputedHash = 'sha256:' + sha256(canonicalStr);
-
-  // 6. Compare — only audit.hash, no canonical_hex
-  return {
-    audit_hash_match: recomputedHash === claimedHash,
-    status: recomputedHash === claimedHash ? 'PASS' : 'FAIL'
-  };
+function verifyAgainstAnswers(vectorsData, answersData) {
+  // For each DO and AV vector:
+  //   1. Compute JCS canonical hex via computeCanonicalHex()
+  //   2. Compare against answers file's stored hex
+  //   3. Report MATCH / MISMATCH / SKIP
 }
 ```
 
-> **v1.3.1**: `canonical_hex` comparison removed from verification logic. The vector file carries `diag_hash` (audit.hash prefix) for debug anchoring only. Full canonical_hex answers remain in the separate answers file for development diagnostics.
+### 4.3 AV-013 Special Handling
 
-### AV-013 Special Handling
+AV-013 is the chain position tampering canary. Its `audit.previous_hash` in the DO body is tampered to `sha256:ffff...` (pointing outside the chain). The stored `audit.hash` is the digest a regressed runner (deleting the entire `audit` object, excluding `previous_hash` from the JCS preimage) would compute.
 
-AV-013 is the chain position tampering canary using the AV-013 pattern (superseded AV-008 in v1.3.1). Its `audit.previous_hash` in the DO body is tampered to `sha256:ffff...` (pointing outside the chain). The stored `audit.hash` is the digest a regressed runner (deleting the entire `audit` object, excluding `previous_hash` from the JCS preimage) would compute.
-
-- **Correct implementation** (only delete audit.hash, includes previous_hash): detects MISMATCH ✓
-- **Regressed implementation** (delete entire audit, no previous_hash in JCS): falsely reports MATCH — **canary catches this** ✓
+- **Check 1**: Correct runner → MISMATCH (detects tampered previous_hash) ✓
+- **Check 2**: Correct runner → MATCH (canonical bytes match answers file) ✓
+- **Dual conclusion**: Check 1 MISMATCH + Check 2 MATCH → canary correctly discriminates
 
 Verifiers MUST NOT special-case AV-013 by hardcoded ID.
 
-## 5. Portability Design
+## 5. Shared Functions
+
+### computeCanonicalHex()
+
+Extracted from Check 1 (verifyDO) and Check 2 (verifyAgainstAnswers) to avoid code duplication. Computes JCS canonical hex for a decision_object by deleting audit.hash, signature, and signing_key_id before serialization.
+
+## 6. Portability Design
 
 `verify.js` follows **Literal Translation** principles:
 
@@ -101,48 +111,50 @@ Verifiers MUST NOT special-case AV-013 by hardcoded ID.
 3. `sha256()` maps to `crypto.createHash('sha256')` (Node) / `hashlib.sha256()` (Python)
 4. No Node-specific API patterns (Stream/Buffer advanced features)
 
-## 6. Error Handling
+## 7. Error Handling
 
 | Scenario | Behavior |
 |----------|----------|
 | Vector file missing | Exit code 1: `ERROR: Vector file not found` |
-| Invalid format (missing audit_vectors) | Exit code 2: `ERROR: Invalid vector format` |
+| Answers file missing (with --answers) | Exit code 1 |
+| Vector/answers file > 100MB | Exit code 1: DoS protection |
+| Invalid format (missing audit_vectors) | Exit code 1: `ERROR: Invalid vector format` |
 | AV-013 expected MISMATCH | Status `EXPECTED_MISMATCH`, not counted as failure |
-| Extensions verification | Participates directly in JCS, no separate verification |
-| canonical_hex comparison | Removed in v1.3.1 — diag_hash available for debug anchoring only |
-| NaN/Infinity in JCS | Exit code 3: `INVALID: NaN/Infinity in JCS input` |
+| Dual verification failure | Exit code 1 with detailed Check 1/Check 2 status |
+| NaN/Infinity in JCS | Process exit: `JCS: NaN/Infinity not allowed` |
 
-## 7. Exit Codes
+## 8. Exit Codes
 
 | Code | Meaning |
 |:---:|---------|
-| 0 | All PASS (including AV-013 expected failure) |
-| 1 | File I/O error |
-| 2 | Invalid vector format |
-| 3 | JCS input violation (NaN/Infinity) |
-| 4 | Genuine FAIL (not expected failure) |
+| 0 | All PASS (including AV-013 expected failure, dual verification both passing) |
+| 1 | File I/O error, format error, or verification failure |
 
-## 8. Test Strategy
+## 9. Test Strategy
 
 ```bash
-# Smoke test
-node scripts/verify.js --vectors=decision-object-vectors-v1.3.json
+# Check 1 only (backward compatible)
+node scripts/verify.js decision-object-vectors-v1.3.json
 # Expected: ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-013 CHAIN CANARY DETECTED
 
-# Cross-implementation
-node scripts/verify.js > node-result.txt
-python3 scripts/verify.py > python-result.txt
-diff node-result.txt python-result.txt  # should be empty
+# Dual verification
+node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json
+# Expected: DUAL VERIFICATION PASSED · Check 1 ✓ + Check 2 ✓ + AV-013 canary active
+
+# CI mode
+node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json --ci
+# Expected: DUAL VERIFICATION PASSED + CONFORMANCE.md generated
 ```
 
 ---
 
 > "Neutrality is tested, not declared."
 
-## Verification Results (2026-07-29)
+## Verification Results (2026-08-06)
 
 ```
-verify.js:   63/63 DO audit.hash self-consistent
-verify.js:   11/11 AV MATCH + AV-013 EXPECTED_MISMATCH
-vitest:      152/152 passed (66 generator + 86 verifier)
+verify.js (Check 1):  63/63 DO audit.hash self-consistent
+verify.js (Check 1):  11/11 AV MATCH + AV-013 EXPECTED_MISMATCH
+verify.js (Check 2):  63/63 DO + 12/12 AV MATCH (answers file cross-check)
+verify.js (Dual):     ✅ DUAL VERIFICATION PASSED
 ```

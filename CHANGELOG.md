@@ -2,6 +2,32 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
+## v1.3.3 (2026-08-06)
+
+### Dual Verification (Erik Newton Feedback)
+- **Check 2: Answers File Cross-Comparison**: New `--answers <path>` CLI flag adds an independent oracle check — recomputed canonical bytes are compared against the pre-generated answers file
+- **Dual gate**: A runner must pass BOTH Check 1 (audit.hash self-consistency) AND Check 2 (answers file cross-check) to be considered verified
+- **AV-013 behavior confirmed**: Check 1 MISMATCH (correct runner detects tampered hash) + Check 2 MATCH (canonical bytes match oracle) → canary correctly discriminates in dual mode
+
+### Code Quality
+- `computeCanonicalHex()` shared function extracted from DO and AV loops (DRY)
+- `verifyDO()` cleaned: unused `canonical_hex` return value and dead `canonicalHex` local variable removed
+- `generateConformance()`: AV-013 count now dynamic (not hardcoded `-1`); MISMATCH count included in CONFORMANCE.md when non-zero
+- Answers file DoS protection: 100MB size limit added
+
+### CI/CD
+- `clean-room-verify.yml`: New Step 3 (Check 2 — Answers File Cross-Comparison) + Step 4 (dual-verification CI generation)
+- `CONFORMANCE.md`: Now reports dual verification results (Check 1 + Check 2 + AV-013 status)
+
+### Documentation
+- `DESIGN-verify-js-v1.3.md`: Updated to v1.3.3 — CLI interface, dual verification, shared functions, exit codes
+- `RUNNERS-GUIDE.md` §8: Rewritten — answers file role clarified, dual verification explained, v1.3.1−v1.3.3 evolution documented
+
+### Verification
+- ✅ Check 1: 63/63 DO + 11/11 AV MATCH + AV-013 MISMATCH
+- ✅ Check 2: 63/63 DO + 12/12 AV MATCH (answers file cross-check)
+- ✅ Dual: PASSED
+
 ## v1.3.2 (2026-08-05)
 
 ### CI/CD — Clean-Room Verification Architecture
