@@ -18,43 +18,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ═══ Step 0: Clean-room — assert ERDL SDK is NOT importable ═══
-      - name: Clean-Room Check (SDK absence)
+      # ══�?Step 0: Clean-room �?assert ERDL SDK is NOT importable ══�?      - name: Clean-Room Check (SDK absence)
         run: |
           if npm list @openoba-ai/erdl-mcp 2>/dev/null | grep -q "@openoba-ai/erdl-mcp"; then
-            echo "FAIL: ERDL SDK is importable — clean-room violation"
+            echo "FAIL: ERDL SDK is importable �?clean-room violation"
             exit 1
           fi
           if node -e "require('@openoba-ai/erdl-mcp')" 2>/dev/null; then
-            echo "FAIL: ERDL SDK resolved at runtime — clean-room violation"
+            echo "FAIL: ERDL SDK resolved at runtime �?clean-room violation"
             exit 1
           fi
-          echo "PASS: ERDL SDK not importable — clean-room confirmed"
+          echo "PASS: ERDL SDK not importable �?clean-room confirmed"
 
-      # ═══ Step 1: Install JCS library only (not ERDL SDK) ═══
-      - name: Install dependencies
+      # ══�?Step 1: Install JCS library only (not ERDL SDK) ══�?      - name: Install dependencies
         run: npm install
 
-      # ═══ Step 2: Check 1 — Audit Hash Self-Consistency (Five-Step JCS+SHA-256) ═══
-      - name: Check 1 — Audit Hash Self-Consistency
+      # ══�?Step 2: Check 1 �?Audit Hash Self-Consistency (Five-Step JCS+SHA-256) ══�?      - name: Check 1 �?Audit Hash Self-Consistency
         run: node scripts/verify.js decision-object-vectors-v1.3.json
 
-      # ═══ Step 3: Check 2 — Answers File Cross-Comparison (independent oracle) ═══
-      # Compares recomputed canonical bytes against the pre-generated answers file.
+      # ══�?Step 3: Check 2 �?Answers File Cross-Comparison (independent oracle) ══�?      # Compares recomputed canonical bytes against the pre-generated answers file.
       # Catches runners that pass Check 1 but produce incorrect canonical bytes.
       # The answers file is local-only (never committed). If absent, skips gracefully.
       # AV-013: Check 2 SHOULD MATCH (correct runner's canonical bytes match answers file)
-      #   while Check 1 MISMATCHES (stored hash is the regressed one) — canary correctly discriminates.
-      - name: Check 2 — Answers File Cross-Comparison
+      #   while Check 1 MISMATCHES (stored hash is the regressed one) �?canary correctly discriminates.
+      - name: Check 2 �?Answers File Cross-Comparison
         run: |
           if [ -f decision-object-answers-v1.3.json ]; then
             node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json
           else
-            echo "⚠️  Answers file not found — skipping Check 2 (answers file is local-only, never committed)"
+            echo "⚠️  Answers file not found �?skipping Check 2 (answers file is local-only, never committed)"
           fi
 
-      # ═══ Step 4: Generate CONFORMANCE.md ═══
-      - name: Generate CONFORMANCE.md
+      # ══�?Step 4: Generate CONFORMANCE.md ══�?      - name: Generate CONFORMANCE.md
         run: |
           if [ -f decision-object-answers-v1.3.json ]; then
             node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json --ci
@@ -62,19 +57,17 @@ jobs:
             node scripts/verify.js decision-object-vectors-v1.3.json --ci
           fi
 
-      # ═══ Step 5: Commit CONFORMANCE.md if changed ═══
-      - name: Commit CONFORMANCE.md (if changed)
+      # ══�?Step 5: Commit CONFORMANCE.md if changed ══�?      - name: Commit CONFORMANCE.md (if changed)
         run: |
           if ! git diff --exit-code conformance/CONFORMANCE.md; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add conformance/CONFORMANCE.md
             git commit -m "ci: update CONFORMANCE.md (dual verification) [skip ci]"
-            git push
+            git push || echo 'WARNING: git push failed - non-blocking'
           fi
 
-      # ═══ Step 6: Cross-verify runner submissions ═══
-      - name: Cross-verify runner submissions
+      # ══�?Step 6: Cross-verify runner submissions ══�?      - name: Cross-verify runner submissions
         if: hashFiles('submissions/*.json') != ''
         run: |
           for f in submissions/*.json; do
