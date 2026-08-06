@@ -2,7 +2,7 @@
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
 
-> **版本**：v1.3.1 · 2026-08-02  
+> **版本**：v1.3.3 · 2026-08-06  
 > **状态**：已发布  
 > **维护方**：OpenOBA (https://openoba.com)  
 > **许可**：MIT
@@ -23,7 +23,7 @@ ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追�
 
 ## 概述
 
-> **v1.3.1 关键变更**：audit 对象现包含 `hash` + `previous_hash` + `commitment` 三字段。`canonical_hex` 从向量文件完全移除，替换为 `diag_hash`（audit.hash 前 14 字符 SHA-256 前缀），仅用于调试锚定——无法用于绕过 JCS 实现。AV-013 (superseded AV-008) 被 AV-013 替代——链位置篡改金丝雀。见 [CHANGELOG.md](CHANGELOG.md)。
+> **v1.3.3 关键变更**：双重验证（Erik Newton 反馈）——clean-room 验证器现同时运行两道独立检查：Check 1（audit.hash 自洽性，五步 JCS+SHA-256）和 Check 2（答案文件交叉比对，独立预言机）。Runner 必须通过**两道**检查才算验证通过。AV-013 金丝雀在双重验证中正确鉴别：Check 1 MISMATCH + Check 2 MATCH。见 [CHANGELOG.md](CHANGELOG.md)。
 本仓库包含 ERDL（Entity-Rule Definition Language）Decision Object v1.3 协议的标准**101 条跨实现测试向量**。每条向量是一个完整的、可自验证的 Decision Object——AI Agent 规则评估决策的标准化、防篡改审计格式。
 
 ### 核心保证
@@ -54,7 +54,7 @@ $ sha256sum decision-object-vectors-v1.3.json
 
 ## 快速开始
 
-### 验证现有向量文件
+### Check 1: 审计哈希自洽性
 
 ```bash
 npm install
@@ -62,7 +62,21 @@ node scripts/verify.js                    # 默认：./decision-object-vectors-v
 node scripts/verify.js path/to/vectors.json
 ```
 
-预期输出：`ALL VERIFICATIONS PASSED · 11/11 MATCH + CHAIN CANARY DETECTED`
+预期输出：`ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-013 CHAIN CANARY DETECTED`
+
+### Check 2: 答案文件交叉比对（双重验证）
+
+```bash
+node scripts/verify.js --answers decision-object-answers-v1.3.json
+```
+
+预期输出：`DUAL VERIFICATION PASSED · Check 1 ✓ + Check 2 ✓ + AV-013 canary active`
+
+### CI 模式（生成 CONFORMANCE.md）
+
+```bash
+node scripts/verify.js --answers decision-object-answers-v1.3.json --ci
+```
 
 ### Clean-Room Verification (CI)
 
@@ -70,11 +84,12 @@ node scripts/verify.js path/to/vectors.json
 # CI 自动运行（.github/workflows/clean-room-verify.yml）：
 # Step 0: 断言 ERDL SDK 不可 import（硬失败）
 # Step 1: npm install（仅 json-canonicalize，不含 ERDL SDK）
-# Step 2: node scripts/verify.js（自建 JCS + SHA-256）
-# Step 3: 输出 → conformance/CONFORMANCE.md
+# Step 2: Check 1 — 审计哈希自洽性（自建 JCS + SHA-256）
+# Step 3: Check 2 — 答案文件交叉比对（独立预言机）
+# Step 4: 双重验证 → conformance/CONFORMANCE.md
 ```
 
-洁净室验证器仅使用 Node.js 内建 `crypto` 模块和自我实现的 JCS（RFC 8785）。不依赖任何 ERDL SDK。每次 CI 运行自动生成 `conformance/CONFORMANCE.md` 并 check-in。
+洁净室验证器仅使用 Node.js 内建 `crypto` 模块和自我实现的 JCS（RFC 8785）。不依赖任何 ERDL SDK。双重验证确保 runner 必须通过两道独立检查——七月教训：runner 可以通过一道而从未检查另一道。每次 CI 运行自动生成 `conformance/CONFORMANCE.md` 并 check-in。
 
 ### 从零生成向量（维护者使用）
 
