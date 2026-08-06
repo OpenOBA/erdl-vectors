@@ -184,6 +184,24 @@ function verifyDO(vectorId, decisionObject) {
 }
 
 // ═══════════════════════════════════════════════════
+//  Shared: Canonical Hex Computation
+// ═══════════════════════════════════════════════════
+
+/**
+ * Compute JCS canonical hex for a decision_object (same preimage as Check 1).
+ * Deletes audit.hash, signature, signing_key_id before JCS serialization.
+ * Used by both Check 1 (via verifyDO) and Check 2 (via verifyAgainstAnswers).
+ */
+function computeCanonicalHex(decisionObject) {
+  const clone = JSON.parse(JSON.stringify(decisionObject));
+  delete clone.audit.hash;
+  delete clone.signature;
+  delete clone.signing_key_id;
+  delete clone.extensions_validation;
+  return Buffer.from(jcsCanonicalize(clone), 'utf8').toString('hex');
+}
+
+// ═══════════════════════════════════════════════════
 //  Answers File Cross-Comparison (Check 2)
 // ═══════════════════════════════════════════════════
 
@@ -210,19 +228,13 @@ function verifyAgainstAnswers(vectorsData, answersData) {
       results.push({ id, type: 'DO', check2: 'SKIP', note: 'not in answers file' });
       continue;
     }
-
-    const clone = JSON.parse(JSON.stringify(vec.decision_object));
-    delete clone.audit.hash;
-    delete clone.signature;
-    delete clone.signing_key_id;
-    delete clone.extensions_validation;
-    const canonicalHex = Buffer.from(jcsCanonicalize(clone), 'utf8').toString('hex');
-
-    if (canonicalHex === answerHex) {
-      results.push({ id, type: 'DO', check2: 'MATCH', canonicalHex });
-    } else {
-      results.push({ id, type: 'DO', check2: 'MISMATCH', canonicalHex, answerHex });
-    }
+    const canonicalHex = computeCanonicalHex(vec.decision_object);
+    results.push({
+      id, type: 'DO',
+      check2: canonicalHex === answerHex ? 'MATCH' : 'MISMATCH',
+      canonicalHex,
+      answerHex: canonicalHex === answerHex ? undefined : answerHex
+    });
   }
 
   // Verify AVs
@@ -233,19 +245,13 @@ function verifyAgainstAnswers(vectorsData, answersData) {
       results.push({ id, type: 'AV', check2: 'SKIP', note: 'not in answers file' });
       continue;
     }
-
-    const clone = JSON.parse(JSON.stringify(avVec.decision_object));
-    delete clone.audit.hash;
-    delete clone.signature;
-    delete clone.signing_key_id;
-    delete clone.extensions_validation;
-    const canonicalHex = Buffer.from(jcsCanonicalize(clone), 'utf8').toString('hex');
-
-    if (canonicalHex === answerHex) {
-      results.push({ id, type: 'AV', check2: 'MATCH', canonicalHex });
-    } else {
-      results.push({ id, type: 'AV', check2: 'MISMATCH', canonicalHex, answerHex });
-    }
+    const canonicalHex = computeCanonicalHex(avVec.decision_object);
+    results.push({
+      id, type: 'AV',
+      check2: canonicalHex === answerHex ? 'MATCH' : 'MISMATCH',
+      canonicalHex,
+      answerHex: canonicalHex === answerHex ? undefined : answerHex
+    });
   }
 
   return results;
@@ -308,6 +314,10 @@ function main() {
       process.exit(1);
     }
     const answersRaw = fs.readFileSync(answersPath, 'utf8');
+    if (answersRaw.length > 100 * 1024 * 1024) {  // 100MB answers file limit
+      console.error('ERROR: Answers file exceeds 100MB limit');
+      process.exit(1);
+    }
     answersData = JSON.parse(answersRaw);
     if (!answersData.answers || typeof answersData.answers !== 'object') {
       console.error('ERROR: Answers file missing "answers" object');
@@ -346,10 +356,10 @@ function main() {
   const jcsOutput = jcsCanonicalize(testObj);
   const expectedJcs = '{"a":1,"b":2,"c":[3,null,"hello"],"d":{"arr":[],"nested":true}}';
 
-  // Sanitize testObj to remove null fields for Omit over Null test
+  // Omit over Null test
   const testObjOmitNull = { b: 2, a: 1, x: null, y: undefined, c: [3, null, 'hello'] };
-  // Manual sanitize: remove undefined/null
-  function sanitizeNulls(obj) {
+  // Strip undefined/null keys before JCS (simulating pre-call sanitization)
+  function stripNulls(obj) {
     if (Array.isArray(obj)) return obj.map(v => (v === undefined || v === null) ? null : v);
     const result = {};
     for (const k of Object.keys(obj).sort()) {
@@ -359,7 +369,7 @@ function main() {
     }
     return result;
   }
-  const cleaned = sanitizeNulls(testObjOmitNull);
+  const cleaned = stripNulls(testObjOmitNull);
   const jcsOmitNull = jcsCanonicalize(cleaned);
   const expectedOmitNull = '{"a":1,"b":2,"c":[3,null,"hello"]}';
 
@@ -434,8 +444,6 @@ function main() {
   let c1Passes = 0;
   let c1Mismatches = 0;
   let c1Errors = 0;
-  const c1Results = [];
-
   for (const avVec of av) {
     const id = avVec.id;
     const result = verifyDO(id, avVec.decision_object);
@@ -466,7 +474,6 @@ function main() {
       }
     }
 
-    c1Results.push({ id, status, result });
     console.log('    ' + status.padEnd(50) + ' | ' + id + ' ← ' + avVec.vector_ref);
   }
 
@@ -621,7 +628,7 @@ function main() {
 
   // ── CI Mode: Generate CONFORMANCE.md ──
   if (ciMode) {
-    generateConformance(c1Ok, c2Ok, answersData, doPasses, data.vectors.length, c1Passes, av.length, c2AVmatches, c2AVmismatches);
+    generateConformance(c1Ok, c2Ok, answersData, doPasses, data.vectors.length, c1Passes, c1Mismatches, av.length, c2AVmatches, c2AVmismatches);
   }
 
   process.exit(0);
@@ -631,9 +638,13 @@ function main() {
 //  CONFORMANCE.md Generator (CI mode)
 // ═══════════════════════════════════════════════════
 
-function generateConformance(c1Ok, c2Ok, answersData, doPasses, doTotal, c1Passes, avTotal, c2AVmatches, c2AVmismatches) {
+function generateConformance(c1Ok, c2Ok, answersData, doPasses, doTotal, c1Passes, c1Mismatches, avTotal, c2AVmatches, c2AVmismatches) {
   const now = new Date().toISOString();
   const dualAvailable = !!answersData;
+
+  // Dynamic: count AV-013 mismatch as the single expected canary mismatch
+  const av013MismatchCount = c1Mismatches; // AV-013 is the only expected mismatch
+  const otherAVmatchCount = c1Passes - av013MismatchCount; // AV passes minus canary "pass"
 
   let content = '# ERDL Decision Object v1.3 — CONFORMANCE.md\n\n';
   content += '> Auto-generated by clean-room verification CI\n';
@@ -645,7 +656,7 @@ function generateConformance(c1Ok, c2Ok, answersData, doPasses, doTotal, c1Passe
   content += '| Metric | Value |\n';
   content += '|--------|-------|\n';
   content += '| Static DOs (audit.hash self-consistent) | ' + doPasses + ' / ' + doTotal + ' |\n';
-  content += '| Audit Vectors (five-step JCS+SHA-256)   | ' + (c1Passes - 1) + ' / ' + (avTotal - 1) + ' MATCH |\n';
+  content += '| Audit Vectors (five-step JCS+SHA-256)   | ' + otherAVmatchCount + ' / ' + (avTotal - av013MismatchCount) + ' MATCH |\n';
   content += '| AV-013 (chain canary)                   | MISMATCH ✓ |\n';
   content += '| Check 1 Result                          | **' + (c1Ok ? 'PASS' : 'FAIL') + '** |\n\n';
 
