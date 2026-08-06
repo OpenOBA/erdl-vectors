@@ -18,38 +18,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ‚ïê‚ïê‚ï?Step 0: Clean-room ‚Ä?assert ERDL SDK is NOT importable ‚ïê‚ïê‚ï?      - name: Clean-Room Check (SDK absence)
+      - name: Clean-Room Check (SDK absence)
         run: |
           if npm list @openoba-ai/erdl-mcp 2>/dev/null | grep -q "@openoba-ai/erdl-mcp"; then
-            echo "FAIL: ERDL SDK is importable ‚Ä?clean-room violation"
+            echo "FAIL: ERDL SDK is importable"
             exit 1
           fi
           if node -e "require('@openoba-ai/erdl-mcp')" 2>/dev/null; then
-            echo "FAIL: ERDL SDK resolved at runtime ‚Ä?clean-room violation"
+            echo "FAIL: ERDL SDK resolved at runtime"
             exit 1
           fi
-          echo "PASS: ERDL SDK not importable ‚Ä?clean-room confirmed"
+          echo "PASS: ERDL SDK not importable"
 
-      # ‚ïê‚ïê‚ï?Step 1: Install JCS library only (not ERDL SDK) ‚ïê‚ïê‚ï?      - name: Install dependencies
+      - name: Install dependencies
         run: npm install
 
-      # ‚ïê‚ïê‚ï?Step 2: Check 1 ‚Ä?Audit Hash Self-Consistency (Five-Step JCS+SHA-256) ‚ïê‚ïê‚ï?      - name: Check 1 ‚Ä?Audit Hash Self-Consistency
+      - name: Check 1 - Audit Hash Self-Consistency
         run: node scripts/verify.js decision-object-vectors-v1.3.json
 
-      # ‚ïê‚ïê‚ï?Step 3: Check 2 ‚Ä?Answers File Cross-Comparison (independent oracle) ‚ïê‚ïê‚ï?      # Compares recomputed canonical bytes against the pre-generated answers file.
-      # Catches runners that pass Check 1 but produce incorrect canonical bytes.
-      # The answers file is local-only (never committed). If absent, skips gracefully.
-      # AV-013: Check 2 SHOULD MATCH (correct runner's canonical bytes match answers file)
-      #   while Check 1 MISMATCHES (stored hash is the regressed one) ‚Ä?canary correctly discriminates.
-      - name: Check 2 ‚Ä?Answers File Cross-Comparison
+      - name: Check 2 - Answers File Cross-Comparison
         run: |
           if [ -f decision-object-answers-v1.3.json ]; then
             node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json
           else
-            echo "‚ö†Ô∏è  Answers file not found ‚Ä?skipping Check 2 (answers file is local-only, never committed)"
+            echo "WARNING: Answers file not found - skipping Check 2 (local-only, never committed)"
           fi
 
-      # ‚ïê‚ïê‚ï?Step 4: Generate CONFORMANCE.md ‚ïê‚ïê‚ï?      - name: Generate CONFORMANCE.md
+      - name: Generate CONFORMANCE.md
         run: |
           if [ -f decision-object-answers-v1.3.json ]; then
             node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json --ci
@@ -57,17 +52,17 @@ jobs:
             node scripts/verify.js decision-object-vectors-v1.3.json --ci
           fi
 
-      # ‚ïê‚ïê‚ï?Step 5: Commit CONFORMANCE.md if changed ‚ïê‚ïê‚ï?      - name: Commit CONFORMANCE.md (if changed)
+      - name: Commit CONFORMANCE.md (if changed)
         run: |
           if ! git diff --exit-code conformance/CONFORMANCE.md; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add conformance/CONFORMANCE.md
-            git commit -m "ci: update CONFORMANCE.md (dual verification) [skip ci]"
-            git push || echo 'WARNING: git push failed - non-blocking'
+            git commit -m "ci: update CONFORMANCE.md [skip ci]"
+            git push || echo "WARNING: git push failed (non-blocking)"
           fi
 
-      # ‚ïê‚ïê‚ï?Step 6: Cross-verify runner submissions ‚ïê‚ïê‚ï?      - name: Cross-verify runner submissions
+      - name: Cross-verify runner submissions
         if: hashFiles('submissions/*.json') != ''
         run: |
           for f in submissions/*.json; do
