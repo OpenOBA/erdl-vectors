@@ -42,14 +42,25 @@ jobs:
       # ═══ Step 3: Check 2 — Answers File Cross-Comparison (independent oracle) ═══
       # Compares recomputed canonical bytes against the pre-generated answers file.
       # Catches runners that pass Check 1 but produce incorrect canonical bytes.
+      # The answers file is local-only (never committed). If absent, skips gracefully.
       # AV-013: Check 2 SHOULD MATCH (correct runner's canonical bytes match answers file)
       #   while Check 1 MISMATCHES (stored hash is the regressed one) — canary correctly discriminates.
       - name: Check 2 — Answers File Cross-Comparison
-        run: node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json
+        run: |
+          if [ -f decision-object-answers-v1.3.json ]; then
+            node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json
+          else
+            echo "⚠️  Answers file not found — skipping Check 2 (answers file is local-only, never committed)"
+          fi
 
-      # ═══ Step 4: Generate CONFORMANCE.md (dual-verification) ═══
-      - name: Generate CONFORMANCE.md (dual verification)
-        run: node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json --ci
+      # ═══ Step 4: Generate CONFORMANCE.md ═══
+      - name: Generate CONFORMANCE.md
+        run: |
+          if [ -f decision-object-answers-v1.3.json ]; then
+            node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json --ci
+          else
+            node scripts/verify.js decision-object-vectors-v1.3.json --ci
+          fi
 
       # ═══ Step 5: Commit CONFORMANCE.md if changed ═══
       - name: Commit CONFORMANCE.md (if changed)
