@@ -35,26 +35,34 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # ═══ Step 2: Self-built JCS+SHA-256 Verification ═══
-      - name: Verify v1.3 vectors (Five-Step JCS+SHA-256)
+      # ═══ Step 2: Check 1 — Audit Hash Self-Consistency (Five-Step JCS+SHA-256) ═══
+      - name: Check 1 — Audit Hash Self-Consistency
         run: node scripts/verify.js decision-object-vectors-v1.3.json
 
-      # ═══ Step 3: Generate CONFORMANCE.md ═══
-      - name: Generate CONFORMANCE.md
-        run: node scripts/verify.js decision-object-vectors-v1.3.json --ci
+      # ═══ Step 3: Check 2 — Answers File Cross-Comparison (independent oracle) ═══
+      # Compares recomputed canonical bytes against the pre-generated answers file.
+      # Catches runners that pass Check 1 but produce incorrect canonical bytes.
+      # AV-013: Check 2 SHOULD MATCH (correct runner's canonical bytes match answers file)
+      #   while Check 1 MISMATCHES (stored hash is the regressed one) — canary correctly discriminates.
+      - name: Check 2 — Answers File Cross-Comparison
+        run: node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json
 
-      # ═══ Step 4: Commit CONFORMANCE.md if changed ═══
+      # ═══ Step 4: Generate CONFORMANCE.md (dual-verification) ═══
+      - name: Generate CONFORMANCE.md (dual verification)
+        run: node scripts/verify.js decision-object-vectors-v1.3.json --answers decision-object-answers-v1.3.json --ci
+
+      # ═══ Step 5: Commit CONFORMANCE.md if changed ═══
       - name: Commit CONFORMANCE.md (if changed)
         run: |
           if ! git diff --exit-code conformance/CONFORMANCE.md; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add conformance/CONFORMANCE.md
-            git commit -m "ci: update CONFORMANCE.md [skip ci]"
+            git commit -m "ci: update CONFORMANCE.md (dual verification) [skip ci]"
             git push
           fi
 
-      # ═══ Step 5: Cross-verify runner submissions ═══
+      # ═══ Step 6: Cross-verify runner submissions ═══
       - name: Cross-verify runner submissions
         if: hashFiles('submissions/*.json') != ''
         run: |
