@@ -1,255 +1,143 @@
-﻿# ERDL Decision Object v1.3 — 跨实现测试向量集
+# ERDL Decision Object — 治理即规则的审计证明
 
-> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · MIT License
 
-> **版本**：v1.3.3 · 2026-08-06  
-> **状态**：已发布  
-> **维护方**：OpenOBA (https://openoba.com)  
-> **许可**：MIT
+> **现行标准**：ERDL-DOBJ-RFC-002（Decision Object v1.5 扁平哈希链，见 `docs/OPENOBA-DOBJ-RFC-002-CN.md`）
+> **向量版本**：v1.5.0（Decision Object v1.5 数据模型）
+> **维护方**：OpenOBA（代为管理与维护）
 
-## 背景
+## 治理即规则
 
-ERDL Decision Object 是 AI Agent 规则评估的标准化、防篡改审计追踪格式。与传统 AI 系统的黑箱输出不同，Decision Object 记录了每一次决策的完整链条——哪些规则命中了、哪个运算符匹配了、什么上下文参与了评估——并通过 JCS（RFC 8785，JSON 规范化方案）与 SHA-256 哈希确保完整性。本项目提供了跨实现验证的标准测试向量集，任何符合 ERDL 协议的规则引擎均可通过独立运行验证来证明自身决策对象的正确性。
+AI 治理最大的盲区，不是模型不够聪明，而是决策无法被证明。
+
+当 AI Agent 替企业审批、放行、拒绝、越级，系统不能只交出结果。它必须能回答：凭什么、有没有越权、事后能不能查。
+
+ERDL 的答案是：**治理即规则**。把“谁能做什么、何时禁止、违规如何处理”写成确定性规则，而不是 Prompt 工程。规则承载治理意图，确定性构成审计前提。
+
+> **治理不是提示词的艺术，而是可审计的规则。**
+
+## Decision Object：每一次决策的审计记录
+
+规则回答“应该怎么做”，Decision Object 回答“实际是怎么做的”。
+
+每一次决策都会生成一份 Decision Object，完整记录命中规则、匹配运算符与评估上下文，并通过 JCS（RFC 8785）与 SHA-256 哈希链形成防篡改证据：
+
+- **三层证据体系**：哈希证明完整性，签名证明身份，时间戳证明时间；
+- **任何字段篡改都会导致审计哈希失配**：可检测、可追溯；
+- **金丝雀向量**：捕获“跳过独立验证”的缺陷实现。
+
+> **决策不止发生，还要可被证明。**
+
+## 跨实现验证：中立性是被测出来的
+
+治理规则是否被执行，不靠宣称，而靠独立验证。
+
+本仓库提供标准测试向量集：任何符合 ERDL 协议的规则引擎，都可以独立实现 JCS（RFC 8785）+ SHA-256，对 Decision Object 逐字节重算、比对，证明自己的决策对象正确，而不依赖任何单一实现。
+
+> **Measurements, not endorsements —— 只记录测量事实：谁、哪天、通过多少条，不做背书。**
+
+## 向量体系（对齐 SPEC v2.0）
+
+### 覆盖矩阵与验证状态（权威总表）
+
+| 验证层 | 向量类别 | 覆盖对象 | 数量 | 验证状态 |
+|--------|---------|---------|:---:|---------|
+| 表达层 | V-ENGINE | 节点语义（34 节点 × 4 场景） | 136 | 未验证 |
+| 表达层 | V-ENGINE | 求值约束（E1-E12 可向量化子集） | 35 | 未验证 |
+| 表达层 | V-ENGINE | Simple 编译（30 运算符） | 30 | 未验证 |
+| 表达层 | V-GLOSS | gloss 渲染 12 + 完整性 4 | 16 | 未验证 |
+| 表达层 | V-PROJ | 投影面编译 | 6 | 未验证 |
+| 审计层 | V-DO | 决策 13 / 链攻击 8 / 锚定 10 / 金丝雀 1 / 结论 14 / 法域 32 | 78 | 未验证 |
+| **合计** | | **已生成待验证** | **301** | **未验证** |
+
+**验证状态（二元）**：
+- **已验证**：仅历史 v1.3 的 13 条 AV（Erik Newton / Concordia，2026-07-30，Python 自建 JCS 逐字节通过），已由 v1.5 取代。
+- **未验证**：现行 v1.5 全部 301 条，仅参考实现通过，待独立第三方 Runner 验证。
+
+**规划未生成（不计数）**：签名 V-SIGN 5 + 时间锚定 TSA 3 + 状态验证 V-TEMPORAL 4。
+
+向量按验证的**产品语义**分为五类（SPEC §43，冻结 `[FREEZE-3]`），直接对应 SPEC 第四、五、六、七部分（V-STAKE 覆盖全规范）：
+
+| 类别 | 验证对象 | 回答的问题 |
+|------|---------|-----------|
+| **V-ENGINE** | 引擎可信（第四部分表达层） | 表达式树算得对不对、gloss 读得对不对？ |
+| **V-DO-v15** | 审计可信（第六部分可信层） | 有人改过决策记录吗？能查出来吗？ |
+| **V-JURIS** | 法域合规（第五部分合规层） | 说的合规，能独立验证吗？ |
+| **V-SCENE** | 场景可信（第七部分生命周期） | 实际业务规则被执行了吗？ |
+| **V-STAKE** | 多方视角（全规范） | 从我的角度，证据充分吗？ |
+
+类内编号段（V-GLOSS/V-PROJ 并入 V-ENGINE、V-SIGN/V-COMP 并入 V-DO-v15）非新类；五类分类定基后不再增减。
+
+### Core 已生成（301 条，待验证）
+
+| 组成 | 数量 |
+|------|:---:|
+| V-ENGINE（节点语义 136 + 求值约束 35 + Simple 编译 30） | 201 |
+| V-GLOSS / V-PROJ（V-GLOSS 12 + V-GLOSS-INTEGRITY 4 + V-PROJ 6） | 22 |
+| V-DO-v15 审计层（见下表） | 78 |
+| **Core 合计** | **301** |
+
+> **向量文件**：`decision-object-vectors-v1.5.json`（V-DO-v15 审计层 78 条）+ `v-engine-vectors.json`（V-ENGINE 表达层 223 条）。
+
+### V-DO-v15 审计层（78 条，哈希层已生成）
+
+> 签名链 V-SIGN（5 条）与时间锚定 T（3 条）随签名层实现后补入，未生成前不计数。
+
+| 类别 | 编号段 | 数量 | 内容 |
+|------|------|:---:|------|
+| 决策类型覆盖 | V-DO-v15-D01~D13 | 13 | 13 种决策类型 × 扁平哈希（含 canonical_tree 字段） |
+| 链攻击检测 | V-DO-v15-C01~C08 | 8 | 正常链基线 + 7 攻击（篡改/删记录/指针悬空/时钟回退/整链重建/版本降级/混链） |
+| 锚定攻击检测 | V-DO-v15-A01~A10 | 10 | 知识/引用/分片/附件/意图/记忆/树快照/树篡改/B 类文本 |
+| 时间锚定（规划，未生成） | V-DO-v15-T01~T03 | 3 | TSA 令牌 / clock_drift / 关键决策无锚 |
+| 金丝雀 | V-DO-v15-K01 | 1 | 链位置金丝雀（延续 AV-013 模式） |
+| 结论层 | V-DO-v15-G01~G14 | 14 | 结构攻击恒定 6 + 领域示例 8（政务 4 + 企业 4） |
+| 法域合规 | V-COMP-001~021 + F01~F11 | 32 | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含 F06/F07 第一层篡改、F08/F09 风险条件层、F10/F11 优先级铉定） |
+| 签名链（规划，未生成） | V-SIGN-001~005 | 5 | 合法验签 / 篡改 / 链回溯 / 伪造 / 金丝雀 |
+| **合计** | | **78** | 哈希层 78 条（D/C/A/K/G/V-COMP） |
+
+### Extension（随行业增长）
+
+`V-JURIS` / `V-SCENE` / `V-STAKE` / `V-NL` 随行业知识包增长，每个新增条目纳入冻结管理。Core 基线定基期内只增不减。
+
+## 向量验证原则
+
+- **每条有归属**：每条向量 MUST 明确验证哪个对象（运算符/字段/监管框架/审计视角）；
+- **跨实现对等**：同一向量在 TS/Python/Rust（Go 可选第四实现）下结果逐字节一致（SPEC §48.2）；
+- **覆盖成矩阵**：运算符按"每一行 × 正常/边界/异常/空值"矩阵化覆盖；
+- **回归可捕**：金丝雀向量捕获"做了但没验证"的实现回归；
+- **答案隔离**：完整答案文件与向量文件物理隔离，合规运行不可读（SPEC §48.3）。
+
+## 验证方法（Quick Start）
+
+```bash
+npm install        # 安装依赖（json-canonicalize 用于确定性比对，vitest 用于测试）
+npm run generate   # 生成 78 条向量 + 答案文件（canonical_hex 物理隔离，.gitignore）
+npm run verify     # 五步验证法 Step 0–6 + 语义 breach 检测（§8/§9）
+npm test           # vitest 回归套件（21 项，含对抗性回归守门）
+```
+
+**独立 Runner 验证要求**（跨实现中立性）：自行实现 JCS（RFC 8785）+ SHA-256——**不依赖 `json-canonicalize`**——对 `decision-object-vectors-v1.5.json` 逐条重算、比对 `audit.hash`；金丝雀 K01 正确实现 MUST MISMATCH。规范性契约见 [RUNNER_CONTRACT.md](RUNNER_CONTRACT.md)（规则 R1–R6），实现指南见 [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md)，提交见 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md)。
+
+**在线验证工具**：无需安装即可验证——打开 `web/verify.html`（浏览器端 self-built JCS + Web Crypto SHA-256），粘贴单条 DO 验 hash，或加载向量文件验证全部 78 条。可直接双击打开（file://），或 `npx serve web/` 本地托管。
 
 ## 鸣谢
 
 本项目能够顺利完成，离不开以下合作者的鼎力支持：
 
-- **Christopher Hopley（chopmob-cloud / AlgoVoi）** — 独立技术审阅者。在 v1.2 白皮书草案的审查中，他发现了自引用哈希排除规则缺位、字符串小数跨引擎不一致、分层完整性缺口等关键问题，推动了平面哈希架构的确立。**在 v1.3 审计中，他写了一个洁净室 RFC 8785 JCS + SHA-256 检查器，验证了规范文本的内部一致性，报告了四个技术发现（C1-C4）和三个安全问题（S1-S3）——其中双哈希算法降级（CWE-757）和 schema_ref SSRF 攻击面的发现直接推动了 §9.6 和 §11.2 的安全加固。**他对 JCS RFC 8785 规范化与合规审计的深刻理解，对协议设计的严谨性产生了重要影响。
-- **Erik Newton（Concordia）** — 首个独立 Runner 实现者，也是"中立性不是宣称的，是测出来的"原则的提出者。他在 A2A Discussion #2031 中确立了"三个独立实现、一个开放规范、没有单一所有者"的标准化路径，为 ERDL 从开源项目走向基础设施标准奠定了方法论基础。他用 Python 构建了 Decision Object 验证引擎，在 Node.js 实现之外首次逐字节验证了前 5 个审计向量，后扩展至全部 13 条，以实践证明了 JCS+SHA-256 跨实现验证的技术可行性。在 v1.1 冻结期审计中，他独立发现 `expected_sha256` 作为答案密钥的结构性风险。**在 v1.3 审计中，他用自己的独立 RFC 8785 规范化器验证了全部 12 个 AV 向量，确认 11 个逐字节一致 + AV-013 正确失败。他同时发现 E1-E3 三个关键问题，直接推动了 v1.3 的 audit 结构修复、AV-013 链完整性金丝雀设计、以及答案文件分离架构。在 v1.3.2 中，他提出并验证了 generated-artifact + clean-room + IMPLEMENTATIONS.md registry 的 CI/CD 架构——1,500 向量规模的生产级证明——为规范中立的合规验证提供了工程基础。**
+- **Christopher Hopley（chopmob-cloud / AlgoVoi）** — 独立技术审阅者。在 v1.2 白皮书草案的审查中，他发现了自引用哈希排除规则缺位、字符串小数跨引擎不一致、分层完整性缺口等关键问题，推动了扁平哈希架构的确立。在 v1.3 审计中，他写了一个洁净室 RFC 8785 JCS + SHA-256 检查器，验证了规范文本的内部一致性，报告了四个技术发现（C1-C4）和三个安全问题（S1-S3）——其中双哈希算法降级（CWE-757）和 schema_ref SSRF 攻击面的发现直接推动了安全加固。他对 JCS RFC 8785 规范化与合规审计的深刻理解，对协议设计的严谨性产生了重要影响。
+- **Erik Newton（Concordia）** — 首个独立 Runner 实现者，也是"中立性不是宣称的，是测出来的"原则的提出者。他在 A2A Discussion #2031 中确立了"三个独立实现、一个开放规范、没有单一所有者"的标准化路径，为 ERDL 从开源项目走向基础设施标准奠定了方法论基础。他用 Python 构建了 Decision Object 验证引擎，在 Node.js 实现之外首次逐字节验证了前 5 个审计向量，后扩展至全部 13 条。在 v1.1 冻结期审计中，他独立发现 `expected_sha256` 作为答案密钥的结构性风险。在 v1.3 审计中，他以独立 RFC 8785 规范化器验证全部 12 个 AV 向量，确认 11 个逐字节一致 + AV-013 正确失败；发现 E1-E3 三个关键问题，直接推动 audit 结构修复、AV-013 链完整性金丝雀设计、答案文件分离架构。在 v1.3.2 中，他提出并验证了 generated-artifact + clean-room + IMPLEMENTATIONS.md registry 的 CI/CD 架构，为规范中立的合规验证提供工程基础。
 - **Rulsynor 团队** — 作为 ERDL 规则引擎的参考实现，Rulsynor 是所有测试向量生成与验证的基准。其生产级引擎为 Decision Object 的字段设计提供了真实世界的约束输入——从 Agent 身份元数据到合规配置结构——确保协议定义经得起工程实践的检验。
 
 我们对此深表感谢。正是他们的贡献，将一份规范转化为经过多方独立验证的跨实现标准。
 
-## 概述
+## 归档说明
 
-> **v1.3.3 关键变更**：双重验证（Erik Newton 反馈）——clean-room 验证器现同时运行两道独立检查：Check 1（audit.hash 自洽性，五步 JCS+SHA-256）和 Check 2（答案文件交叉比对，独立预言机）。Runner 必须通过**两道**检查才算验证通过。AV-013 金丝雀在双重验证中正确鉴别：Check 1 MISMATCH + Check 2 MATCH。见 [CHANGELOG.md](CHANGELOG.md)。
-本仓库包含 ERDL（Entity-Rule Definition Language）Decision Object v1.3 协议的标准**101 条跨实现测试向量**。每条向量是一个完整的、可自验证的 Decision Object——AI Agent 规则评估决策的标准化、防篡改审计格式。
-
-### 核心保证
-
-| 保证 | 机制 |
-|------|------|
-| **确定性生成** | `node scripts/generate-vectors.cjs` 每次运行产出字节级完全相同的输出 |
-| **防篡改** | JCS（RFC 8785）+ SHA-256 平面哈希——任何字段变更都会改变审计哈希 |
-| **跨实现可验证** | `node scripts/verify.js` 零依赖运行——实现者可以验证自己的引擎 |
-| **链完整性检测** | AV-013 作为金丝雀——正确 runner 检测到 MISMATCH，regressed runner 被捕获为 MATCH |
-| **RFC 9562 UUIDv7** | 所有 `decision_id`/`execution_trace_id` 完全符合 RFC 9562（冻结时间戳） |
-
-### 确定性架构
-
-```
-$ node scripts/generate-vectors.cjs
-$ sha256sum decision-object-vectors-v1.3.json
-700a683dc76a65487cf97ebef321fba378cb0c141b966cdd13ebd26c40282aca
-
-$ node scripts/generate-vectors.cjs  # regenerate (v1.3 format — for legacy verification)
-$ sha256sum decision-object-vectors-v1.2.json
-a28c37dc6895706d84541e48a5cce74a36a903a5f524af59e9457554e800f369  # 完全一致
-$ sha256sum decision-object-vectors-v1.3.json
-24b88b81f96663f7624d31388de72699bdf7f29496752cb4efc539fc17a1b678  # v1.3 vector set (current)
-```
-
-不使用 `Date.now()`，不使用 `crypto.randomBytes()`。冻结时间戳（`2026-07-29T00:00:00.000Z`）+ 确定性计数器 → **精确可复现**。
-
-## 快速开始
-
-### Check 1: 审计哈希自洽性
-
-```bash
-npm install
-node scripts/verify.js                    # 默认：./decision-object-vectors-v1.3.json
-node scripts/verify.js path/to/vectors.json
-```
-
-预期输出：`ALL VERIFICATIONS PASSED · 11/11 MATCH + AV-013 CHAIN CANARY DETECTED`
-
-### Check 2: 答案文件交叉比对（双重验证）
-
-```bash
-node scripts/verify.js --answers decision-object-answers-v1.3.json
-```
-
-预期输出：`DUAL VERIFICATION PASSED · Check 1 ✓ + Check 2 ✓ + AV-013 canary active`
-
-### CI 模式（生成 CONFORMANCE.md）
-
-```bash
-node scripts/verify.js --answers decision-object-answers-v1.3.json --ci
-```
-
-### Clean-Room Verification (CI)
-
-```bash
-# CI 自动运行（.github/workflows/clean-room-verify.yml）：
-# Step 0: 断言 ERDL SDK 不可 import（硬失败）
-# Step 1: npm install（仅 json-canonicalize，不含 ERDL SDK）
-# Step 2: Check 1 — 审计哈希自洽性（自建 JCS + SHA-256）
-# Step 3: Check 2 — 答案文件交叉比对（独立预言机）
-# Step 4: 双重验证 → conformance/CONFORMANCE.md
-```
-
-洁净室验证器仅使用 Node.js 内建 `crypto` 模块和自我实现的 JCS（RFC 8785）。不依赖任何 ERDL SDK。双重验证确保 runner 必须通过两道独立检查——七月教训：runner 可以通过一道而从未检查另一道。每次 CI 运行自动生成 `conformance/CONFORMANCE.md` 并 check-in。
-
-### 从零生成向量（维护者使用）
-
-```bash
-npm install
-node scripts/generate-vectors.cjs
-# → 输出 decision-object-vectors-v1.3.json（~813 KB）
-```
-
-### 运行测试套件
-
-```bash
-npm test
-# → 152 个测试覆盖 JCS、SHA-256、五步验证及全量向量完整性
-```
-
-## 向量集组成
-
-### 静态决策向量（63 条）
-
-| 决策类型 | 数量 | 覆盖内容 |
-|----------|:----:|----------|
-| ALLOW | 12 | 常规操作、override 安全方向、unless 豁免、运算符覆盖 |
-| DENY | 12 | 安全基线、危险命令、关键路径、边界情况 |
-| PASS | 10 | 选择性匹配、安全命令、空规则、空值安全、严格类型 |
-| REQUEST_HUMAN | 4 | PII/HIPAA 合规、非营业时间、风险阈值 |
-| EMERGENCY_HALT | 1 | Ring 0 短路 |
-| CORRECT | 3 | 大小写规范化、单位转换、路径规范化 |
-| ESCALATE | 3 | 低信誉 Agent、跨域操作、未知工具 |
-| NOTIFY | 4 | 异常检测、审计记录、阈值告警、伴随 DENY |
-| QUARANTINE | 3 | 可疑文件、异常行为、速率限制 |
-| ROLLBACK | 3 | 快照恢复、部分失败、交易回滚 |
-| WORKFLOW | 4 | 多步工作流、条件分支、审批节点 |
-| WORKFLOW_WAITING | 3 | 人工审批等待、时间窗口等待、前置任务等待 |
-| WORKFLOW_PROGRESS | 3 | 步骤推进、阶段完成、最终步骤 |
-
-**覆盖运算符**：`eq`、`neq`、`gt`、`gte`、`lt`、`lte`、`in`、`not_in`、`contains`、`matches`、`starts_with`、`ends_with`、`exists`（全部 13 种）
-
-**边界情况**：空值传播、严格类型匹配、ReDoS 防护、速率限制、安全整数范围、深层对象比对、空扩展规范化
-
-### 动态向量（26 条）
-
-| 类别 | 数量 | 说明 |
-|------|:----:|------|
-| Temporal（T-001 – T-010） | 10 | 时间段、星期、节假日、闰年、Y2K38 边界 |
-| Seeded（S-001 – S-008） | 8 | 确定性随机种子，可复现评估 |
-| Stateful（ST-001 – ST-008） | 8 | 状态机转换（idle→running→paused→error→recovering→stopped） |
-
-### 审计哈希向量（12 条）
-
-| 向量 | 引用 | 用途 |
+| 目录 | 内容 | 状态 |
 |------|------|------|
-| AV-001 | DO-001 | Ring 0 安全拦截（DENY） |
-| AV-002 | DO-013 | PII 合规审批（REQUEST_HUMAN，GDPR Art.22） |
-| AV-003 | DO-011 | Override 安全方向（ALLOW，多规则） |
-| AV-004 | DO-009 | Ring 0 紧急停止（EMERGENCY_HALT） |
-| AV-005 | DO-017 | 低信誉 Agent 升级（ESCALATE） |
-| AV-006 | DO-024 | Unless 豁免触发（ALLOW） |
-| AV-007 | DO-027 | 空值安全字段访问（PASS） |
-| AV-013 | DO-051 | 链位置篡改金丝雀 — stored hash 为 regressed runner（删整个 audit）的摘要。正确 runner（含 previous_hash）检测到 MISMATCH。Regressed runner（不含 previous_hash）错误报告 MATCH — 金丝雀捕获此回归 |
-| AV-009 | DO-021 | 自动修正（CORRECT） |
-| AV-010 | DO-031 | 异常通知（NOTIFY） |
-| AV-011 | DO-038 | 快照回滚（ROLLBACK） |
-| AV-012 | DO-051 | 多步工作流（WORKFLOW） |
+| `archive/v1.3/` | v1.3 全量：101 条 AV 向量 + 生成/验证脚本 + 测试 + RFC-001（CN/EN）+ 设计文档 + Runner 注册表 | 历史档案 + JCS 回归套件 |
 
-### v1.3 预留
-
-| ID | 类型 | 状态 |
-|----|------|------|
-| DO-064 | DELEGATE | v1.3 预留 |
-
-## 五步审计哈希验证
-
-验证算法（[RFC 001 §13.3](docs/OPENOBA-DOBJ-RFC-001-CN.md)）遵循五个确定性步骤：
-
-```
-步骤 1：深拷贝 decision_object
-步骤 2：删除自引用/签名字段（audit.hash — 保留 previous_hash 和 commitment；signature；signing_key_id）
-        （extensions 保留在对象中，直接参与 JCS）
-步骤 3：对全部剩余字段进行 JCS（RFC 8785）规范化
-步骤 4：对规范化表示进行 SHA-256
-步骤 5：将计算哈希与存储的 audit.hash 比较
-```
-
-任何未将 `previous_hash` 纳入 JCS 原像的验证器将**通过 AV-001 – AV-007、AV-009 – AV-012 但被 AV-013 金丝雀捕获**——AV-013 的 stored hash = regressed runner 的摘要，正确 runner 检测到 MISMATCH。
-
-## 合规配置
-
-所有向量内嵌 `erdl-compliance-v1.3` 合规配置，引用以下框架：
-
-| 框架 | 管辖范围 | 生效日期 |
-|------|----------|----------|
-| EU AI Act（Regulation 2024/1689） | 欧盟 | 2027-12-02 |
-| GB/Z 185-2026 | 中国 | 2026-05-22 |
-| NIST AI RMF 1.0 | 美国 | 现行 |
-| COSO GenAI 2026 | 全球 | 现行 |
-
-完整参考文档见 RFC 001（[中文版](docs/OPENOBA-DOBJ-RFC-001-CN.md) / [英文版](docs/OPENOBA-DOBJ-RFC-001-EN.md)）§6。
-
-## 仓库结构
-
-```
-erdl-vectors/
-├── decision-object-vectors-v1.3.json        # 101 条向量（75 条静态 DO+AV）
-├── conformance/                             # Clean-room CI conformance artifacts
-│   ├── CONFORMANCE.md                       # Auto-generated per-run verification report
-│   └── README.md                            # Conformance directory documentation
-├── IMPLEMENTATIONS.md                       # Cross-implementation registry (measurements only)
-├── scripts/
-│   ├── generate-vectors.cjs                 # 确定性向量生成器（v1.3 常量）
-│   ├── verify.js                            # 零依赖五步验证器
-│   └── reference-runner.js                  # 第三方参考 Runner（独立 JCS 实现）
-├── test/
-│   ├── generate-comprehensive.test.ts       # 生成器完整性测试
-│   └── verify-comprehensive.test.ts         # JCS/验证/审计测试
-├── docs/
-│   ├── OPENOBA-DOBJ-RFC-001-CN.md           # RFC 001（中文版）
-│   ├── OPENOBA-DOBJ-RFC-001-EN.md           # RFC 001（English）
-│   ├── RUNNERS-GUIDE.md                     # Runner 实现者指南
-│   ├── ALIGNMENT-REPORT.md                  # 跨文档对齐审计报告
-│   ├── DESIGN-verify-js-v1.3.md             # 验证器架构设计
-│   └── archive/                             # 历史设计文档
-│       ├── DESIGN-generate-vectors-v1.2.md
-│       └── DESIGN-vector-inventory-v1.2.md
-├── submissions/                             # 第三方 runner 提交目录
-│   └── README.md
-├── CHANGELOG.md                             # 版本历史
-├── CONTRIBUTING.md                          # 贡献指南
-├── LICENSE                                  # MIT 许可证
-├── package.json
-├── README.md                                # 本文件（中文版）
-└── README.en.md                             # English version
-```
-
-## 兼容等级
-
-| 等级 | 要求 | 向量数 |
-|:----:|------|:------:|
-| **L1 — 基础** | v1.0 Decision Object 结构 + JCS + SHA-256 | 28 |
-| **L2 — 已验证** | v1.1 全部向量 + 动态向量 | 45 |
-| **L3 — 完整** | v1.3 全部 101 条向量，含链完整性检测 | 101 |
-
-## Runner 实现指南
-
-如果你正在构建 ERDL 规则引擎并希望实现跨实现兼容，请从 **[Runner's Guide](docs/RUNNERS-GUIDE.md)** 开始。它涵盖了五步验证算法、JCS 实现细节、常见陷阱和测试策略——附带了可翻译为任意语言的伪代码。
-
-## 安全
-
-本向量集已通过独立第三方安全审查，涵盖 JCS 正确性、SHA-256 用法、确定性可复现性和密码学安全性。零严重或高危发现。
-
-## 参考资料
-
-- [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) — JSON Canonicalization Scheme（JCS）
-- [RFC 9562](https://www.rfc-editor.org/rfc/rfc9562) — Universally Unique IDentifiers（UUID）
-- [FIPS 180-4](https://csrc.nist.gov/publications/detail/fips/180/4/final) — Secure Hash Standard（SHA-256）
-- [ERDL Specification v1.1](https://openoba.github.io/erdl-landing/)
-- [IETF Agent Audit Trail](https://datatracker.ietf.org/doc/draft-sharif-agent-audit-trail/)
+v1.3 的 AV-* 编号归档后不复用、不与 V-DO-v15 并存于现行审计层。
 
 ---
 
-> *"确定性架构，而非 Prompt 工程。中立性靠检验，不靠宣言。"*
->
-> — OpenOBA · 2026-07-29 · ERDL Decision Object v1.3
+> *"确定性架构，而非 Prompt 工程。中立性是被测出来的，不是宣称出来的。"*

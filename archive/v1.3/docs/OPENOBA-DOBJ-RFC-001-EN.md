@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVED (2026-08-18)**: This RFC has been superseded by **OPENOBA-DOBJ-RFC-002** (Decision Object v1.4) and is no longer the current standard. Retained in archive/ as a historical record: v1.3 whole-DO preimage mode + §3.1 generic serialization constraints (inherited by RFC-002 §7) + §13.3 nested five-step verification (historical-archive DO verification only). The v1.3 frozen vectors (AV-001~013) are retained as historical archive + JCS canonicalization regression suite.
+
 # RFC 001 — ERDL Decision Object v1.3 · Enterprise AI Agent Audit Decision Record Standard
 
 > Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.

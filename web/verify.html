@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ERDL Decision Object · 在线验证器</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#172033; --muted:#5b6475; --blue:#1e56a0; --green:#0e7c66; --red:#c0392b; --border:#e2e6ec; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; line-height:1.6; }
+  header { background:var(--ink); color:#fff; padding:20px 24px; }
+  header h1 { margin:0; font-size:20px; }
+  header p { margin:4px 0 0; color:#c9d2e0; font-size:13px; }
+  main { max-width:920px; margin:24px auto; padding:0 16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; margin-bottom:20px; }
+  .card h2 { margin:0 0 12px; font-size:16px; }
+  textarea { width:100%; min-height:240px; font-family:ui-monospace,Consolas,monospace; font-size:12px; padding:12px; border:1px solid var(--border); border-radius:6px; resize:vertical; }
+  .row { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+  button { background:var(--blue); color:#fff; border:none; padding:9px 18px; border-radius:6px; cursor:pointer; font-size:14px; }
+  button:hover { filter:brightness(1.08); }
+  button.ghost { background:#fff; color:var(--blue); border:1px solid var(--blue); }
+  #result { margin-top:16px; font-size:13px; }
+  .kv { display:flex; border-bottom:1px solid var(--border); padding:6px 0; }
+  .kv .k { width:140px; color:var(--muted); flex-shrink:0; }
+  .kv .v { word-break:break-all; font-family:ui-monospace,Consolas,monospace; font-size:12px; }
+  .badge { display:inline-block; padding:2px 10px; border-radius:12px; font-weight:600; font-size:13px; }
+  .pass { background:#e6f7ef; color:var(--green); }
+  .fail { background:#fdecea; color:var(--red); }
+  .note { color:var(--muted); font-size:12px; margin-top:8px; }
+  pre { background:#0f172a; color:#e2e8f0; padding:12px; border-radius:6px; overflow-x:auto; font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ERDL Decision Object · 在线验证器</h1>
+  <p>浏览器端 self-built JCS（RFC 8785）+ Web Crypto SHA-256 · 零依赖 · 与厂商无关的独立重算</p>
+</header>
+<main>
+  <div class="card">
+    <h2>① 验证单条 Decision Object 的 audit.hash</h2>
+    <textarea id="doInput" spellcheck="false" placeholder='粘贴 Decision Object JSON，例如：
+{
+  "agent": {"id":"agent-001","role":"guardian","version":"v1.5.0"},
+  "audit": {"mode":"hash","preimage_version":"erdl-do-v1.5-hash-flat","hash":"sha256:..."}
+}'></textarea>
+    <div class="row">
+      <button onclick="verifySingle()">验证 hash</button>
+      <button class="ghost" onclick="loadExample()">加载示例 DO</button>
+      <button class="ghost" onclick="document.getElementById('doInput').value=''">清空</button>
+    </div>
+    <div id="result"></div>
+    <p class="note">验证规则：deep clone → 仅删除 audit.hash → JCS 规范化 → SHA-256 → 与存储 audit.hash 对比。完整规范见 docs/VERIFIER-GUIDE.md。</p>
+  </div>
+
+  <div class="card">
+    <h2>② 验证完整向量集（decision-object-vectors-v1.5.json）</h2>
+    <input type="file" id="vectorFile" accept=".json" onchange="verifyVectors(event)" />
+    <div id="vectorResult"></div>
+    <p class="note">选择向量文件后自动逐条验证（Step 0–5 + 语义 breach + 金丝雀）。答案文件永不参与（物理隔离）。</p>
+  </div>
+</main>
+
+<script>
+'use strict';
+const PREIMAGE_VERSION = 'erdl-do-v1.5-hash-flat';
+const KNOWN_JURISDICTIONS = ['CN','EU','US','SG','BR','IN'];
+
+// ── JCS (RFC 8785) self-built ──
+function hasLoneSurrogate(s){for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);if(c>=0xd800&&c<=0xdbff){const n=s.charCodeAt(i+1);if(!(n>=0xdc00&&n<=0xdfff))return true;i++;}else if(c>=0xdc00&&c<=0xdfff){return true;}}return false;}
+function jcsCanonicalize(v){
+  if(v===null)return'null';
+  if(typeof v==='boolean')return v?'true':'false';
+  if(typeof v==='number'){if(!isFinite(v))throw new Error('JCS: NaN/Infinity');return String(v);}
+  if(typeof v==='string'){if(hasLoneSurrogate(v))throw new Error('JCS: lone surrogate');return JSON.stringify(v);}
+  if(Array.isArray(v))return'['+v.map(jcsCanonicalize).join(',')+']';
+  if(typeof v==='object'){
+    const keys=Object.keys(v).sort();
+    return'{'+keys.filter(k=>v[k]!==undefined).map(k=>JSON.stringify(k)+':'+jcsCanonicalize(v[k])).join(',')+'}';
+  }
+  throw new Error('JCS: unsupported type');
+}
+function assertSafeIntegers(v){
+  if(Array.isArray(v)){v.forEach(assertSafeIntegers);return;}
+  if(v&&typeof v==='object'){for(const k of Object.keys(v))assertSafeIntegers(v[k]);return;}
+  if(typeof v==='number'){if(!Number.isInteger(v)||Math.abs(v)>Number.MAX_SAFE_INTEGER)throw new Error('non-integer/unsafe number: '+v);}
+}
+function getField(o,p){return p.split('.').reduce((c,k)=>(c==null?undefined:c[k]),o);}
+
+// ── SHA-256 (Web Crypto, async) ──
+async function sha256Hex(str){
+  const data=new TextEncoder().encode(str);
+  const hash=await crypto.subtle.digest('SHA-256',data);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── verifyDO (Step 0–5) ──
+async function verifyDO(decisionObject){
+  const doJson=JSON.stringify(decisionObject);
+  if(doJson.length>1024*1024)return{passed:false,error:'resource_limit_exceeded: DO exceeds 1 MB'};
+  const evalObj=decisionObject.evaluation;
+  const hasTree=evalObj&&Array.isArray(evalObj.matched_rules)&&evalObj.matched_rules.some(m=>m.canonical_tree!==undefined);
+  const hasV15=(decisionObject.audit&&decisionObject.audit.preimage_version===PREIMAGE_VERSION)||(decisionObject.compliance_profile&&Array.isArray(decisionObject.compliance_profile.activated_fields));
+  if(!hasTree&&!hasV15)return{passed:false,error:'v1.3 历史路径（本验证器仅处理 v1.5）'};
+  const pv=decisionObject.audit&&decisionObject.audit.preimage_version;
+  if(pv!==PREIMAGE_VERSION)return{passed:false,error:'preimage_version 不支持: '+pv};
+  try{assertSafeIntegers(decisionObject);}catch(e){return{passed:false,error:e.message};}
+  const clone=JSON.parse(JSON.stringify(decisionObject));
+  delete clone.audit.hash;
+  const canonical=jcsCanonicalize(clone);
+  const computedHash='sha256:'+await sha256Hex(canonical);
+  const storedHash=decisionObject.audit.hash;
+  return{passed:computedHash===storedHash,computedHash,storedHash,canonicalHex:await hexOf(canonical),canonical};
+}
+async function hexOf(str){const data=new TextEncoder().encode(str);const h=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+
+// ── 语义 breach ──
+function detectDOBreach(o,meta){
+  const cp=o.compliance_profile||{};
+  for(const f of (Array.isArray(cp.activated_fields)?cp.activated_fields:[])){if(getField(o,f)===undefined)return'compliance_field_missing';}
+  for(const j of (Array.isArray(cp.jurisdictions)?cp.jurisdictions:[])){if(!KNOWN_JURISDICTIONS.includes(j))return'jurisdiction_mismatch';}
+  const risk=cp.risk_level, ov=o.human_oversight;
+  if((risk==='high'||risk==='critical')&&(!ov||ov.required!==true))return'oversight_missing';
+  const aid=o.agent&&o.agent.id;
+  if(aid&&Array.isArray(o.policies)){for(const p of o.policies){if(p.author_id===aid)return'sod_violation';}}
+  const refs=o.evaluation&&o.evaluation.knowledge_references;
+  if(Array.isArray(refs)&&meta&&Array.isArray(meta.resolvable_entry_ids)){for(const r of refs){if(!meta.resolvable_entry_ids.includes(r.entry_id))return'content_unresolvable';}}
+  const matched=o.evaluation&&o.evaluation.matched_rules, policies=Array.isArray(o.policies)?o.policies:[];
+  if(Array.isArray(matched)){for(const m of matched){const p=policies.find(pp=>pp.id===m.id);if(p&&m.canonical_tree!==undefined&&p.when!==undefined&&jcsCanonicalize(m.canonical_tree)!==jcsCanonicalize(p.when))return'tree_snapshot_divergence';}}
+  return null;
+}
+async function detectChainBreach(chain){
+  for(const d of chain){const r=await verifyDO(d);if(!r.passed){if(r.error&&r.error.startsWith('preimage_version'))return'version_unsupported';return'hash_mismatch';}}
+  if(chain.length>0&&chain[0].audit&&chain[0].audit.previous_hash!==null)return'chain_genesis_mismatch';
+  for(let i=1;i<chain.length;i++){const p=chain[i-1].audit,c=chain[i].audit;
+    if(c.previous_hash!==p.hash)return'previous_hash_dangling';
+    if(c.chain_seq!==p.chain_seq+1)return'chain_seq_gap';
+    if(c.mode!==p.mode)return'mode_mixed_chain';
+    if(chain[i].timestamp<chain[i-1].timestamp)return'time_regression';}
+  return null;
+}
+
+// ── UI：单条验证 ──
+async function verifySingle(){
+  const el=document.getElementById('result');
+  const raw=document.getElementById('doInput').value.trim();
+  if(!raw){el.innerHTML='<div class="badge fail">请输入 DO JSON</div>';return;}
+  try{
+    const dobj=JSON.parse(raw);
+    const r=await verifyDO(dobj);
+    if(r.passed){
+      el.innerHTML='<div class="badge pass">✓ MATCH — hash 自洽</div>'+
+        '<div class="kv"><span class="k">canonical (JCS)</span><span class="v">'+escapeHtml(r.canonical)+'</span></div>'+
+        '<div class="kv"><span class="k">computed hash</span><span class="v">'+r.computedHash+'</span></div>';
+    }else{
+      const breach=detectDOBreach(dobj,null);
+      el.innerHTML='<div class="badge fail">✗ '+escapeHtml(r.error||('hash_mismatch（存储 '+r.storedHash+'）'))+'</div>'+
+        (breach?'<div class="kv"><span class="k">语义 breach</span><span class="v">'+breach+'</span></div>':'')+
+        (r.computedHash?'<div class="kv"><span class="k">computed</span><span class="v">'+r.computedHash+'</span></div>':'')+
+        (r.storedHash?'<div class="kv"><span class="k">stored</span><span class="v">'+r.storedHash+'</span></div>':'');
+    }
+  }catch(e){
+    el.innerHTML='<div class="badge fail">✗ 解析/规范化失败：'+escapeHtml(e.message)+'</div>';
+  }
+}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+// ── UI：示例 ──
+function loadExample(){
+  document.getElementById('doInput').value=JSON.stringify({
+    agent:{id:'agent-001',role:'guardian',version:'v1.5.0'},
+    decision_type:'ALLOW',
+    compliance_profile:{profile_id:'erdl-compliance-v1.5',jurisdictions:['CN'],risk_level:'low',activated_fields:['agent.aid'],profile_hash:''},
+    audit:{mode:'hash',preimage_version:'erdl-do-v1.5-hash-flat',previous_hash:null,chain_id:'example',chain_seq:0,hash:'sha256:'}
+  },null,2);
+}
+
+// ── UI：完整向量集 ──
+async function verifyVectors(ev){
+  const el=document.getElementById('vectorResult');
+  const file=ev.target.files[0];
+  if(!file){return;}
+  el.innerHTML='<p class="note">读取中…</p>';
+  try{
+    const text=await file.text();
+    const data=JSON.parse(text);
+    let pass=0,fail=0,canaryOk=0;
+    const breakdown={};const errors=[];
+    for(const v of data.vectors){
+      const cat=v.category;breakdown[cat]=breakdown[cat]||{total:0,pass:0};
+      const exp=v.expected||{};
+      if(v.decision_object){breakdown[cat].total++;
+        const r=await verifyDO(v.decision_object);
+        if(exp.type==='MATCH'){let ok=r.passed;
+          if(ok&&Array.isArray(exp.required_fields)){for(const f of exp.required_fields){if(getField(v.decision_object,f)===undefined){ok=false;errors.push(v.id+' required_field 缺失: '+f);}}}
+          if(ok&&Array.isArray(exp.checks)&&exp.checks.includes('sod')){const aid=v.decision_object.agent&&v.decision_object.agent.id;if(aid&&Array.isArray(v.decision_object.policies)&&v.decision_object.policies.some(p=>p.author_id===aid)){ok=false;errors.push(v.id+' SoD 违反');}}
+          if(ok){pass++;breakdown[cat].pass++;}else{fail++;}}
+        else if(exp.type==='BREACH'){
+          if(v.id==='V-DO-v15-K01'){if(!r.passed){canaryOk++;pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' 金丝雀 FALSE_PASS');}}
+          else{if(!r.passed){fail++;errors.push(v.id+' hash 不自洽');}else{const b=detectDOBreach(v.decision_object,exp);if(b===exp.breach){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' breach 不符：期望 '+exp.breach+' 检出 '+b);}}}
+        }else{fail++;}
+      }else if(v.chain){breakdown[cat].total++;
+        const b=await detectChainBreach(v.chain);
+        if(v.id==='V-DO-v15-C01'){if(b===null){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' 正常链误报 '+b);}}
+        else{if(b===exp.breach){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' breach 不符：期望 '+exp.breach+' 检出 '+b);}}
+      }else if(v.base_do){breakdown[cat].total++;
+        const br=await verifyDO(v.base_do),tr=await verifyDO(v.tampered_do);
+        if(br.passed&&!tr.passed){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' base自洽='+br.passed+' tampered失配='+!tr.passed);}
+      }
+    }
+    let html='<div class="badge '+(fail===0?'pass':'fail')+'">'+(fail===0?'✓ 全部通过 '+pass+'/'+(pass+fail):'✗ '+fail+' 失败')+'</div><p>';
+    for(const[cat,s]of Object.entries(breakdown)){html+=cat+' '+s.pass+'/'+s.total+'　';}
+    html+='</p>';
+    if(errors.length)html+='<pre>'+errors.map(escapeHtml).join('\n')+'</pre>';
+    el.innerHTML=html;
+  }catch(e){
+    el.innerHTML='<div class="badge fail">✗ 读取/验证失败：'+escapeHtml(e.message)+'</div>';
+  }
+}
+</script>
+</body>
+</html>
