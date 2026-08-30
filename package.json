@@ -30,6 +30,7 @@
   "scripts": {
     "generate": "node scripts/generate-v1.5.cjs",
     "verify": "node scripts/verify-v1.5.js decision-object-vectors-v1.5.json --answers decision-object-answers-v1.5.json",
+    "verify:vengine": "node scripts/verify-v-engine.mjs",
     "test": "vitest run"
   }
 }

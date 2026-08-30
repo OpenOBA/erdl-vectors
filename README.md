@@ -110,10 +110,11 @@ ERDL 的答案是：**治理即规则**。把“谁能做什么、何时禁止�
 ## 验证方法（Quick Start）
 
 ```bash
-npm install        # 安装依赖（json-canonicalize 用于确定性比对，vitest 用于测试）
-npm run generate   # 生成 78 条向量 + 答案文件（canonical_hex 物理隔离，.gitignore）
-npm run verify     # 五步验证法 Step 0–6 + 语义 breach 检测（§8/§9）
-npm test           # vitest 回归套件（21 项，含对抗性回归守门）
+npm install             # 安装依赖（json-canonicalize 用于确定性比对，vitest 用于测试）
+npm run generate        # 生成 V-DO 78 条向量 + 答案文件（canonical_hex 物理隔离，.gitignore）
+npm run verify          # V-DO 五步验证法 Step 0–6 + 语义 breach 检测（§8/§9）
+npm run verify:vengine  # V-ENGINE 表达层独立验证（57 条语义敏感向量，§48.2 第二来源）
+npm test                # vitest 回归套件（含 web/Node 一致性 + 对抗性回归守门）
 ```
 
 **独立 Runner 验证要求**（跨实现中立性）：自行实现 JCS（RFC 8785）+ SHA-256——**不依赖 `json-canonicalize`**——对 `decision-object-vectors-v1.5.json` 逐条重算、比对 `audit.hash`；金丝雀 K01 正确实现 MUST MISMATCH。规范性契约见 [RUNNER_CONTRACT.md](RUNNER_CONTRACT.md)（规则 R1–R6），实现指南见 [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md)，提交见 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md)。
