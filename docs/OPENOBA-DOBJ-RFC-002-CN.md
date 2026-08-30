@@ -105,7 +105,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 > **字段激活归类**：`temporal_state` 属「条件激活」字段（§5.3）——仅当本次决策命中了含 within/rate 的规则时才产生（Omit over Null：无有状态算子命中时物理删除键）；其存在性由 V-TEMPORAL 向量覆盖，不纳入 V-COMP 字段存在性检查（V-COMP 验的是法域/框架要求的合规字段，temporal_state 属业务判定输入，非合规字段）。
 >
-> **preimage_version 影响判定**：`temporal_state` 为 v1.5 字段集的**增量条件激活字段**（可选、随事实产生），不改变哈希算法、不改变 CORE 14 字段结构、不改变唯一删除点（`audit.hash`）语义。因此 `preimage_version` 常量 **保持 `"erdl-do-v1.5-hash-flat"` 不变**，不触发版本号递增——v1.5 仍处 Draft（未发布），字段集增量直接并入 v1.5，无需 bump 到 v1.6。此判定与「SPEC 文档版本（v2.0）与 DO 数据模型版本（v1.5）为正交版本线」一致：字段集在 DO 模型内增量演进，不牵动 SPEC 文档版本。
+> **preimage_version 影响判定**：`temporal_state` 为 v1.5 字段集的**增量条件激活字段**（可选、随事实产生），不改变哈希算法、不改变 CORE 14 字段结构、不改变唯一删除点（`audit.hash`）语义。因此 `preimage_version` 常量 **保持 `"erdl-do-v1.5-hash-flat"` 不变**，不触发版本号递增——字段集增量直接并入 v1.5，无需 bump 到 v1.6。此判定与「SPEC 文档版本（v2.0）与 DO 数据模型版本（v1.5）为正交版本线」一致：字段集在 DO 模型内增量演进，不牵动 SPEC 文档版本。
 
 ## 3. gloss 与可重渲染文本：不进 DO，走渲染校验
 
@@ -175,7 +175,7 @@ OpenOBA 参考实现是职业化 AI 员工，构建于确定性引擎之上—�
 > 「五步」为历史沿用名：v1.3 验证法为 Step 1–5 五步；v1.5 新增 Step 0（版本选路）与 Step 6（答案双检），共 7 步。
 
 ```
-Step 0: 版本结构判别（双版本共存选路）：DO 含 evaluation.matched_rules[].canonical_tree 或 v1.5 字段（如 human_oversight 对象化、result.outcome、agent.tool_registry_hash）→ v1.5 扁平哈希（继续）；不含且为全 DO 结构 → v1.3 历史路径（仅供历史档案验证）
+Step 0: 版本结构判别（双版本共存选路）：DO 含 evaluation.matched_rules[].canonical_tree 或 v1.5 特征字段（audit.preimage_version = `"erdl-do-v1.5-hash-flat"` 或 compliance_profile.activated_fields 为数组）→ v1.5 扁平哈希（继续）；不含且为全 DO 结构 → v1.3 历史路径（仅供历史档案验证）
 Step 1: 读取 audit.preimage_version（域分隔符常量，v1.5 哈希模式 = "erdl-do-v1.5-hash-flat"，进原像受哈希保护）
 Step 2: Deep clone → 唯一删除点：DELETE audit.hash（哈希模式；签名模式另删 signature/signing_key_id）——其余全部字段（含 canonical_tree）原样参与，零投影、零字段取舍
 Step 3: JCS(全量字段) → canonical bytes（严格 RFC 8785，零自定义步骤）
@@ -186,6 +186,8 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
         两者独立，防 stale self-referential digest；canonical_hex 物理隔离（SPEC §48.3），合规运行不可读
 ```
 
+> **资源上限**：单条 DO 序列化超过 1 MB 时，验证器 MUST 拒绝（`resource_limit_exceeded`），防 DoS。
+
 ## 8. 链完整性（断裂检测 + 金丝雀）
 
 断裂判定（哈希模式，任一即断）：① audit.hash 重算不匹配；② previous_hash 与上一条 hash 不一致；③ 链中 DO 缺失；④ 相邻 DO preimage 版本混链；⑤ 相邻 DO audit.mode 不同（mode_mixed_chain）。签名模式对应判据：signature 验签失败 + previous_signature 链回溯断裂（见 §10.3 V-SIGN-002/003）。
@@ -194,7 +196,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 引用完整性告警（非断裂）：content_unresolvable（冷存储删除/灭失）。
 
-金丝雀：v1.5 链位置金丝雀延续 AV-013 模式——正确实现 MISMATCH，regressed 实现（跳过独立重算/错取原像）MATCH 被捕。
+金丝雀：v1.5 链位置金丝雀延续 AV-013 模式——正确实现 MISMATCH，regressed 实现（跳过独立重算/错取原像）MATCH 被捕。金丝雀向量的 `expected.breach` 标记为专有码 `canary_mismatch`（非语义 breach，仅标识「正确实现 MUST hash MISMATCH」）。
 
 ## 9. 向量体系（v1.5 审计层）
 
@@ -214,7 +216,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 | 金丝雀 | V-DO-v15-K01 | 1 | 链位置金丝雀（哈希模式，延续 AV-013；签名金丝雀由 V-SIGN-005 承载，不重复计数） |
 | 结论层 | V-DO-v15-G01~G14 | 14 | 结构攻击恒定 6 + 领域示例 8（政务 4 + 企业 4，可增） |
 | 法域合规 | V-COMP-001~021 + F01~F11 | 32 | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含 F06/F07 第一层篡改、F08/F09 风险条件层、F10/F11 优先级铉定，详见 §9.1） |
-| **有状态算子状态验证（规划，未生成）** | **V-TEMPORAL-001~004** | **4** | within/rate 跨决策窗口计数状态行为（多决策序列，验证 temporal_state 快照与重放一致，对应 §2.4）：T01 rate 正常序列（未超限→超限）、T02 within 正常序列、T03 temporal_state 快照篡改（判 `temporal_state_divergence`）、T04 状态重放金丝雀（跳过重放的 regressed 验证器被捕）。参考实现 temporal_state 进 DO 已落地（2026-08-27），向量随验证器实现后生成冻结 |
+| **有状态算子状态验证（规划，未生成）** | **V-TEMPORAL-001~004** | **4** | within/rate 跨决策窗口计数状态行为（多决策序列，验证 temporal_state 快照与重放一致，对应 §2.4）：T01 rate 正常序列（未超限→超限）、T02 within 正常序列、T03 temporal_state 快照篡改（判 `temporal_state_divergence`）、T04 状态重放金丝雀（跳过重放的 regressed 验证器被捕）。向量随 temporal_state 进 DO 落地后生成冻结 |
 | **合计** | | **审计层 78** | 哈希层 78 条（D/C/A/K/G/V-COMP 已冻结）。签名 5 + TSA 3 + V-TEMPORAL 4 为规划项（未生成，不计数） |
 
 > **命名澄清（避免与 SPEC §45 V-SCENE 语义混同）**：SPEC §45 的 V-SCENE 专指**生命周期七阶段**的业务场景验证（身份/岗位/培训/运营/审计/信任/退役），编号 `V-SCENE-NNN`。within/rate 的有状态算子窗口计数验证是**不同的验证对象**（算子状态正确性，非业务场景闭环），故本规范以**独立序列 V-TEMPORAL** 承载，不占用 V-SCENE 编号——对应 SPEC §44 第 2462 行「纳入 V-SCENE（多决策序列）**或独立状态验证向量**」中的「独立状态验证向量」分支。
@@ -290,7 +292,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 | **P2** | `compliance_field_missing` | 画像声明的必需字段缺失（含 §5.2 风险条件层 critical → signature 强制） |
 | **P3** | `oversight_missing` | 高风险/关键决策缺人类监督记录（治理约束） |
 | **P4** | `sod_violation` | 职责分离违反（`agent.id == policies[].author_id`） |
-| **P5** | `tree_snapshot_divergence` / `temporal_state_divergence` | 证据层：决策记录的树快照与规则源不一致 / 有状态算子窗口计数快照与重放结果不一致（§2.4，同级） |
+| **P5** | `tree_snapshot_divergence` / `temporal_state_divergence`（后者随 V-TEMPORAL 落地后生效） | 证据层：决策记录的树快照与规则源不一致 / 有状态算子窗口计数快照与重放结果不一致（§2.4，同级） |
 | **P6** | `content_unresolvable` | **告警级**（§8：引用完整性告警，非断裂）→ MUST 排最后；若前置，一条冷存储已删除的知识引用会掩盖同时存在的真实违规 |
 
 **优先级铉定向量**（只写文本不给向量等于未验证）：

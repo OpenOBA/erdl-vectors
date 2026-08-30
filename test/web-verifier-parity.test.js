@@ -7,11 +7,11 @@
  *   ② P5 tree_snapshot_divergence 用 m.id 而非 m.rule_id（永不命中）
  *   ③ 缺 criticalWithoutSignature（P2b risk_level=critical → signature 强制）
  *
- * 本测试提取浏览器端 detectDOBreach，逐条比对 Node 端，防止再次漂移。
+ * 本测试提取浏览器端 collectDOBreaches（完整 breach 列表），逐条比对 Node 端，防止再次漂移。
  */
 const fs = require('fs');
 const path = require('path');
-const { detectDOBreach: nodeDetect } = require('../scripts/verify-v1.5.js');
+const { collectDOBreaches: nodeCollect } = require('../scripts/verify-v1.5.js');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'web', 'verify.html'), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
@@ -38,8 +38,8 @@ const web = new Function(
   'const hasLoneSurrogate = ' + extractFunc(script, 'hasLoneSurrogate') + ';\n' +
   'const jcsCanonicalize = ' + extractFunc(script, 'jcsCanonicalize') + ';\n' +
   'const getField = ' + extractFunc(script, 'getField') + ';\n' +
-  'const detectDOBreach = ' + extractFunc(script, 'detectDOBreach') + ';\n' +
-  'return { jcsCanonicalize, getField, detectDOBreach };',
+  'const collectDOBreaches = ' + extractFunc(script, 'collectDOBreaches') + ';\n' +
+  'return { jcsCanonicalize, getField, collectDOBreaches };',
 )(KNOWN);
 
 const vectors = JSON.parse(
@@ -47,14 +47,14 @@ const vectors = JSON.parse(
 ).vectors;
 
 describe('在线验证器（web/verify.html）与 Node 验证器一致性', () => {
-  it('detectDOBreach 对全部 DO 向量逐条一致（优先级 + 字段映射 + critical→signature）', () => {
+  it('collectDOBreaches 对全部 DO 向量逐条一致（优先级 + 字段映射 + critical→signature）', () => {
     const dos = vectors.filter((v) => v.decision_object);
     expect(dos.length).toBeGreaterThan(0);
     dos.forEach((v) => {
       const exp = v.expected || {};
-      const node = nodeDetect(v.decision_object, exp);
-      const webR = web.detectDOBreach(v.decision_object, exp);
-      expect(webR, `${v.id} 在线验证器与 Node 验证器分歧`).toBe(node);
+      const node = nodeCollect(v.decision_object, exp);
+      const webR = web.collectDOBreaches(v.decision_object, exp);
+      expect(webR, `${v.id} 在线验证器与 Node 验证器分歧`).toEqual(node);
     });
   });
 });
