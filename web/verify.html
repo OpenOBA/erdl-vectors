@@ -113,30 +113,32 @@ async function verifyDO(decisionObject){
 }
 
 // ── 语义 breach ──
-function detectDOBreach(o,meta){
+function collectDOBreaches(o,meta){
   const cp=o.compliance_profile||{};
+  const hits=[];
   // P1 jurisdiction_mismatch（§9.1.1）
   const juris=Array.isArray(cp.jurisdictions)?cp.jurisdictions:[];
-  if(juris.some(j=>!KNOWN_JURISDICTIONS.includes(j)))return'jurisdiction_mismatch';
+  if(juris.some(j=>!KNOWN_JURISDICTIONS.includes(j)))hits.push('jurisdiction_mismatch');
   // P2 compliance_field_missing（含 risk_level=critical → signature 强制）
   const activated=Array.isArray(cp.activated_fields)?cp.activated_fields:[];
-  const fieldMissing=activated.some(f=>getField(o,f)===undefined);
+  const fieldMissing=activated.some(f=>getField(o,f)==null);
   const criticalWithoutSignature=cp.risk_level==='critical'&&!activated.includes('signature');
-  if(fieldMissing||criticalWithoutSignature)return'compliance_field_missing';
+  if(fieldMissing||criticalWithoutSignature)hits.push('compliance_field_missing');
   // P3 oversight_missing
   const risk=cp.risk_level, ov=o.human_oversight;
-  if((risk==='high'||risk==='critical')&&(!ov||ov.required!==true))return'oversight_missing';
+  if((risk==='high'||risk==='critical')&&(!ov||ov.required!==true))hits.push('oversight_missing');
   // P4 sod_violation
   const aid=o.agent&&o.agent.id;
-  if(aid&&Array.isArray(o.policies)){for(const p of o.policies){if(p.author_id===aid)return'sod_violation';}}
+  if(aid&&Array.isArray(o.policies)){for(const p of o.policies){if(p.author_id===aid){hits.push('sod_violation');break;}}}
   // P5 tree_snapshot_divergence
   const matched=o.evaluation&&o.evaluation.matched_rules, policies=Array.isArray(o.policies)?o.policies:[];
-  if(Array.isArray(matched)){for(const m of matched){const p=policies.find(pp=>pp.id===m.rule_id);if(p&&m.canonical_tree!==undefined&&p.when!==undefined&&jcsCanonicalize(m.canonical_tree)!==jcsCanonicalize(p.when))return'tree_snapshot_divergence';}}
+  if(Array.isArray(matched)){for(const m of matched){const p=policies.find(pp=>pp.id===m.rule_id);if(p&&m.canonical_tree!==undefined&&p.when!==undefined&&jcsCanonicalize(m.canonical_tree)!==jcsCanonicalize(p.when)){hits.push('tree_snapshot_divergence');break;}}}
   // P6 content_unresolvable（告警级，MUST 最后）
   const refs=o.evaluation&&o.evaluation.knowledge_references;
-  if(Array.isArray(refs)&&meta&&Array.isArray(meta.resolvable_entry_ids)){for(const r of refs){if(!meta.resolvable_entry_ids.includes(r.entry_id))return'content_unresolvable';}}
-  return null;
+  if(Array.isArray(refs)&&meta&&Array.isArray(meta.resolvable_entry_ids)){for(const r of refs){if(!meta.resolvable_entry_ids.includes(r.entry_id)){hits.push('content_unresolvable');break;}}}
+  return hits;
 }
+function detectDOBreach(o,meta){return collectDOBreaches(o,meta)[0]||null;}
 async function detectChainBreach(chain){
   for(const d of chain){const r=await verifyDO(d);if(!r.passed){if(r.error&&r.error.startsWith('preimage_version'))return'version_unsupported';return'hash_mismatch';}}
   if(chain.length>0&&chain[0].audit&&chain[0].audit.previous_hash!==null)return'chain_genesis_mismatch';
@@ -200,12 +202,12 @@ async function verifyVectors(ev){
       if(v.decision_object){breakdown[cat].total++;
         const r=await verifyDO(v.decision_object);
         if(exp.type==='MATCH'){let ok=r.passed;
-          if(ok&&Array.isArray(exp.required_fields)){for(const f of exp.required_fields){if(getField(v.decision_object,f)===undefined){ok=false;errors.push(v.id+' required_field 缺失: '+f);}}}
+          if(ok&&Array.isArray(exp.required_fields)){for(const f of exp.required_fields){if(getField(v.decision_object,f)==null){ok=false;errors.push(v.id+' required_field 缺失: '+f);}}}
           if(ok&&Array.isArray(exp.checks)&&exp.checks.includes('sod')){const aid=v.decision_object.agent&&v.decision_object.agent.id;if(aid&&Array.isArray(v.decision_object.policies)&&v.decision_object.policies.some(p=>p.author_id===aid)){ok=false;errors.push(v.id+' SoD 违反');}}
           if(ok){pass++;breakdown[cat].pass++;}else{fail++;}}
         else if(exp.type==='BREACH'){
           if(v.id==='V-DO-v15-K01'){if(!r.passed){canaryOk++;pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' 金丝雀 FALSE_PASS');}}
-          else{if(!r.passed){fail++;errors.push(v.id+' hash 不自洽');}else{const b=detectDOBreach(v.decision_object,exp);if(b===exp.breach){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' breach 不符：期望 '+exp.breach+' 检出 '+b);}}}
+          else{if(!r.passed){fail++;errors.push(v.id+' hash 不自洽');}else{const allHits=collectDOBreaches(v.decision_object,exp);const b=allHits[0]||null;if(b!==exp.breach){fail++;errors.push(v.id+' breach 不符：期望 '+exp.breach+' 检出 '+b);}else{const declared=Array.isArray(exp.also_present)?exp.also_present:[];const actualExtra=allHits.slice(1);const missing=actualExtra.filter(c=>!declared.includes(c));const falseD=declared.filter(c=>!actualExtra.includes(c));if(missing.length){fail++;errors.push(v.id+' 未声明 also_present: '+missing.join(','));}else if(falseD.length){fail++;errors.push(v.id+' also_present 声明但不成立: '+falseD.join(','));}else{pass++;breakdown[cat].pass++;}}}}
         }else{fail++;}
       }else if(v.chain){breakdown[cat].total++;
         const b=await detectChainBreach(v.chain);

@@ -217,7 +217,7 @@ function collectDOBreaches(doObj, meta) {
 
   // P2. compliance_field_missing：激活字段缺失
   const activated = Array.isArray(cp.activated_fields) ? cp.activated_fields : [];
-  const fieldMissing = activated.some((f) => getField(doObj, f) === undefined);
+  const fieldMissing = activated.some((f) => getField(doObj, f) == null);
   // P2b. 风险条件层（RFC-002 §5.2）：risk_level=critical → signature 强制
   //      画像 MUST 将 signature 纳入 activated_fields；未纳入即风险条件层未生效，
   //      合规后果与「已激活但缺值」同质（缺必需合规字段），故复用同一 breach 码，不新增码。
@@ -344,7 +344,7 @@ function main() {
         // 字段完整性（RFC-002 §9.1 第一/二组）
         if (ok && Array.isArray(exp.required_fields)) {
           for (const f of exp.required_fields) {
-            if (getField(doObj, f) === undefined) {
+            if (getField(doObj, f) == null) {
               ok = false;
               errors.push(v.id + ' required_field 缺失: ' + f);
             }
