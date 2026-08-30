@@ -109,23 +109,32 @@ async function verifyDO(decisionObject){
   const canonical=jcsCanonicalize(clone);
   const computedHash='sha256:'+await sha256Hex(canonical);
   const storedHash=decisionObject.audit.hash;
-  return{passed:computedHash===storedHash,computedHash,storedHash,canonicalHex:await hexOf(canonical),canonical};
+  return{passed:computedHash===storedHash,computedHash,storedHash,canonical};
 }
-async function hexOf(str){const data=new TextEncoder().encode(str);const h=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 
 // ── 语义 breach ──
 function detectDOBreach(o,meta){
   const cp=o.compliance_profile||{};
-  for(const f of (Array.isArray(cp.activated_fields)?cp.activated_fields:[])){if(getField(o,f)===undefined)return'compliance_field_missing';}
-  for(const j of (Array.isArray(cp.jurisdictions)?cp.jurisdictions:[])){if(!KNOWN_JURISDICTIONS.includes(j))return'jurisdiction_mismatch';}
+  // P1 jurisdiction_mismatch（§9.1.1）
+  const juris=Array.isArray(cp.jurisdictions)?cp.jurisdictions:[];
+  if(juris.some(j=>!KNOWN_JURISDICTIONS.includes(j)))return'jurisdiction_mismatch';
+  // P2 compliance_field_missing（含 risk_level=critical → signature 强制）
+  const activated=Array.isArray(cp.activated_fields)?cp.activated_fields:[];
+  const fieldMissing=activated.some(f=>getField(o,f)===undefined);
+  const criticalWithoutSignature=cp.risk_level==='critical'&&!activated.includes('signature');
+  if(fieldMissing||criticalWithoutSignature)return'compliance_field_missing';
+  // P3 oversight_missing
   const risk=cp.risk_level, ov=o.human_oversight;
   if((risk==='high'||risk==='critical')&&(!ov||ov.required!==true))return'oversight_missing';
+  // P4 sod_violation
   const aid=o.agent&&o.agent.id;
   if(aid&&Array.isArray(o.policies)){for(const p of o.policies){if(p.author_id===aid)return'sod_violation';}}
+  // P5 tree_snapshot_divergence
+  const matched=o.evaluation&&o.evaluation.matched_rules, policies=Array.isArray(o.policies)?o.policies:[];
+  if(Array.isArray(matched)){for(const m of matched){const p=policies.find(pp=>pp.id===m.rule_id);if(p&&m.canonical_tree!==undefined&&p.when!==undefined&&jcsCanonicalize(m.canonical_tree)!==jcsCanonicalize(p.when))return'tree_snapshot_divergence';}}
+  // P6 content_unresolvable（告警级，MUST 最后）
   const refs=o.evaluation&&o.evaluation.knowledge_references;
   if(Array.isArray(refs)&&meta&&Array.isArray(meta.resolvable_entry_ids)){for(const r of refs){if(!meta.resolvable_entry_ids.includes(r.entry_id))return'content_unresolvable';}}
-  const matched=o.evaluation&&o.evaluation.matched_rules, policies=Array.isArray(o.policies)?o.policies:[];
-  if(Array.isArray(matched)){for(const m of matched){const p=policies.find(pp=>pp.id===m.id);if(p&&m.canonical_tree!==undefined&&p.when!==undefined&&jcsCanonicalize(m.canonical_tree)!==jcsCanonicalize(p.when))return'tree_snapshot_divergence';}}
   return null;
 }
 async function detectChainBreach(chain){
@@ -169,7 +178,7 @@ function loadExample(){
   document.getElementById('doInput').value=JSON.stringify({
     agent:{id:'agent-001',role:'guardian',version:'v1.5.0'},
     decision_type:'ALLOW',
-    compliance_profile:{profile_id:'erdl-compliance-v1.5',jurisdictions:['CN'],risk_level:'low',activated_fields:['agent.aid'],profile_hash:''},
+    compliance_profile:{profile_id:'erdl-compliance-v1.5',jurisdictions:['CN'],risk_level:'low',activated_fields:['agent.id'],profile_hash:''},
     audit:{mode:'hash',preimage_version:'erdl-do-v1.5-hash-flat',previous_hash:null,chain_id:'example',chain_seq:0,hash:'sha256:'}
   },null,2);
 }
