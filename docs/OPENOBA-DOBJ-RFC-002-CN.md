@@ -12,7 +12,7 @@
 > **上位规范**：ERDL SPEC v2.0
 > **前序文档**：ERDL-RFC-001（v1.3，哈希管线基座）
 >
-> **修订记录**：自 Draft 1 起经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。
+> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。
 >
 > **关键字解释**：本文档中的 "MUST"、"MUST NOT"、"SHOULD"、"MAY" 等关键字遵循 RFC 2119 和 RFC 8174 的语义解释。
 
@@ -153,8 +153,10 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 | 类型 | 语义 | 字段 |
 |------|------|------|
 | 常驻事实 | 每条 DO 必具 | CORE 14 字段全量（spec/decision_id/compliance_profile/execution_trace_id/timestamp/evaluation_duration_ms/agent/context/rule_set_version/policies/evaluation/result/human_oversight/audit，见 SPEC §27.2） |
-| 法域激活 | activated_fields 声明后 MUST 填充，缺失判 compliance_field_missing | agent.{aid,known_limitations,tool_registry_hash,algorithm_filing_no,model_registration_id}/context_snapshot_hash 等 |
-| 条件激活 | 随事实产生（人类介入/业务对象存在/有状态算子命中），存在性由 V-COMP-F04 覆盖 | human_oversight.{human_actor_id,timestamp,override_reason}/knowledge_references/attachments/intent/tool/outcome/evaluation.temporal_state（§2.4，随 within/rate 命中产生，存在性由 V-SCENE 覆盖，不纳入 V-COMP 字段存在性检查） |
+| 法域激活 | activated_fields 声明后 MUST 填充，缺失判 compliance_field_missing | JURISDICTION 15 字段（model_id / agent.known_limitations / fairness_assessment / impact_assessment_id / autonomy_level / data_modification_expected / context_snapshot_hash / sanitized_context / confidence_score / signature / signing_key_id / agent.aid / agent.tool_registry_hash / agent.algorithm_filing_no / agent.model_registration_id，见 SPEC §27.3） |
+| 条件激活 | 随事实产生（人类介入/业务对象存在/有状态算子命中） | human_oversight（`required` 常驻 + `status`/`human_actor_id`/`timestamp`/`override_reason` 条件）/ knowledge_references / attachments / intent / tool（`context.tool.name`）/ outcome / evaluation.temporal_state（§2.4，随 within/rate 命中产生，存在性由 V-TEMPORAL 覆盖，不纳入 V-COMP 字段存在性检查） |
+
+> **条件激活字段的存在性覆盖**：human_oversight 缺失 → F04（oversight_missing）；knowledge_references 不可解析 → A02（content_unresolvable）；attachments/intent/outcome 等条件字段的篡改由哈希天然覆盖（扁平方案零取舍）；temporal_state 由 V-TEMPORAL 覆盖。
 
 **第一层合规字段进哈希（扁平方案下零取舍成本）**：agent.known_limitations / tool_registry_hash / algorithm_filing_no / model_registration_id 是"完整性级合规主张"（OpenOBA 参考实现自身合规），随全 DO 哈希天然获得篡改保护——V-COMP-F06/F07 验证此保护成立。这是扁平方案相对白名单方案的自然优势：**无需逐个声明取舍，全字段默认受保护**。
 
@@ -221,7 +223,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 > **命名澄清（避免与 SPEC §45 V-SCENE 语义混同）**：SPEC §45 的 V-SCENE 专指**生命周期七阶段**的业务场景验证（身份/岗位/培训/运营/审计/信任/退役），编号 `V-SCENE-NNN`。within/rate 的有状态算子窗口计数验证是**不同的验证对象**（算子状态正确性，非业务场景闭环），故本规范以**独立序列 V-TEMPORAL** 承载，不占用 V-SCENE 编号——对应 SPEC §44 第 2462 行「纳入 V-SCENE（多决策序列）**或独立状态验证向量**」中的「独立状态验证向量」分支。
 >
-> **temporal_state 进 DO 对既有向量的影响**：`temporal_state` 为条件激活字段，仅当 within/rate 规则命中时才产生。既有 78 条已交付向量均不含 within/rate 条件（经全量核查），故 temporal_state 进 DO **不改变任何既有向量的 preimage**，无需重新生成既有 78 条。V-TEMPORAL 4 条为新增覆盖，验证的是既有向量未覆盖的「跨决策窗口计数」行为。
+> **temporal_state 进 DO 对既有向量的影响**：`temporal_state` 为条件激活字段，仅当 within/rate 规则命中时才产生。既有 78 条向量均不含 within/rate 条件（经全量核查），故 temporal_state 进 DO **不改变任何既有向量的 preimage**，无需重新生成既有 78 条。V-TEMPORAL 4 条为新增覆盖，验证的是既有向量未覆盖的「跨决策窗口计数」行为。
 
 **生成自检强制**（§7 step-6 双检的工程教训）：向量冻结前参考 runner 全量自检，除金丝雀外全部 MATCH；step-6 双检强制。签名向量随签名实现开发时同步生成冻结。
 
@@ -233,15 +235,15 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 | 编号 | 法域 | 检查字段 |
 |------|------|------|
-| V-COMP-001 | CN · GB/Z 185 | agent.aid / agent.tool_registry_hash / agent.algorithm_filing_no / agent.model_registration_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context / signature（签名层，拟定） |
-| V-COMP-002 | EU · AI Act | model_id / agent.known_limitations / confidence_score / fairness_assessment / impact_assessment_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context / signature（签名层，拟定） |
-| V-COMP-003 | US 综合 | model_id / confidence_score / fairness_assessment / impact_assessment_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context / signature（签名层，拟定） |
+| V-COMP-001 | CN · GB/Z 185 | agent.aid / agent.tool_registry_hash / agent.algorithm_filing_no / agent.model_registration_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context / signature（签名层，未冻结） |
+| V-COMP-002 | EU · AI Act | model_id / agent.known_limitations / confidence_score / fairness_assessment / impact_assessment_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context / signature（签名层，未冻结） |
+| V-COMP-003 | US 综合 | model_id / confidence_score / fairness_assessment / impact_assessment_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context / signature（签名层，未冻结） |
 | V-COMP-004 | SG · MGF | autonomy_level / confidence_score / data_modification_expected |
 | V-COMP-005 | CN+EU 多法域并集 | 双法域字段取并集、无遗漏无冲突 |
 | V-COMP-020 | BR · LGPD | model_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context（Art.20 复核权 → autonomy_level；Art.20 §1 标准与程序可告知 → model_id；Art.18 删除权 + PII 分离 → sanitized_context。LGPD 不明文要求人工介入，故不激活 human_oversight 强制） |
 | V-COMP-021 | IN · DPDP | data_modification_expected / context_snapshot_hash / sanitized_context（§12(1)(d) 擦除权 → sanitized_context；§12(1)(a-c) 更正/补全/更新 → data_modification_expected；§12(2) 下游级联通知需数据流可溯 → context_snapshot_hash。DPDP 未设自动化决策专条，故不激活 autonomy_level / model_id） |
 
-> 注：上表 `signature` 为签名层字段（三层证据体系第二层，§10.3 V-SIGN 拟定冻结）；哈希层向量（V-DO-v15 78 条）暂不含 signature **值**，随签名层实现后补入 V-COMP-001~003 的字段存在性检查。BR/IN 两条不含 signature —— LGPD/DPDP 均未要求不可否认签名，签名强制来自 HIPAA/PCI DSS 与 `risk_level=critical`（§5.2）。
+> 注：上表 `signature` 为签名层字段（三层证据体系第二层，§10.3 V-SIGN 未冻结）；哈希层向量（V-DO-v15 78 条）暂不含 signature **值**，随签名层实现后补入 V-COMP-001~003 的字段存在性检查。BR/IN 两条不含 signature —— LGPD/DPDP 均未要求不可否认签名，签名强制来自 HIPAA/PCI DSS 与 `risk_level=critical`（§5.2）。
 >
 > **critical 的可验证边界（诚实口径）**：哈希层只能验「存在性」（F08/F09 两条负例）——因为一条**合规的** critical DO 按定义就是签名模式，其正例必须含真实可验签名，属签名层职责（V-SIGN-001 承载，§10.3）。本向量集**不**放带占位签名的伪正例，以免误导签名层 runner。
 
@@ -401,7 +403,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 ## 10. 三层证据体系（哈希/签名/TSA）
 
-第一层哈希链 → 第二层 ECDSA P-256 签名链（拟定）→ 第三层 RFC 3161 TSA（字段冻结，实现随签名后）。
+第一层哈希链 → 第二层 ECDSA P-256 签名链（未冻结）→ 第三层 RFC 3161 TSA（字段冻结，实现随签名后）。
 
 ### 10.1 签名原像完整定义
 
@@ -494,7 +496,7 @@ signature(n) = ECDSA_P256_Sign( private_key,
 
 ## 11. 版本演进（v1.3 → v1.5）
 
-- **v1.5 相对 v1.3 的增量**：在已验证哈希管线（JCS 扁平 + 唯一删除点）基础上扩展字段集（canonical_tree、知识引用指针、附件指针、human_oversight 对象化、结论层 outcome），补齐签名层（ECDSA P-256，拟定）与审计层向量集（78 条已交付 + 8 条随签名层补入）；
+- **v1.5 相对 v1.3 的增量**：在已验证哈希管线（JCS 扁平 + 唯一删除点）基础上扩展字段集（canonical_tree、知识引用指针、附件指针、human_oversight 对象化、结论层 outcome），补齐签名层（ECDSA P-256，未冻结）与审计层向量集（78 条 + 8 条随签名层补入）；
 - **preimage_version 常量**：v1.5 哈希模式 = `"erdl-do-v1.5-hash-flat"`（域分隔符，§1.1）；v1.3 历史向量保留其自有版本标识；
 - **版本判别**（验证器 Step 0）：DO 含 canonical_tree 或 v1.5 字段 → v1.5 扁平哈希；否则 → v1.3 历史路径（仅供历史档案验证）；
 - **历史兼容**：v1.3 嵌套算法验证冻结的 AV-001~013 回归套件继续作为历史档案验证基准；生产链不混合版本。
