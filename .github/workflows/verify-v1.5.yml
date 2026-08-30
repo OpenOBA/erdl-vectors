@@ -1,0 +1,52 @@
+name: ERDL Vectors v1.5 Verification
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    paths:
+      - 'decision-object-vectors-v1.5.json'
+      - 'scripts/**'
+      - 'test/**'
+      - '.github/workflows/verify-v1.5.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Clean-Room Check (zero-dependency verifier)
+        run: |
+          # 检查 verify-v1.5.js 源码是否引入 json-canonicalize（而非环境可导入性）
+          if grep -q "require('json-canonicalize')" scripts/verify-v1.5.js; then
+            echo "FAIL: verifier depends on json-canonicalize"
+            exit 1
+          fi
+          echo "PASS: zero-dependency clean-room verifier (source-level check)"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Determinism check (regenerate + byte-identical diff)
+        run: |
+          node scripts/generate-v1.5.cjs
+          if ! git diff --exit-code decision-object-vectors-v1.5.json; then
+            echo "FAIL: regeneration produced different vectors (non-deterministic)"
+            exit 1
+          fi
+          echo "PASS: byte-identical deterministic regeneration"
+
+      - name: Verify (Step 0-6, dual check)
+        run: |
+          node scripts/verify-v1.5.js decision-object-vectors-v1.5.json --answers decision-object-answers-v1.5.json
+
+      - name: Run tests (vitest)
+        run: npm test

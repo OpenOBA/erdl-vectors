@@ -1,8 +1,7 @@
 {
   "name": "erdl-vectors",
-  "version": "1.3.0",
-  "description": "ERDL Decision Object v1.3 Cross-Implementation Test Vectors — 101 deterministic, tamper-evident audit vectors for AI Agent rule evaluation.",
-  "main": "scripts/verify.js",
+  "version": "1.5.0",
+  "description": "ERDL Decision Object (v1.5) Cross-Implementation Test Vectors v1.5.0 — deterministic, tamper-evident audit vectors (V-DO-v15 audit layer + V-ENGINE expression core).",
   "keywords": [
     "erdl",
     "decision-object",
@@ -22,15 +21,15 @@
     "type": "git",
     "url": "https://github.com/OpenOBA/erdl-vectors"
   },
-  "scripts": {
-    "test": "vitest run",
-    "generate": "node scripts/generate-vectors.cjs",
-    "verify": "node scripts/verify.js"
-  },
   "dependencies": {
     "json-canonicalize": "2.0.0"
   },
   "devDependencies": {
     "vitest": "^4.1.10"
+  },
+  "scripts": {
+    "generate": "node scripts/generate-v1.5.cjs",
+    "verify": "node scripts/verify-v1.5.js decision-object-vectors-v1.5.json --answers decision-object-answers-v1.5.json",
+    "test": "vitest run"
   }
 }

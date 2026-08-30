@@ -1,5 +1,6 @@
 node_modules/
-decision-object-vectors-v1.2.json
 spike/
 reply-*.md
-decision-object-answers-v1.3.json
+archive/v1.3/decision-object-answers-v1.3.json
+decision-object-answers-v1.5.json
+.workbuddy/
