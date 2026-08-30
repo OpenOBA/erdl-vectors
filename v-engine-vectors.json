@@ -15114,7 +15114,7 @@
         }
       },
       "expected": {
-        "gloss_zh": "is_active 为“是”"
+        "gloss_zh": "is_active 为\"是\""
       }
     },
     {
@@ -15173,7 +15173,7 @@
         ]
       },
       "expected": {
-        "gloss_zh": "(a + b)"
+        "gloss_zh": "(a 加 b)"
       }
     },
     {

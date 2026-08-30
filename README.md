@@ -114,6 +114,7 @@ npm install             # 安装依赖（json-canonicalize 用于确定性比对
 npm run generate        # 生成 V-DO 78 条向量 + 答案文件（canonical_hex 物理隔离，.gitignore）
 npm run verify          # V-DO 五步验证法 Step 0–6 + 语义 breach 检测（§8/§9）
 npm run verify:vengine  # V-ENGINE 表达层独立验证（57 条语义敏感向量，§48.2 第二来源）
+npm run verify:vengine:full  # V-ENGINE 全量 223 条（@openoba/erdl 参考引擎）
 npm test                # vitest 回归套件（含 web/Node 一致性 + 对抗性回归守门）
 ```
 
