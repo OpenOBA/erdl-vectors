@@ -20,7 +20,7 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 
 | Implementor | Method | Vectors | Date | Artifact |
 |------------|--------|:-------:|------|---------|
-| **OpenOBA (参考实现)** | Node.js, self-built JCS (RFC 8785) | 78/78 哈希层 + 金丝雀 K01 判别（Check 1 MISMATCH + Check 2 MATCH） | 2026-08-25 | [verify-v1.5.js](scripts/verify-v1.5.js) |
+| **OpenOBA (参考实现)** | Node.js, self-built JCS (RFC 8785) | 78/78 哈希层 + 金丝雀 K01 判别（Check 1 MISMATCH + Check 2 MATCH） | 2026-08-31 | [verify-v1.5.js](scripts/verify-v1.5.js) |
 
 <!-- registry:auto-begin -->
 <!-- (no third-party runners verified yet) -->
