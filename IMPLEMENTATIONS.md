@@ -41,11 +41,7 @@ v1.3 时代的第三方验证记录（13 AV 向量），归档保留、不复用
 
 ## Submission Process
 
-1. 阅读 [RUNNER_CONTRACT.md](RUNNER_CONTRACT.md)（规范性契约 R1–R6，conforming 权威定义）+ [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md)（实现指南），权威细节见 RFC-002（`docs/OPENOBA-DOBJ-RFC-002-CN.md`）
-2. 从规范文本独立实现 JCS (RFC 8785) + SHA-256 — **禁止依赖 ERDL SDK / json-canonicalize**
-3. 对 `decision-object-vectors-v1.5.json` 逐条运行验证
-4. 结果逐字节比对（MATCH 型向量 hash 自洽；金丝雀 K01 正确实现 MUST MISMATCH）
-5. 提交 PR 到 `submissions/` 目录（提交格式与要求见 [submissions/README.md](submissions/README.md)）
+见 [submissions/README.md](submissions/README.md)（提交格式 + 步骤）。CI 交叉验证（`verify-submission.cjs`）通过后，合并时自动登记于上表（`scripts/update-registry.cjs`）。
 
 ### Principles
 

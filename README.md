@@ -120,9 +120,9 @@ npm run verify:vengine:full  # V-ENGINE 全量 223 条（@openoba/erdl 参考引
 npm test                # vitest 回归套件（含 web/Node 一致性 + 对抗性回归守门）
 ```
 
-**独立 Runner 验证要求**（跨实现中立性）：自行实现 JCS（RFC 8785）+ SHA-256——**不依赖 `json-canonicalize`**——对 `decision-object-vectors-v1.5.json` 逐条重算、比对 `audit.hash`；金丝雀 K01 正确实现 MUST MISMATCH。规范性契约见 [RUNNER_CONTRACT.md](RUNNER_CONTRACT.md)（规则 R1–R6），实现指南见 [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md)，提交见 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md)。
+**独立 Runner 验证要求**（跨实现中立性）：自行实现 JCS（RFC 8785）+ SHA-256——**不依赖 `json-canonicalize`**——对 `decision-object-vectors-v1.5.json` 逐条重算、比对 `audit.hash`；金丝雀 K01 正确实现 MUST MISMATCH。规范性契约见 [RUNNER_CONTRACT.md](RUNNER_CONTRACT.md)（规则 R1–R6），实现指南见 [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md)，提交见 [submissions/README.md](submissions/README.md)（登记于 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md)）。
 
-**自动记录**：CI 验证通过后自动生成 [conformance/CONFORMANCE.md](conformance/CONFORMANCE.md)，记录「谁、哪天、通过多少条」+ Check 1/2 + K01 判别 + R1–R6 对照结论（`npm run conformance`）——结果由验证运行本身产出，非手工背书，且 CI 有新鲜度门禁（stale 即红）。
+**自动记录**：CI 验证通过后自动生成 [conformance/CONFORMANCE.md](conformance/CONFORMANCE.md)，记录「谁、哪天、通过多少条」+ Check 1/2 + K01 判别 + R1–R6 对照结论（`npm run conformance`）——结果由验证运行本身产出，非手工背书，且 CI 有新鲜度门禁（stale 即红）。第三方 Runner 提交合并后，CI 自动登记进 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表（`scripts/update-registry.cjs` 从 `submissions/*.json` 派生，未通过的不登记）。
 
 **在线验证工具**：无需安装即可验证——打开 `web/verify.html`（浏览器端 self-built JCS + Web Crypto SHA-256），粘贴单条 DO 验 hash，或加载向量文件验证全部 78 条。可直接双击打开（file://），或 `npx serve web/` 本地托管。
 

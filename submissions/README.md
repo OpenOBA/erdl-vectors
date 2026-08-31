@@ -57,7 +57,7 @@ A conforming runner (RUNNER_CONTRACT.md R1–R6) MUST:
 | Check | Pass criteria |
 |-------|--------------|
 | **Check 1** | recomputed JCS+SHA-256 hash matches each artifact's own `audit.hash` (78/78) |
-| **Check 2** | recomputed canonical bytes match the answer oracle (107/107, byte-level) |
+| **Check 2** | submitted `canonical_hex` matches the reference recomputation byte-for-byte (107/107) |
 | **K01 canary** | Check 1 MISMATCH + Check 2 MATCH (discrimination confirmed) |
 | **R3 breach codes** | single-DO P1→P6 + chain breach codes correctly surfaced |
 
@@ -67,8 +67,7 @@ A conforming runner (RUNNER_CONTRACT.md R1–R6) MUST:
 2. **Implement** JCS (RFC 8785) + SHA-256 from the spec + contract (no SDK).
 3. **Run** your engine against all 78 vectors.
 4. **Record** the result as `submissions/<your-runner-name>-output.json`.
-5. **Update** `IMPLEMENTATIONS.md` — add a row to the registry.
-6. **Open a Pull Request**.
+5. **Open a Pull Request** — CI cross-verifies; on merge, the registry (`IMPLEMENTATIONS.md`) is auto-updated (no manual registry edit).
 
 CI runs `scripts/verify-submission.cjs --submission <your-file>` (recomputes the reference canonical bytes and compares byte-for-byte) plus `scripts/verify-v1.5.js` (dual check) and `scripts/generate-conformance.cjs`; results are posted as a PR comment.
 
