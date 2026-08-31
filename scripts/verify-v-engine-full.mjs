@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * verify-v-engine-full.mjs — V-ENGINE 全量 223 条向量验证器
+ * verify-v-engine-full.mjs — V-ENGINE full 223-vector verifier
  *
- * 依赖 @openoba/erdl（ERDL 参考引擎）逐条求值 v-engine-vectors.json 并与 expected 对比。
- * 这是「参考验证器」（用引擎验引擎产出的向量），与 scripts/verify-v-engine.mjs 的
- * 「独立第二来源」（57 条语义敏感、不 import 引擎）互为补充：
- *   - 本文件：全量 223 条覆盖（34 节点 × 4 场景 + E1-E12 约束 + Simple + gloss + projection）
- *   - verify-v-engine.mjs：57 条语义敏感向量独立重算（中立性证明 §48.2）
+ * Depends on @openoba/erdl (ERDL reference engine) to evaluate v-engine-vectors.json per vector and compare with expected.
+ * This is the "reference verifier" (verifying engine-produced vectors with the engine), complementing scripts/verify-v-engine.mjs's
+ * "independent second source" (57 semantic-sensitive, no engine import):
+ *   - this file: full 223 coverage (34 nodes × 4 scenarios + E1-E12 constraints + Simple + gloss + projection)
+ *   - verify-v-engine.mjs: 57 semantic-sensitive vectors independently recomputed (neutrality proof §48.2)
  */
 import {
   ExprTreeEvaluator, objectContext, fromSExpr, toSExpr, compileSimpleCondition,
@@ -18,7 +18,7 @@ import { readFileSync } from 'fs';
 const AS_OF = new Date('2026-08-15T00:00:00Z');
 const ev = new ExprTreeEvaluator();
 
-/** 与生成器 v-engine.ts 的 serializeValue 严格同构：值 → {value, type} */
+/** Strictly isomorphic with the generator v-engine.ts serializeValue: value → {value, type} */
 function serializeValue(v) {
   if (v === undefined) return { value: '__undefined__', type: 'undefined' };
   if (v === null) return { value: null, type: 'null' };
@@ -37,7 +37,7 @@ function serializeValue(v) {
   return { value: JSON.stringify(v), type: 'object' };
 }
 
-/** E5（§10.2）：expr（Expression 投影面）与 field/operator/value（Simple 投影面）互斥 */
+/** E5 (§10.2): expr (Expression projection) and field/operator/value (Simple projection) are mutually exclusive */
 function checkExprExclusive(cond) {
   const hasExpr = cond && cond.expr !== undefined && cond.expr !== null;
   const hasSimple = cond && (cond.field !== undefined || cond.operator !== undefined || cond.value !== undefined);
@@ -106,14 +106,14 @@ function verify(v) {
     }
     return result === v.expected.value;
   }
-  // 节点语义向量
+  // node-semantics vectors
   const r = ev.evaluate(fromSExpr(v.expr_tree), objectContext(v.context, AS_OF));
   const sv = serializeValue(r.value);
   return sv.value === v.expected.value && sv.type === v.expected.value_type &&
     warnKinds(r) === JSON.stringify(v.expected.warnings) && r.errored === v.expected.errored;
 }
 
-// ── 主流程 ──
+// ── main flow ──
 const data = JSON.parse(readFileSync(new URL('../v-engine-vectors.json', import.meta.url), 'utf8'));
 
 let pass = 0, fail = 0;
@@ -127,15 +127,15 @@ for (const v of data.vectors) {
   else { fail++; failed.push(v.id); }
 }
 
-console.log('V-ENGINE 全量验证（@openoba/erdl 参考引擎）');
+console.log('V-ENGINE full verification (@openoba/erdl reference engine)');
 for (const [k, s] of Object.entries(breakdown)) {
   const mark = s.pass === s.total ? '✓' : '✗';
   console.log(`  ${mark} ${k.padEnd(24)} ${s.pass}/${s.total}`);
 }
-console.log(`  总计: ${pass}/${pass + fail} 通过`);
+console.log(`  total: ${pass}/${pass + fail} passed`);
 if (fail) {
-  console.log('  失败:', failed.join(', '));
+  console.log('  failures:', failed.join(', '));
   process.exit(1);
 }
-console.log('  ✅ V-ENGINE 223 条向量全量验证通过');
+console.log('  ✅ V-ENGINE 223 vectors full verification passed');
 process.exit(0);

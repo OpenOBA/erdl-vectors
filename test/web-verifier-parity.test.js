@@ -1,13 +1,13 @@
 /**
- * web-verifier-parity.test.js — 在线验证器（web/verify.html）与 Node 验证器的一致性回归守门
+ * web-verifier-parity.test.js — online verifier (web/verify.html) vs Node verifier consistency regression gate
  *
- * 背景（2026-08-31 教训）：web/verify.html 内联了一份独立的 JCS + breach 检测实现，
- * 曾与 scripts/verify-v1.5.js 产生三处分歧：
- *   ① breach 优先级 P1/P2 颠倒（compliance_field_missing 排在 jurisdiction_mismatch 前）
- *   ② P5 tree_snapshot_divergence 用 m.id 而非 m.rule_id（永不命中）
- *   ③ 缺 criticalWithoutSignature（P2b risk_level=critical → signature 强制）
+ * Background (2026-08-31 lesson): web/verify.html inlines an independent JCS + breach-detection implementation,
+ * which once diverged from scripts/verify-v1.5.js in three places:
+ *   ① breach priority P1/P2 inverted (compliance_field_missing placed before jurisdiction_mismatch)
+ *   ② P5 tree_snapshot_divergence used m.id instead of m.rule_id (never matched)
+ *   ③ missing criticalWithoutSignature (P2b risk_level=critical → signature mandatory)
  *
- * 本测试提取浏览器端 collectDOBreaches（完整 breach 列表），逐条比对 Node 端，防止再次漂移。
+ * This test extracts the browser-side collectDOBreaches (full breach list) and compares per vector with the Node side, preventing future drift.
  */
 const fs = require('fs');
 const path = require('path');
@@ -16,10 +16,10 @@ const { collectDOBreaches: nodeCollect } = require('../scripts/verify-v1.5.js');
 const html = fs.readFileSync(path.join(__dirname, '..', 'web', 'verify.html'), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
-/** 平衡花括号提取函数体（兼容单行/多行） */
+/** balanced-brace function body extraction (supports single-line/multi-line) */
 function extractFunc(src, name) {
   const start = src.indexOf('function ' + name + '(');
-  if (start < 0) throw new Error('web/verify.html 未找到函数 ' + name);
+  if (start < 0) throw new Error('web/verify.html function not found: ' + name);
   let i = src.indexOf('{', start);
   let depth = 0;
   for (; i < src.length; i++) {
@@ -46,15 +46,15 @@ const vectors = JSON.parse(
   fs.readFileSync(path.join(__dirname, '..', 'decision-object-vectors-v1.5.json'), 'utf8'),
 ).vectors;
 
-describe('在线验证器（web/verify.html）与 Node 验证器一致性', () => {
-  it('collectDOBreaches 对全部 DO 向量逐条一致（优先级 + 字段映射 + critical→signature）', () => {
+describe('online verifier (web/verify.html) vs Node verifier consistency', () => {
+  it('collectDOBreaches per-vector consistent for all DO vectors (priority + field mapping + critical→signature)', () => {
     const dos = vectors.filter((v) => v.decision_object);
     expect(dos.length).toBeGreaterThan(0);
     dos.forEach((v) => {
       const exp = v.expected || {};
       const node = nodeCollect(v.decision_object, exp);
       const webR = web.collectDOBreaches(v.decision_object, exp);
-      expect(webR, `${v.id} 在线验证器与 Node 验证器分歧`).toEqual(node);
+      expect(webR, `${v.id} online verifier diverges from Node verifier`).toEqual(node);
     });
   });
 });

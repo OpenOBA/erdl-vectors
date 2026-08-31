@@ -18,7 +18,7 @@
     {
       "id": "V-ENGINE-field-001",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "field",
       "scenario": "normal",
       "expr_tree": {
@@ -37,7 +37,7 @@
     {
       "id": "V-ENGINE-field-002",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "field",
       "scenario": "boundary",
       "expr_tree": {
@@ -45,11 +45,11 @@
       },
       "context": {
         "user": {
-          "name": "张三"
+          "name": "John Doe"
         }
       },
       "expected": {
-        "value": "张三",
+        "value": "John Doe",
         "value_type": "string",
         "warnings": [],
         "errored": false
@@ -58,7 +58,7 @@
     {
       "id": "V-ENGINE-field-004",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "field",
       "scenario": "null",
       "expr_tree": {
@@ -75,7 +75,7 @@
     {
       "id": "V-ENGINE-field-003",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "field",
       "scenario": "error",
       "expr_tree": {
@@ -94,7 +94,7 @@
     {
       "id": "V-ENGINE-var-001",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "var",
       "scenario": "normal",
       "expr_tree": {
@@ -113,7 +113,7 @@
     {
       "id": "V-ENGINE-var-002",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "var",
       "scenario": "boundary",
       "expr_tree": {
@@ -134,7 +134,7 @@
     {
       "id": "V-ENGINE-var-004",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "var",
       "scenario": "null",
       "expr_tree": {
@@ -151,7 +151,7 @@
     {
       "id": "V-ENGINE-var-003",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "var",
       "scenario": "error",
       "expr_tree": {
@@ -170,7 +170,7 @@
     {
       "id": "V-ENGINE-literal-001",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "literal",
       "scenario": "normal",
       "expr_tree": 42,
@@ -185,7 +185,7 @@
     {
       "id": "V-ENGINE-literal-002",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "literal",
       "scenario": "boundary",
       "expr_tree": 0,
@@ -200,7 +200,7 @@
     {
       "id": "V-ENGINE-literal-004",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "literal",
       "scenario": "null",
       "expr_tree": null,
@@ -215,7 +215,7 @@
     {
       "id": "V-ENGINE-literal-003",
       "category": "V-ENGINE",
-      "node_group": "取值",
+      "node_group": "value",
       "node": "literal",
       "scenario": "error",
       "expr_tree": "é",
@@ -230,7 +230,7 @@
     {
       "id": "V-ENGINE-and-001",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "and",
       "scenario": "normal",
       "expr_tree": {
@@ -250,7 +250,7 @@
     {
       "id": "V-ENGINE-and-002",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "and",
       "scenario": "boundary",
       "expr_tree": {
@@ -270,7 +270,7 @@
     {
       "id": "V-ENGINE-and-004",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "and",
       "scenario": "null",
       "expr_tree": {
@@ -290,7 +290,7 @@
     {
       "id": "V-ENGINE-and-003",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "and",
       "scenario": "error",
       "expr_tree": {
@@ -317,7 +317,7 @@
     {
       "id": "V-ENGINE-or-001",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "or",
       "scenario": "normal",
       "expr_tree": {
@@ -337,7 +337,7 @@
     {
       "id": "V-ENGINE-or-002",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "or",
       "scenario": "boundary",
       "expr_tree": {
@@ -357,7 +357,7 @@
     {
       "id": "V-ENGINE-or-004",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "or",
       "scenario": "null",
       "expr_tree": {
@@ -377,7 +377,7 @@
     {
       "id": "V-ENGINE-or-003",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "or",
       "scenario": "error",
       "expr_tree": {
@@ -404,7 +404,7 @@
     {
       "id": "V-ENGINE-not-001",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "not",
       "scenario": "normal",
       "expr_tree": {
@@ -421,7 +421,7 @@
     {
       "id": "V-ENGINE-not-002",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "not",
       "scenario": "boundary",
       "expr_tree": {
@@ -438,7 +438,7 @@
     {
       "id": "V-ENGINE-not-004",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "not",
       "scenario": "null",
       "expr_tree": {
@@ -457,7 +457,7 @@
     {
       "id": "V-ENGINE-not-003",
       "category": "V-ENGINE",
-      "node_group": "逻辑",
+      "node_group": "logic",
       "node": "not",
       "scenario": "error",
       "expr_tree": {
@@ -481,7 +481,7 @@
     {
       "id": "V-ENGINE-eq-001",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "eq",
       "scenario": "normal",
       "expr_tree": {
@@ -505,7 +505,7 @@
     {
       "id": "V-ENGINE-eq-002",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "eq",
       "scenario": "boundary",
       "expr_tree": {
@@ -529,7 +529,7 @@
     {
       "id": "V-ENGINE-eq-004",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "eq",
       "scenario": "null",
       "expr_tree": {
@@ -551,7 +551,7 @@
     {
       "id": "V-ENGINE-eq-003",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "eq",
       "scenario": "error",
       "expr_tree": {
@@ -578,7 +578,7 @@
     {
       "id": "V-ENGINE-ne-001",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "ne",
       "scenario": "normal",
       "expr_tree": {
@@ -602,7 +602,7 @@
     {
       "id": "V-ENGINE-ne-002",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "ne",
       "scenario": "boundary",
       "expr_tree": {
@@ -626,7 +626,7 @@
     {
       "id": "V-ENGINE-ne-004",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "ne",
       "scenario": "null",
       "expr_tree": {
@@ -648,7 +648,7 @@
     {
       "id": "V-ENGINE-ne-003",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "ne",
       "scenario": "error",
       "expr_tree": {
@@ -675,7 +675,7 @@
     {
       "id": "V-ENGINE-gt-001",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "gt",
       "scenario": "normal",
       "expr_tree": {
@@ -699,7 +699,7 @@
     {
       "id": "V-ENGINE-gt-002",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "gt",
       "scenario": "boundary",
       "expr_tree": {
@@ -723,7 +723,7 @@
     {
       "id": "V-ENGINE-gt-004",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "gt",
       "scenario": "null",
       "expr_tree": {
@@ -747,7 +747,7 @@
     {
       "id": "V-ENGINE-gt-003",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "gt",
       "scenario": "error",
       "expr_tree": {
@@ -773,7 +773,7 @@
     {
       "id": "V-ENGINE-gte-001",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "gte",
       "scenario": "normal",
       "expr_tree": {
@@ -797,7 +797,7 @@
     {
       "id": "V-ENGINE-gte-002",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "gte",
       "scenario": "boundary",
       "expr_tree": {
@@ -821,7 +821,7 @@
     {
       "id": "V-ENGINE-gte-004",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "gte",
       "scenario": "null",
       "expr_tree": {
@@ -845,7 +845,7 @@
     {
       "id": "V-ENGINE-gte-003",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "gte",
       "scenario": "error",
       "expr_tree": {
@@ -871,7 +871,7 @@
     {
       "id": "V-ENGINE-lt-001",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "lt",
       "scenario": "normal",
       "expr_tree": {
@@ -895,7 +895,7 @@
     {
       "id": "V-ENGINE-lt-002",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "lt",
       "scenario": "boundary",
       "expr_tree": {
@@ -919,7 +919,7 @@
     {
       "id": "V-ENGINE-lt-004",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "lt",
       "scenario": "null",
       "expr_tree": {
@@ -943,7 +943,7 @@
     {
       "id": "V-ENGINE-lt-003",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "lt",
       "scenario": "error",
       "expr_tree": {
@@ -969,7 +969,7 @@
     {
       "id": "V-ENGINE-lte-001",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "lte",
       "scenario": "normal",
       "expr_tree": {
@@ -993,7 +993,7 @@
     {
       "id": "V-ENGINE-lte-002",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "lte",
       "scenario": "boundary",
       "expr_tree": {
@@ -1017,7 +1017,7 @@
     {
       "id": "V-ENGINE-lte-004",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "lte",
       "scenario": "null",
       "expr_tree": {
@@ -1041,7 +1041,7 @@
     {
       "id": "V-ENGINE-lte-003",
       "category": "V-ENGINE",
-      "node_group": "比较",
+      "node_group": "comparison",
       "node": "lte",
       "scenario": "error",
       "expr_tree": {
@@ -1067,7 +1067,7 @@
     {
       "id": "V-ENGINE-in-001",
       "category": "V-ENGINE",
-      "node_group": "集合",
+      "node_group": "set",
       "node": "in",
       "scenario": "normal",
       "expr_tree": {
@@ -1076,13 +1076,13 @@
             "field": "cat"
           },
           [
-            "罕见重疾",
-            "普通重疾"
+            "rare",
+            "common"
           ]
         ]
       },
       "context": {
-        "cat": "罕见重疾"
+        "cat": "rare"
       },
       "expected": {
         "value": true,
@@ -1094,7 +1094,7 @@
     {
       "id": "V-ENGINE-in-002",
       "category": "V-ENGINE",
-      "node_group": "集合",
+      "node_group": "set",
       "node": "in",
       "scenario": "boundary",
       "expr_tree": {
@@ -1121,7 +1121,7 @@
     {
       "id": "V-ENGINE-in-004",
       "category": "V-ENGINE",
-      "node_group": "集合",
+      "node_group": "set",
       "node": "in",
       "scenario": "null",
       "expr_tree": {
@@ -1145,7 +1145,7 @@
     {
       "id": "V-ENGINE-in-003",
       "category": "V-ENGINE",
-      "node_group": "集合",
+      "node_group": "set",
       "node": "in",
       "scenario": "error",
       "expr_tree": {
@@ -1171,7 +1171,7 @@
     {
       "id": "V-ENGINE-contains-001",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "contains",
       "scenario": "normal",
       "expr_tree": {
@@ -1195,7 +1195,7 @@
     {
       "id": "V-ENGINE-contains-002",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "contains",
       "scenario": "boundary",
       "expr_tree": {
@@ -1219,7 +1219,7 @@
     {
       "id": "V-ENGINE-contains-004",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "contains",
       "scenario": "null",
       "expr_tree": {
@@ -1243,7 +1243,7 @@
     {
       "id": "V-ENGINE-contains-003",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "contains",
       "scenario": "error",
       "expr_tree": {
@@ -1269,7 +1269,7 @@
     {
       "id": "V-ENGINE-match-001",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "match",
       "scenario": "normal",
       "expr_tree": {
@@ -1293,7 +1293,7 @@
     {
       "id": "V-ENGINE-match-002",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "match",
       "scenario": "boundary",
       "expr_tree": {
@@ -1317,7 +1317,7 @@
     {
       "id": "V-ENGINE-match-004",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "match",
       "scenario": "null",
       "expr_tree": {
@@ -1339,7 +1339,7 @@
     {
       "id": "V-ENGINE-match-003",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "match",
       "scenario": "error",
       "expr_tree": {
@@ -1365,7 +1365,7 @@
     {
       "id": "V-ENGINE-starts_with-001",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "starts_with",
       "scenario": "normal",
       "expr_tree": {
@@ -1389,7 +1389,7 @@
     {
       "id": "V-ENGINE-starts_with-002",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "starts_with",
       "scenario": "boundary",
       "expr_tree": {
@@ -1413,7 +1413,7 @@
     {
       "id": "V-ENGINE-starts_with-004",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "starts_with",
       "scenario": "null",
       "expr_tree": {
@@ -1435,7 +1435,7 @@
     {
       "id": "V-ENGINE-starts_with-003",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "starts_with",
       "scenario": "error",
       "expr_tree": {
@@ -1461,7 +1461,7 @@
     {
       "id": "V-ENGINE-ends_with-001",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "ends_with",
       "scenario": "normal",
       "expr_tree": {
@@ -1485,7 +1485,7 @@
     {
       "id": "V-ENGINE-ends_with-002",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "ends_with",
       "scenario": "boundary",
       "expr_tree": {
@@ -1509,7 +1509,7 @@
     {
       "id": "V-ENGINE-ends_with-004",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "ends_with",
       "scenario": "null",
       "expr_tree": {
@@ -1531,7 +1531,7 @@
     {
       "id": "V-ENGINE-ends_with-003",
       "category": "V-ENGINE",
-      "node_group": "字符串",
+      "node_group": "string",
       "node": "ends_with",
       "scenario": "error",
       "expr_tree": {
@@ -1557,7 +1557,7 @@
     {
       "id": "V-ENGINE-exists-001",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "exists",
       "scenario": "normal",
       "expr_tree": {
@@ -1578,7 +1578,7 @@
     {
       "id": "V-ENGINE-exists-002",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "exists",
       "scenario": "boundary",
       "expr_tree": {
@@ -1597,7 +1597,7 @@
     {
       "id": "V-ENGINE-exists-004",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "exists",
       "scenario": "null",
       "expr_tree": {
@@ -1618,7 +1618,7 @@
     {
       "id": "V-ENGINE-exists-003",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "exists",
       "scenario": "error",
       "expr_tree": {
@@ -1642,7 +1642,7 @@
     {
       "id": "V-ENGINE-length-001",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "length",
       "scenario": "normal",
       "expr_tree": {
@@ -1663,7 +1663,7 @@
     {
       "id": "V-ENGINE-length-002",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "length",
       "scenario": "boundary",
       "expr_tree": {
@@ -1689,7 +1689,7 @@
     {
       "id": "V-ENGINE-length-004",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "length",
       "scenario": "null",
       "expr_tree": {
@@ -1710,7 +1710,7 @@
     {
       "id": "V-ENGINE-length-003",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "length",
       "scenario": "error",
       "expr_tree": {
@@ -1733,7 +1733,7 @@
     {
       "id": "V-ENGINE-between-001",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "between",
       "scenario": "normal",
       "expr_tree": {
@@ -1758,7 +1758,7 @@
     {
       "id": "V-ENGINE-between-002",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "between",
       "scenario": "boundary",
       "expr_tree": {
@@ -1783,7 +1783,7 @@
     {
       "id": "V-ENGINE-between-004",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "between",
       "scenario": "null",
       "expr_tree": {
@@ -1806,7 +1806,7 @@
     {
       "id": "V-ENGINE-between-003",
       "category": "V-ENGINE",
-      "node_group": "存在量纲",
+      "node_group": "existence",
       "node": "between",
       "scenario": "error",
       "expr_tree": {
@@ -1831,7 +1831,7 @@
     {
       "id": "V-ENGINE-all-001",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "all",
       "scenario": "normal",
       "expr_tree": {
@@ -1867,7 +1867,7 @@
     {
       "id": "V-ENGINE-all-002",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "all",
       "scenario": "boundary",
       "expr_tree": {
@@ -1901,7 +1901,7 @@
     {
       "id": "V-ENGINE-all-004",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "all",
       "scenario": "null",
       "expr_tree": {
@@ -1933,7 +1933,7 @@
     {
       "id": "V-ENGINE-all-003",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "all",
       "scenario": "error",
       "expr_tree": {
@@ -1967,7 +1967,7 @@
     {
       "id": "V-ENGINE-any-001",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "any",
       "scenario": "normal",
       "expr_tree": {
@@ -2003,7 +2003,7 @@
     {
       "id": "V-ENGINE-any-002",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "any",
       "scenario": "boundary",
       "expr_tree": {
@@ -2038,7 +2038,7 @@
     {
       "id": "V-ENGINE-any-004",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "any",
       "scenario": "null",
       "expr_tree": {
@@ -2072,7 +2072,7 @@
     {
       "id": "V-ENGINE-any-003",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "any",
       "scenario": "error",
       "expr_tree": {
@@ -2106,7 +2106,7 @@
     {
       "id": "V-ENGINE-none-001",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "none",
       "scenario": "normal",
       "expr_tree": {
@@ -2142,7 +2142,7 @@
     {
       "id": "V-ENGINE-none-002",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "none",
       "scenario": "boundary",
       "expr_tree": {
@@ -2169,7 +2169,7 @@
     {
       "id": "V-ENGINE-none-004",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "none",
       "scenario": "null",
       "expr_tree": {
@@ -2194,7 +2194,7 @@
     {
       "id": "V-ENGINE-none-003",
       "category": "V-ENGINE",
-      "node_group": "量词",
+      "node_group": "quantifier",
       "node": "none",
       "scenario": "error",
       "expr_tree": {
@@ -2221,7 +2221,7 @@
     {
       "id": "V-ENGINE-add-001",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "add",
       "scenario": "normal",
       "expr_tree": {
@@ -2241,7 +2241,7 @@
     {
       "id": "V-ENGINE-add-002",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "add",
       "scenario": "boundary",
       "expr_tree": {
@@ -2261,7 +2261,7 @@
     {
       "id": "V-ENGINE-add-004",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "add",
       "scenario": "null",
       "expr_tree": {
@@ -2285,7 +2285,7 @@
     {
       "id": "V-ENGINE-add-003",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "add",
       "scenario": "error",
       "expr_tree": {
@@ -2307,7 +2307,7 @@
     {
       "id": "V-ENGINE-sub-001",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "sub",
       "scenario": "normal",
       "expr_tree": {
@@ -2327,7 +2327,7 @@
     {
       "id": "V-ENGINE-sub-002",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "sub",
       "scenario": "boundary",
       "expr_tree": {
@@ -2347,7 +2347,7 @@
     {
       "id": "V-ENGINE-sub-004",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "sub",
       "scenario": "null",
       "expr_tree": {
@@ -2371,7 +2371,7 @@
     {
       "id": "V-ENGINE-sub-003",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "sub",
       "scenario": "error",
       "expr_tree": {
@@ -2392,7 +2392,7 @@
     {
       "id": "V-ENGINE-mul-001",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "mul",
       "scenario": "normal",
       "expr_tree": {
@@ -2412,7 +2412,7 @@
     {
       "id": "V-ENGINE-mul-002",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "mul",
       "scenario": "boundary",
       "expr_tree": {
@@ -2432,7 +2432,7 @@
     {
       "id": "V-ENGINE-mul-004",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "mul",
       "scenario": "null",
       "expr_tree": {
@@ -2456,7 +2456,7 @@
     {
       "id": "V-ENGINE-mul-003",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "mul",
       "scenario": "error",
       "expr_tree": {
@@ -2478,7 +2478,7 @@
     {
       "id": "V-ENGINE-div-001",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "div",
       "scenario": "normal",
       "expr_tree": {
@@ -2498,7 +2498,7 @@
     {
       "id": "V-ENGINE-div-002",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "div",
       "scenario": "boundary",
       "expr_tree": {
@@ -2520,7 +2520,7 @@
     {
       "id": "V-ENGINE-div-004",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "div",
       "scenario": "null",
       "expr_tree": {
@@ -2544,7 +2544,7 @@
     {
       "id": "V-ENGINE-div-003",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "div",
       "scenario": "error",
       "expr_tree": {
@@ -2567,7 +2567,7 @@
     {
       "id": "V-ENGINE-round-001",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "round",
       "scenario": "normal",
       "expr_tree": {
@@ -2586,7 +2586,7 @@
     {
       "id": "V-ENGINE-round-002",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "round",
       "scenario": "boundary",
       "expr_tree": {
@@ -2605,7 +2605,7 @@
     {
       "id": "V-ENGINE-round-004",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "round",
       "scenario": "null",
       "expr_tree": {
@@ -2628,7 +2628,7 @@
     {
       "id": "V-ENGINE-round-003",
       "category": "V-ENGINE",
-      "node_group": "算术",
+      "node_group": "arithmetic",
       "node": "round",
       "scenario": "error",
       "expr_tree": {
@@ -2649,7 +2649,7 @@
     {
       "id": "V-ENGINE-days_between-001",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "days_between",
       "scenario": "normal",
       "expr_tree": {
@@ -2669,7 +2669,7 @@
     {
       "id": "V-ENGINE-days_between-002",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "days_between",
       "scenario": "boundary",
       "expr_tree": {
@@ -2689,7 +2689,7 @@
     {
       "id": "V-ENGINE-days_between-004",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "days_between",
       "scenario": "null",
       "expr_tree": {
@@ -2713,7 +2713,7 @@
     {
       "id": "V-ENGINE-days_between-003",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "days_between",
       "scenario": "error",
       "expr_tree": {
@@ -2735,7 +2735,7 @@
     {
       "id": "V-ENGINE-epoch_ms-001",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "epoch_ms",
       "scenario": "normal",
       "expr_tree": {
@@ -2752,7 +2752,7 @@
     {
       "id": "V-ENGINE-epoch_ms-002",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "epoch_ms",
       "scenario": "boundary",
       "expr_tree": {
@@ -2769,7 +2769,7 @@
     {
       "id": "V-ENGINE-epoch_ms-004",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "epoch_ms",
       "scenario": "null",
       "expr_tree": {
@@ -2790,7 +2790,7 @@
     {
       "id": "V-ENGINE-epoch_ms-003",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "epoch_ms",
       "scenario": "error",
       "expr_tree": {
@@ -2809,7 +2809,7 @@
     {
       "id": "V-ENGINE-date_add-001",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "date_add",
       "scenario": "normal",
       "expr_tree": {
@@ -2830,7 +2830,7 @@
     {
       "id": "V-ENGINE-date_add-002",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "date_add",
       "scenario": "boundary",
       "expr_tree": {
@@ -2851,7 +2851,7 @@
     {
       "id": "V-ENGINE-date_add-004",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "date_add",
       "scenario": "null",
       "expr_tree": {
@@ -2876,7 +2876,7 @@
     {
       "id": "V-ENGINE-date_add-003",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "date_add",
       "scenario": "error",
       "expr_tree": {
@@ -2899,7 +2899,7 @@
     {
       "id": "V-ENGINE-date_part-001",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "date_part",
       "scenario": "normal",
       "expr_tree": {
@@ -2919,7 +2919,7 @@
     {
       "id": "V-ENGINE-date_part-002",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "date_part",
       "scenario": "boundary",
       "expr_tree": {
@@ -2939,7 +2939,7 @@
     {
       "id": "V-ENGINE-date_part-004",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "date_part",
       "scenario": "null",
       "expr_tree": {
@@ -2963,7 +2963,7 @@
     {
       "id": "V-ENGINE-date_part-003",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "date_part",
       "scenario": "error",
       "expr_tree": {
@@ -2985,7 +2985,7 @@
     {
       "id": "V-ENGINE-month_last_day-001",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "month_last_day",
       "scenario": "normal",
       "expr_tree": {
@@ -3002,7 +3002,7 @@
     {
       "id": "V-ENGINE-month_last_day-002",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "month_last_day",
       "scenario": "boundary",
       "expr_tree": {
@@ -3019,7 +3019,7 @@
     {
       "id": "V-ENGINE-month_last_day-004",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "month_last_day",
       "scenario": "null",
       "expr_tree": {
@@ -3040,7 +3040,7 @@
     {
       "id": "V-ENGINE-month_last_day-003",
       "category": "V-ENGINE",
-      "node_group": "时间",
+      "node_group": "time",
       "node": "month_last_day",
       "scenario": "error",
       "expr_tree": {
@@ -3059,7 +3059,7 @@
     {
       "id": "V-ENGINE-aggregate-001",
       "category": "V-ENGINE",
-      "node_group": "聚合",
+      "node_group": "aggregate",
       "node": "aggregate",
       "scenario": "normal",
       "expr_tree": {
@@ -3084,7 +3084,7 @@
     {
       "id": "V-ENGINE-aggregate-002",
       "category": "V-ENGINE",
-      "node_group": "聚合",
+      "node_group": "aggregate",
       "node": "aggregate",
       "scenario": "boundary",
       "expr_tree": {
@@ -3109,7 +3109,7 @@
     {
       "id": "V-ENGINE-aggregate-004",
       "category": "V-ENGINE",
-      "node_group": "聚合",
+      "node_group": "aggregate",
       "node": "aggregate",
       "scenario": "null",
       "expr_tree": {
@@ -3132,7 +3132,7 @@
     {
       "id": "V-ENGINE-aggregate-003",
       "category": "V-ENGINE",
-      "node_group": "聚合",
+      "node_group": "aggregate",
       "node": "aggregate",
       "scenario": "error",
       "expr_tree": {
@@ -3161,7 +3161,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E1",
-      "scenario": "同输入恒同输出",
+      "scenario": "same input → same output",
       "expr_tree": {
         "add": [
           1,
@@ -3181,7 +3181,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E1",
-      "scenario": "复杂表达式确定性",
+      "scenario": "complex-expression determinism",
       "expr_tree": {
         "eq": [
           {
@@ -3206,7 +3206,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E1",
-      "scenario": "无副作用（求值不改 context）",
+      "scenario": "no side effects (evaluation does not mutate context)",
       "expr_tree": {
         "field": "x"
       },
@@ -3225,7 +3225,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E2",
-      "scenario": "0.1+0.2=0.3 精确",
+      "scenario": "0.1+0.2=0.3 exact",
       "expr_tree": {
         "add": [
           0.1,
@@ -3341,7 +3341,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E2",
-      "scenario": "大数 1e21 精确",
+      "scenario": "large number 1e21 exact",
       "expr_tree": {
         "add": [
           1e+21,
@@ -3361,7 +3361,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E2",
-      "scenario": "中间不舍入（0.1×3）",
+      "scenario": "no intermediate rounding (0.1×3)",
       "expr_tree": {
         "mul": [
           0.1,
@@ -3381,7 +3381,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E3",
-      "scenario": "除零",
+      "scenario": "division by zero",
       "expr_tree": {
         "div": [
           10,
@@ -3403,7 +3403,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E3",
-      "scenario": "gt 类型不匹配",
+      "scenario": "gt type mismatch",
       "expr_tree": {
         "gt": [
           {
@@ -3429,7 +3429,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E3",
-      "scenario": "非法日期",
+      "scenario": "invalid date",
       "expr_tree": {
         "days_between": [
           "not-a-date",
@@ -3451,7 +3451,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E3",
-      "scenario": "sub 单操作数",
+      "scenario": "sub single operand",
       "expr_tree": {
         "sub": [
           5
@@ -3472,7 +3472,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E3",
-      "scenario": "div 三操作数",
+      "scenario": "div three operands",
       "expr_tree": {
         "div": [
           10,
@@ -3495,7 +3495,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E3",
-      "scenario": "in 右侧非数组",
+      "scenario": "in right side not an array",
       "expr_tree": {
         "in": [
           {
@@ -3521,7 +3521,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E4",
-      "scenario": "节点超限（65 节点）",
+      "scenario": "node over-limit (65 nodes)",
       "expr_tree": {
         "and": [
           true,
@@ -3605,7 +3605,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E4",
-      "scenario": "树深超限（>6 层）",
+      "scenario": "tree depth over-limit (>6 levels)",
       "expr_tree": {
         "not": {
           "not": {
@@ -3635,7 +3635,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E4",
-      "scenario": "算术深度超限（>2）",
+      "scenario": "arithmetic depth over-limit (>2)",
       "expr_tree": {
         "add": [
           1,
@@ -3666,7 +3666,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E4",
-      "scenario": "数组超限（>10000）",
+      "scenario": "array over-limit (>10000)",
       "expr_tree": {
         "in": [
           {
@@ -13693,7 +13693,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E4",
-      "scenario": "量词嵌套",
+      "scenario": "quantifier nesting",
       "expr_tree": {
         "all": {
           "binding": "x",
@@ -13729,7 +13729,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E4",
-      "scenario": "正则嵌套量词 ReDoS",
+      "scenario": "regex nested quantifier ReDoS",
       "expr_tree": {
         "match": [
           {
@@ -13755,7 +13755,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E5",
-      "scenario": "expr 与 field/operator/value 互斥（违规）",
+      "scenario": "expr vs field/operator/value exclusive (violation)",
       "expr_tree": {
         "expr": {
           "eq": [
@@ -13782,7 +13782,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E5",
-      "scenario": "仅 expr 合法",
+      "scenario": "expr-only valid",
       "expr_tree": {
         "expr": {
           "eq": [
@@ -13806,7 +13806,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E5",
-      "scenario": "仅 field/operator/value 合法",
+      "scenario": "field/operator/value-only valid",
       "expr_tree": {
         "field": "x",
         "operator": "eq",
@@ -13825,7 +13825,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E8",
-      "scenario": "all(空)=false",
+      "scenario": "all(empty)=false",
       "expr_tree": {
         "all": {
           "binding": "x",
@@ -13859,7 +13859,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E8",
-      "scenario": "any(空)=false",
+      "scenario": "any(empty)=false",
       "expr_tree": {
         "any": {
           "binding": "x",
@@ -13893,7 +13893,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E8",
-      "scenario": "none(空)=false",
+      "scenario": "none(empty)=false",
       "expr_tree": {
         "none": {
           "binding": "x",
@@ -13920,7 +13920,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E10",
-      "scenario": "NFC 分解字段值 == 预组合字面量",
+      "scenario": "NFC decomposed field value == precomposed literal",
       "expr_tree": {
         "eq": [
           {
@@ -13944,7 +13944,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E10",
-      "scenario": "NFC 分解字段值 contains 预组合",
+      "scenario": "NFC decomposed field value contains precomposed",
       "expr_tree": {
         "contains": [
           {
@@ -13968,7 +13968,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
-      "scenario": "字段缺失→undefined",
+      "scenario": "missing field → undefined",
       "expr_tree": {
         "field": "missing"
       },
@@ -13985,7 +13985,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
-      "scenario": "eq 缺失→false",
+      "scenario": "eq missing → false",
       "expr_tree": {
         "eq": [
           {
@@ -14007,7 +14007,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
-      "scenario": "exists 缺失→false",
+      "scenario": "exists missing → false",
       "expr_tree": {
         "exists": {
           "field": "missing"
@@ -14026,7 +14026,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
-      "scenario": "arith 缺失→type_mismatch",
+      "scenario": "arith missing → type_mismatch",
       "expr_tree": {
         "add": [
           {
@@ -14928,7 +14928,7 @@
       "category": "V-ENGINE",
       "subcategory": "simple-modifier",
       "modifier": "rate",
-      "scenario": "rate 超限检测（record×3 后 checkRate 超限）",
+      "scenario": "rate over-limit detection (checkRate over-limit after record×3)",
       "state_ops": [
         {
           "op": "recordRate",
@@ -14962,7 +14962,7 @@
       "category": "V-ENGINE",
       "subcategory": "simple-modifier",
       "modifier": "within",
-      "scenario": "within 窗口检测（record×1 后窗口内有历史）",
+      "scenario": "within window detection (history in window after record×1)",
       "state_ops": [
         {
           "op": "recordWithin",
@@ -15210,7 +15210,7 @@
       "id": "V-GLOSS-INTEGRITY-001",
       "category": "V-GLOSS",
       "node": "eq",
-      "scenario": "树字面量篡改 → gloss 变化",
+      "scenario": "tree literal tamper → gloss change",
       "expr_tree": {
         "eq": [
           {
@@ -15236,7 +15236,7 @@
       "id": "V-GLOSS-INTEGRITY-002",
       "category": "V-GLOSS",
       "node": "eq",
-      "scenario": "树算子篡改 eq→ne → gloss 变化",
+      "scenario": "tree operator tamper eq→ne → gloss change",
       "expr_tree": {
         "eq": [
           {
@@ -15262,7 +15262,7 @@
       "id": "V-GLOSS-INTEGRITY-003",
       "category": "V-GLOSS",
       "node": "and",
-      "scenario": "逻辑子节点删减 → gloss 变化",
+      "scenario": "logic child-node removal → gloss change",
       "expr_tree": {
         "and": [
           {
@@ -15304,7 +15304,7 @@
       "id": "V-GLOSS-INTEGRITY-004",
       "category": "V-GLOSS",
       "node": "in",
-      "scenario": "集合字面量篡改 → gloss 变化",
+      "scenario": "set literal tamper → gloss change",
       "expr_tree": {
         "in": [
           {

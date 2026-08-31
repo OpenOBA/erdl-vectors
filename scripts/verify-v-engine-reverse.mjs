@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * verify-v-engine-reverse.mjs — V-ENGINE 逆向（对抗）验证：逐条篡改字面量 → 求值必变
+ * verify-v-engine-reverse.mjs — V-ENGINE reverse (adversarial) verification: tamper literal per vector → evaluation must change
  *
- * 对每条有字面量的向量，篡改其表达式树中的字面量（number+1 / boolean 取反 / string 加后缀），
- * 重算求值并与原预期比对——篡改后求值结果 MUST 改变（否则该向量无鉴别力）。
- * 纯 field 引用节点（无字面量）与交换律/边界场景（如 or 首项为真）天然篡改不变，不计入失败。
+ * For each vector with a literal, tamper the literal in its expression tree (number+1 / boolean flip / string suffix),
+ * recompute and compare with the original expected — the tampered evaluation MUST change (otherwise the vector has no discriminating power).
+ * Pure field-reference nodes (no literal) and commutative/boundary cases (e.g. or with first term true) naturally do not change on tamper; not counted as failures.
  */
 import { ExprTreeEvaluator, objectContext, fromSExpr, toDecimalString } from '@openoba/erdl';
 import { canonicalize } from 'json-canonicalize';
@@ -58,12 +58,12 @@ let detected = 0, unchanged = 0, skipped = 0;
 const unchangedIds = [];
 
 for (const v of data.vectors) {
-  // 逆向仅测「结果依赖字面量」的 normal 场景（34 条）；boundary/error/null 是固定结果场景，
-  // 约束/gloss/projection 是独立求值对象（由 verify-v-engine-full 正向覆盖）。
+  // reverse tests only the normal scenarios whose result depends on a literal (34); boundary/error/null are fixed-result scenarios,
+  // constraints/gloss/projection are independent evaluation objects (forward-covered by verify-v-engine-full).
   if (v.scenario !== 'normal') { skipped++; continue; }
   if (!v.expr_tree || v.expected === undefined) { skipped++; continue; }
   const tampered = tamperTree(v.expr_tree);
-  if (JSON.stringify(tampered) === JSON.stringify(v.expr_tree)) { skipped++; continue; } // 无字面量，篡改 no-op
+  if (JSON.stringify(tampered) === JSON.stringify(v.expr_tree)) { skipped++; continue; } // no literal, tamper no-op
 
   const orig = evalSerialize(v.expr_tree, v.context);
   const tamp = evalSerialize(tampered, v.context);
@@ -71,7 +71,7 @@ for (const v of data.vectors) {
   else { unchanged++; unchangedIds.push(v.id); }
 }
 
-console.log(`V-ENGINE 逆向（normal 场景逐条篡改字面量）: 检出差异 ${detected} / 篡改不变 ${unchanged}`);
-if (unchangedIds.length) console.log('篡改不变（交换律/边界场景）:', unchangedIds.join(', '));
-// 34 个 normal 节点中，绝大多数应能检出（少量交换律/边界场景（or 首项为真、lt/lte 边界等）篡改不变）
+console.log(`V-ENGINE reverse (tamper literal per normal scenario): detected diff ${detected} / unchanged ${unchanged}`);
+if (unchangedIds.length) console.log('unchanged on tamper (commutative/boundary cases):', unchangedIds.join(', '));
+// of the 34 normal nodes, the vast majority should be detected (a few commutative/boundary cases (or first-term true, lt/lte boundaries, etc.) do not change on tamper)
 process.exit(detected >= 20 ? 0 : 1);

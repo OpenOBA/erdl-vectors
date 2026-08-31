@@ -1,28 +1,28 @@
 #!/usr/bin/env node
 /**
- * verify-v-engine.mjs — 独立参考实现（第二来源，§48.2 双实现生成制）
+ * verify-v-engine.mjs — independent reference implementation (second source, §48.2 dual-implementation generation)
  *
- * 纯 JavaScript 独立实现 SPEC v2.0 §10 的「语义敏感子集」：
- *   - E2 定点小数（scale=14 + half-even，BigInt 有理数）
- *   - E8 量词安全折叠（all/any/none 空数组 → false）
- *   - 时间节点 UTC 日历（days_between / epoch_ms / date_add / date_part / month_last_day）
+ * Pure-JavaScript independent implementation of the SPEC v2.0 §10 "semantic-sensitive subset":
+ *   - E2 fixed-point decimal (scale=14 + half-even, BigInt rationals)
+ *   - E8 quantifier safe-folding (all/any/none empty array → false)
+ *   - time-node UTC calendar (days_between / epoch_ms / date_add / date_part / month_last_day)
  *
- * 本文件【不 import】reference-engine 的任何 TypeScript 源码——独立按 SPEC 文本重写，
- * 重算 v-engine-vectors.json 中语义敏感向量的预期值并与 reference-engine
- * ExprTreeEvaluator 产出的 expected 逐字段对比。
+ * This file does NOT import any reference-engine TypeScript source — it is independently rewritten from the SPEC text,
+ * recomputing the expected values of semantic-sensitive vectors in v-engine-vectors.json and comparing with the reference-engine
+ * ExprTreeEvaluator's produced expected field by field.
  *
- * 目的：证明语义敏感向量（E2/E8/时间）的预期值可由独立实现独立重算得出，
- *       消除「预期值仅由单一实现（厂商）首次产出」的中立性风险（§48.2 MUST）。
+ * Purpose: prove that the expected values of semantic-sensitive vectors (E2/E8/time) can be independently recomputed,
+ *       eliminating the neutrality risk of "expected values first produced only by a single implementation (vendor)" (§48.2 MUST).
  *
- * 运行：node scripts/verify-v-engine.mjs
+ * Run: node scripts/verify-v-engine.mjs
  * @license MIT
  */
 
 import { readFileSync } from 'fs'
 
 // ═══════════════════════════════════════════════
-// 1. 独立实现：定点小数（BigInt 有理数 + scale=14 half-even）
-//    —— 独立于 reference-engine fixed-point.ts
+// 1. independent implementation: fixed-point decimal (BigInt rationals + scale=14 half-even)
+//    —— independent of reference-engine fixed-point.ts
 // ═══════════════════════════════════════════════
 function gcd(a, b) { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b !== 0n) { const t = a % b; a = b; b = t } return a }
 function norm(num, den) { if (den === 0n) throw new Error('div by zero'); if (den < 0n) { num = -num; den = -den } const g = gcd(num, den); if (g > 1n) { num /= g; den /= g } return { num, den } }
@@ -53,7 +53,7 @@ const div = (a, b) => norm(a.num * b.den, a.den * b.num)
 const cmp = (a, b) => { const l = a.num * b.den, r = b.num * a.den; return l < r ? -1 : l > r ? 1 : 0 }
 const nfc = (s) => s.normalize('NFC')
 
-/** scale=14 + half-even → 十进制字符串（整数不带小数点，小数去尾零，§28.2） */
+/** scale=14 + half-even → decimal string (integer without decimal point, decimal trailing-zero trimmed, §28.2) */
 function toDecimalString(r, scale = 14) {
   const pow = 10n ** BigInt(scale); const neg = r.num < 0n; const abs = neg ? -r.num : r.num
   const ip = abs / r.den; const rem = abs % r.den
@@ -71,7 +71,7 @@ function toDecimalString(r, scale = 14) {
 }
 
 // ═══════════════════════════════════════════════
-// 2. 独立实现：时间 UTC（独立于 reference-engine date-utils）
+// 2. independent implementation: time UTC (independent of reference-engine date-utils)
 // ═══════════════════════════════════════════════
 function toDate(v) { const d = new Date(typeof v === 'string' ? v : ''); return Number.isNaN(d.getTime()) ? null : d }
 function daysBetween(from, to) {
@@ -87,7 +87,7 @@ function dateAdd(unit, base, amount) {
     case 'years': {
       const targetMonth = d.getUTCMonth(); const targetDay = d.getUTCDate()
       out.setUTCFullYear(d.getUTCFullYear() + n)
-      // 月末回退：2/29 + 非闰年 → 2/28
+      // end-of-month rollback: 2/29 + non-leap year → 2/28
       if (targetMonth === 1 && targetDay === 29 && out.getUTCMonth() !== 1) out.setUTCDate(0)
       break
     }
@@ -121,11 +121,11 @@ function datePart(unit, v) {
 function monthLastDay(v) { const d = toDate(v); if (d === null) return null; return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)) }
 
 // ═══════════════════════════════════════════════
-// 3. 独立迷你求值器（覆盖语义敏感向量所需的节点）
-//    —— 仅实现重算预期值所需的语义，不追求覆盖全部 34 节点
+// 3. independent mini evaluator (covering nodes needed by semantic-sensitive vectors)
+//    —— implements only the semantics needed to recompute expected values, not all 34 nodes
 // ═══════════════════════════════════════════════
 function evalSExpr(tree, ctx) {
-  // 字面量
+  // literal
   if (typeof tree === 'number' || typeof tree === 'boolean' || tree === null) return { v: tree }
   if (typeof tree === 'string') return { v: tree }
   if (Array.isArray(tree)) return { v: tree.map((x) => evalSExpr(x, ctx).v) }
@@ -160,7 +160,7 @@ function evalSExpr(tree, ctx) {
           else if (key === 'gt') out = c > 0; else if (key === 'gte') out = c >= 0
           else if (key === 'lt') out = c < 0; else out = c <= 0
         } else if (key === 'eq' || key === 'ne') {
-          // E10：字符串 NFC 规范化后严格比较
+          // E10: strict compare after string NFC normalization
           const ls = typeof l === 'string' ? nfc(l) : l
           const rs = typeof r === 'string' ? nfc(r) : r
           const e = ls === rs; out = key === 'eq' ? e : !e
@@ -176,8 +176,8 @@ function evalSExpr(tree, ctx) {
       case 'all': case 'any': case 'none': {
         const over = evalSExpr(arg.over, ctx).v
         if (!Array.isArray(over)) return { v: false }
-        if (over.length === 0) return { v: false } // E8 安全折叠
-        // 谓词求值（仅支持简单 predicate）
+        if (over.length === 0) return { v: false } // E8 safe folding
+        // predicate evaluation (simple predicates only)
         const predVals = over.map(() => evalPred(arg.predicate, ctx))
         const bools = predVals.map((x) => x === true)
         if (key === 'all') return { v: bools.every(Boolean) }
@@ -194,7 +194,7 @@ function evalSExpr(tree, ctx) {
         const over = evalSExpr(arg, ctx).v; if (!Array.isArray(over)) return { v: null }
         const rats = over.map(toRat); if (rats.some((x) => x === null)) return { v: null }
         if (key === 'sum') { let a = fromInt(0); for (const r of rats) a = add(a, r); return { v: a } }
-        // §10.4(d)：avg/min/max 空数组安全折叠为 false（count/sum 空数组已归 0）
+        // §10.4(d): avg/min/max empty-array safe-folds to false (count/sum empty arrays already 0)
         if (rats.length === 0) return { v: false }
         if (key === 'avg') { let a = fromInt(0); for (const r of rats) a = add(a, r); return { v: div(a, fromInt(rats.length)) } }
         if (key === 'min') { let m = rats[0]; for (const r of rats) if (cmp(r, m) < 0) m = r; return { v: m } }
@@ -211,12 +211,12 @@ function toRat(v) {
   return null
 }
 function evalPred(pred, ctx) {
-  // 简化：谓词是 { gt: [{var:'x'}, N] } 形态，这里不展开（量词谓词不在语义敏感核心，折叠已覆盖）
+  // simplification: predicates are of the { gt: [{var:'x'}, N] } shape, not expanded here (quantifier predicates are not in the semantic-sensitive core; folding is covered)
   return false
 }
 
 // ═══════════════════════════════════════════════
-// 4. 序列化（对齐 reference-engine serializeValue 的最小规范表示）
+// 4. serialization (aligned with reference-engine serializeValue minimal canonical representation)
 // ═══════════════════════════════════════════════
 function serializeValue(v) {
   if (v === undefined) return { value: '__undefined__', type: 'undefined' }
@@ -234,7 +234,7 @@ function serializeValue(v) {
 }
 
 // ═══════════════════════════════════════════════
-// 5. 读 JSON + 重算语义敏感向量 + 对比
+// 5. read JSON + recompute semantic-sensitive vectors + compare
 // ═══════════════════════════════════════════════
 const data = JSON.parse(readFileSync(new URL('../v-engine-vectors.json', import.meta.url), 'utf8'))
 
@@ -260,16 +260,16 @@ for (const v of data.vectors) {
 }
 
 console.log('════════════════════════════════════════════')
-console.log('  独立参考实现（第二来源）重算语义敏感向量')
+console.log('  independent reference implementation (second source) recomputes semantic-sensitive vectors')
 console.log('════════════════════════════════════════════')
-console.log(`语义敏感向量（E2/E8/E10 + 算术/时间/聚合节点）: ${checked} 条`)
-console.log(`独立重算一致: ${matched} 条`)
-console.log(`失配: ${mismatches.length} 条`)
+console.log(`semantic-sensitive vectors (E2/E8/E10 + arithmetic/time/aggregate nodes): ${checked}`)
+console.log(`independently recomputed consistent: ${matched}`)
+console.log(`mismatches: ${mismatches.length}`)
 if (mismatches.length > 0) {
   for (const m of mismatches) {
     console.log(`  ✗ ${m.id}: ref=${JSON.stringify(m.ref)} expected=${JSON.stringify(m.expected)}`)
   }
   process.exit(1)
 }
-console.log('  ✅ 全部独立重算一致——语义敏感向量预期值可独立复现（§48.2 双实现证据）')
+console.log('  ✅ all independently recomputed consistent — semantic-sensitive vector expected values independently reproducible (§48.2 dual-implementation evidence)')
 process.exit(0)

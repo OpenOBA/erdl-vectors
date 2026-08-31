@@ -5,14 +5,14 @@
   "version": "v1.5.0",
   "created": "2026-08-22",
   "maintainer": "OpenOBA (https://openoba.com)",
-  "description": "V-DO-v15 哈希层向量（D + C + A + K + G + V-COMP 系列）。扁平哈希：JCS(DO − audit.hash) → SHA-256。",
+  "description": "V-DO-v15 hash-layer vectors (D + C + A + K + G + V-COMP series). Flat hash: JCS(DO − audit.hash) → SHA-256.",
   "vectors": [
     {
       "id": "V-DO-v15-D01",
       "category": "D",
       "decision_type": "ALLOW",
       "scenario": "decision-type-allow",
-      "description": "决策类型覆盖：ALLOW（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: ALLOW (flat hash + canonical_tree field)",
       "context": {
         "operation": "read"
       },
@@ -160,7 +160,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -168,7 +168,7 @@
       "category": "D",
       "decision_type": "DENY",
       "scenario": "decision-type-deny",
-      "description": "决策类型覆盖：DENY（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: DENY (flat hash + canonical_tree field)",
       "context": {
         "tool": {
           "name": "exec"
@@ -320,7 +320,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -328,7 +328,7 @@
       "category": "D",
       "decision_type": "CORRECT",
       "scenario": "decision-type-correct",
-      "description": "决策类型覆盖：CORRECT（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: CORRECT (flat hash + canonical_tree field)",
       "context": {
         "flag": "correct"
       },
@@ -476,7 +476,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -484,7 +484,7 @@
       "category": "D",
       "decision_type": "NOTIFY",
       "scenario": "decision-type-notify",
-      "description": "决策类型覆盖：NOTIFY（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: NOTIFY (flat hash + canonical_tree field)",
       "context": {
         "flag": "notify"
       },
@@ -632,7 +632,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -640,7 +640,7 @@
       "category": "D",
       "decision_type": "REQUEST_HUMAN",
       "scenario": "decision-type-request_human",
-      "description": "决策类型覆盖：REQUEST_HUMAN（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: REQUEST_HUMAN (flat hash + canonical_tree field)",
       "context": {
         "data_type": "PII"
       },
@@ -788,7 +788,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -796,7 +796,7 @@
       "category": "D",
       "decision_type": "ESCALATE",
       "scenario": "decision-type-escalate",
-      "description": "决策类型覆盖：ESCALATE（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: ESCALATE (flat hash + canonical_tree field)",
       "context": {
         "flag": "escalate"
       },
@@ -944,7 +944,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -952,7 +952,7 @@
       "category": "D",
       "decision_type": "DELEGATE",
       "scenario": "decision-type-delegate",
-      "description": "决策类型覆盖：DELEGATE（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: DELEGATE (flat hash + canonical_tree field)",
       "context": {
         "flag": "delegate"
       },
@@ -1100,7 +1100,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -1108,7 +1108,7 @@
       "category": "D",
       "decision_type": "DEFER",
       "scenario": "decision-type-defer",
-      "description": "决策类型覆盖：DEFER（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: DEFER (flat hash + canonical_tree field)",
       "context": {
         "flag": "defer"
       },
@@ -1256,7 +1256,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -1264,7 +1264,7 @@
       "category": "D",
       "decision_type": "EMERGENCY_HALT",
       "scenario": "decision-type-emergency_halt",
-      "description": "决策类型覆盖：EMERGENCY_HALT（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: EMERGENCY_HALT (flat hash + canonical_tree field)",
       "context": {
         "flag": "emergency_halt"
       },
@@ -1412,7 +1412,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -1420,7 +1420,7 @@
       "category": "D",
       "decision_type": "ROLLBACK",
       "scenario": "decision-type-rollback",
-      "description": "决策类型覆盖：ROLLBACK（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: ROLLBACK (flat hash + canonical_tree field)",
       "context": {
         "flag": "rollback"
       },
@@ -1568,7 +1568,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -1576,7 +1576,7 @@
       "category": "D",
       "decision_type": "QUARANTINE",
       "scenario": "decision-type-quarantine",
-      "description": "决策类型覆盖：QUARANTINE（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: QUARANTINE (flat hash + canonical_tree field)",
       "context": {
         "flag": "quarantine"
       },
@@ -1724,7 +1724,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -1732,7 +1732,7 @@
       "category": "D",
       "decision_type": "WORKFLOW",
       "scenario": "decision-type-workflow",
-      "description": "决策类型覆盖：WORKFLOW（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: WORKFLOW (flat hash + canonical_tree field)",
       "context": {
         "flag": "workflow"
       },
@@ -1880,7 +1880,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -1888,7 +1888,7 @@
       "category": "D",
       "decision_type": "GUIDE",
       "scenario": "decision-type-guide",
-      "description": "决策类型覆盖：GUIDE（扁平哈希 + canonical_tree 字段）",
+      "description": "Decision type coverage: GUIDE (flat hash + canonical_tree field)",
       "context": {
         "flag": "guide"
       },
@@ -2036,7 +2036,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "audit.hash 自洽（独立创世）"
+        "note": "audit.hash self-consistent (independent genesis)"
       }
     },
     {
@@ -2044,7 +2044,7 @@
       "category": "C",
       "decision_type": "ALLOW",
       "scenario": "normal-chain",
-      "description": "正常链（3 条 DO 串行锚定，无攻击）",
+      "description": "Normal chain (3 DOs serially anchored, no attack)",
       "chain": [
         {
           "spec": "decision-object-v1.5",
@@ -2427,7 +2427,7 @@
       ],
       "expected": {
         "type": "MATCH",
-        "note": "全链 audit.hash 自洽 + previous_hash 连续"
+        "note": "full-chain audit.hash self-consistent + previous_hash continuous"
       }
     },
     {
@@ -2435,7 +2435,7 @@
       "category": "C",
       "decision_type": "ALLOW",
       "scenario": "chain-attack",
-      "description": "链攻击：单条篡改（decision 字段）",
+      "description": "Chain attack: c02",
       "chain": [
         {
           "spec": "decision-object-v1.5",
@@ -2826,7 +2826,7 @@
       "category": "C",
       "decision_type": "ALLOW",
       "scenario": "chain-attack",
-      "description": "链攻击：删中间记录（chain_seq 跳变）",
+      "description": "Chain attack: c03",
       "chain": [
         {
           "spec": "decision-object-v1.5",
@@ -3091,7 +3091,7 @@
       "category": "C",
       "decision_type": "ALLOW",
       "scenario": "chain-attack",
-      "description": "链攻击：指针悬空（previous_hash 悬空）",
+      "description": "Chain attack: c04",
       "chain": [
         {
           "spec": "decision-object-v1.5",
@@ -3482,7 +3482,7 @@
       "category": "C",
       "decision_type": "ALLOW",
       "scenario": "chain-attack",
-      "description": "链攻击：时钟回退（timestamp 倒退）",
+      "description": "Chain attack: c05",
       "chain": [
         {
           "spec": "decision-object-v1.5",
@@ -3873,7 +3873,7 @@
       "category": "C",
       "decision_type": "ALLOW",
       "scenario": "chain-attack",
-      "description": "链攻击：整链删除后重建",
+      "description": "Chain attack: c06",
       "chain": [
         {
           "spec": "decision-object-v1.5",
@@ -4264,7 +4264,7 @@
       "category": "C",
       "decision_type": "ALLOW",
       "scenario": "chain-attack",
-      "description": "链攻击：版本降级（preimage_version 篡改）",
+      "description": "Chain attack: c07",
       "chain": [
         {
           "spec": "decision-object-v1.5",
@@ -4655,7 +4655,7 @@
       "category": "C",
       "decision_type": "ALLOW",
       "scenario": "chain-attack",
-      "description": "链攻击：模式混链（mode 不同）",
+      "description": "Chain attack: c08",
       "chain": [
         {
           "spec": "decision-object-v1.5",
@@ -5046,7 +5046,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：知识正文篡改",
+      "description": "Anchoring attack: knowledge body tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000004b",
@@ -5361,7 +5361,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：引用不可解析（告警非断裂）",
+      "description": "Anchoring attack: unresolvable reference (warning, not a break)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000004d",
@@ -5527,7 +5527,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：分片哈希不符",
+      "description": "Anchoring attack: fragment hash mismatch",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000004f",
@@ -5842,7 +5842,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：附件篡改",
+      "description": "Anchoring attack: attachment tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000051",
@@ -6157,7 +6157,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：意图指针篡改",
+      "description": "Anchoring attack: intent pointer tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000053",
@@ -6472,7 +6472,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：记忆键篡改",
+      "description": "Anchoring attack: memory key tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000055",
@@ -6787,7 +6787,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：树快照伪造",
+      "description": "Anchoring attack: tree snapshot forgery",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000057",
@@ -6950,7 +6950,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：B 类文本篡改",
+      "description": "Anchoring attack: type-B text tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000059",
@@ -7265,7 +7265,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：树篡改（节点交换序）",
+      "description": "Anchoring attack: tree tamper (node order swap)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000005b",
@@ -7428,7 +7428,7 @@
       "category": "A",
       "decision_type": "ALLOW",
       "scenario": "anchor-attack",
-      "description": "锚定攻击：树篡改（字面量精度）",
+      "description": "Anchoring attack: tree tamper (literal precision)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000005d",
@@ -7591,7 +7591,7 @@
       "category": "K",
       "decision_type": "ALLOW",
       "scenario": "chain-position-canary",
-      "description": "链位置金丝雀（缺陷实现删整个 audit，正确实现只删 audit.hash → MISMATCH）",
+      "description": "Chain-position canary (defective impl deletes the whole audit, correct impl deletes only audit.hash → MISMATCH)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000005f",
@@ -7720,7 +7720,7 @@
       "expected": {
         "type": "BREACH",
         "breach": "canary_mismatch",
-        "note": "正确实现重算 MISMATCH，缺陷实现 MATCH"
+        "note": "correct impl recomputes MISMATCH, defective impl MATCH"
       }
     },
     {
@@ -7728,7 +7728,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-structure-attack",
-      "description": "结论层结构攻击：verdict 篡改",
+      "description": "Outcome structure attack: verdict tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000061",
@@ -8013,7 +8013,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-structure-attack",
-      "description": "结论层结构攻击：grade·rank 篡改",
+      "description": "Outcome structure attack: grade·rank tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000063",
@@ -8298,7 +8298,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-structure-attack",
-      "description": "结论层结构攻击：basis 删除",
+      "description": "Outcome structure attack: basis deletion",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000065",
@@ -8581,7 +8581,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-structure-attack",
-      "description": "结论层结构攻击：extra 篡改",
+      "description": "Outcome structure attack: extra tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000067",
@@ -8866,7 +8866,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-structure-attack",
-      "description": "结论层结构攻击：registry 引用篡改",
+      "description": "Outcome structure attack: registry reference tamper",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000069",
@@ -9151,7 +9151,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-structure-attack",
-      "description": "结论层结构攻击：outcome 整体删除",
+      "description": "Outcome structure attack: whole-outcome deletion",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000006b",
@@ -9424,7 +9424,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-domain-example",
-      "description": "结论层领域示例：政务·行政审批",
+      "description": "Outcome domain example: Government · administrative approval",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000006d",
@@ -9556,7 +9556,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "outcome 结论层随扁平哈希自洽"
+        "note": "outcome layer self-consistent under flat hash"
       }
     },
     {
@@ -9564,7 +9564,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-domain-example",
-      "description": "结论层领域示例：政务·多级审核",
+      "description": "Outcome domain example: Government · multi-level review",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000006f",
@@ -9696,7 +9696,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "outcome 结论层随扁平哈希自洽"
+        "note": "outcome layer self-consistent under flat hash"
       }
     },
     {
@@ -9704,7 +9704,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-domain-example",
-      "description": "结论层领域示例：政务·评选",
+      "description": "Outcome domain example: Government · selection",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000071",
@@ -9837,7 +9837,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "outcome 结论层随扁平哈希自洽"
+        "note": "outcome layer self-consistent under flat hash"
       }
     },
     {
@@ -9845,7 +9845,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-domain-example",
-      "description": "结论层领域示例：政务·评定",
+      "description": "Outcome domain example: Government · appraisal",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000073",
@@ -9978,7 +9978,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "outcome 结论层随扁平哈希自洽"
+        "note": "outcome layer self-consistent under flat hash"
       }
     },
     {
@@ -9986,7 +9986,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-domain-example",
-      "description": "结论层领域示例：企业·招聘审批",
+      "description": "Outcome domain example: Enterprise · hiring approval",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000075",
@@ -10118,7 +10118,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "outcome 结论层随扁平哈希自洽"
+        "note": "outcome layer self-consistent under flat hash"
       }
     },
     {
@@ -10126,7 +10126,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-domain-example",
-      "description": "结论层领域示例：企业·采购评标",
+      "description": "Outcome domain example: Enterprise · procurement evaluation",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000077",
@@ -10259,7 +10259,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "outcome 结论层随扁平哈希自洽"
+        "note": "outcome layer self-consistent under flat hash"
       }
     },
     {
@@ -10267,7 +10267,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-domain-example",
-      "description": "结论层领域示例：企业·绩效评定",
+      "description": "Outcome domain example: Enterprise · performance rating",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000079",
@@ -10400,7 +10400,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "outcome 结论层随扁平哈希自洽"
+        "note": "outcome layer self-consistent under flat hash"
       }
     },
     {
@@ -10408,7 +10408,7 @@
       "category": "G",
       "decision_type": "ALLOW",
       "scenario": "outcome-domain-example",
-      "description": "结论层领域示例：企业·合同审批",
+      "description": "Outcome domain example: Enterprise · contract approval",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000007b",
@@ -10540,7 +10540,7 @@
       },
       "expected": {
         "type": "MATCH",
-        "note": "outcome 结论层随扁平哈希自洽"
+        "note": "outcome layer self-consistent under flat hash"
       }
     },
     {
@@ -10548,7 +10548,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "jurisdiction-activation",
-      "description": "辖区激活字段完整性：CN · GB/Z 185",
+      "description": "Jurisdiction activation field completeness: CN · GB/Z 185",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000007d",
@@ -10685,7 +10685,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "jurisdiction-activation",
-      "description": "辖区激活字段完整性：EU · AI Act",
+      "description": "Jurisdiction activation field completeness: EU · AI Act",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000007f",
@@ -10827,7 +10827,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "jurisdiction-activation",
-      "description": "辖区激活字段完整性：US 综合",
+      "description": "Jurisdiction activation field completeness: US composite",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000081",
@@ -10964,7 +10964,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "jurisdiction-activation",
-      "description": "辖区激活字段完整性：SG · MGF",
+      "description": "Jurisdiction activation field completeness: SG · MGF",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000083",
@@ -11086,7 +11086,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "jurisdiction-activation",
-      "description": "辖区激活字段完整性：CN+EU 多法域并集",
+      "description": "Jurisdiction activation field completeness: CN+EU multi-jurisdiction union",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000085",
@@ -11241,7 +11241,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "jurisdiction-activation",
-      "description": "辖区激活字段完整性：BR · LGPD",
+      "description": "Jurisdiction activation field completeness: BR · LGPD",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000087",
@@ -11369,7 +11369,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "jurisdiction-activation",
-      "description": "辖区激活字段完整性：IN · DPDP",
+      "description": "Jurisdiction activation field completeness: IN · DPDP",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000089",
@@ -11491,7 +11491,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：EU AI Act Art.12/14/13",
+      "description": "Framework field mapping: EU AI Act Art.12/14/13",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000008b",
@@ -11612,7 +11612,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：NIST AI RMF",
+      "description": "Framework field mapping: NIST AI RMF",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000008d",
@@ -11735,7 +11735,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：COSO GenAI（SoD）",
+      "description": "Framework field mapping: COSO GenAI (SoD)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000008f",
@@ -11851,7 +11851,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：ISO/IEC 42001",
+      "description": "Framework field mapping: ISO/IEC 42001",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000091",
@@ -11968,7 +11968,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：GB/Z 185（留存≥36月）",
+      "description": "Framework field mapping: GB/Z 185 (retention ≥36 months)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000093",
@@ -12092,7 +12092,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：OWASP Agentic（可解释）",
+      "description": "Framework field mapping: OWASP Agentic (explainability)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000095",
@@ -12207,7 +12207,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：HIPAA（signature 随 S3）",
+      "description": "Framework field mapping: HIPAA (signature with S3)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000097",
@@ -12327,7 +12327,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：PCI DSS（signature 随 S3）",
+      "description": "Framework field mapping: PCI DSS (signature with S3)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-000000000099",
@@ -12444,7 +12444,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：Colorado SB 205",
+      "description": "Framework field mapping: Colorado SB 205",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000009b",
@@ -12563,7 +12563,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：Singapore MGF",
+      "description": "Framework field mapping: Singapore MGF",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000009d",
@@ -12680,7 +12680,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：中国信通院 2.0（可解释）",
+      "description": "Framework field mapping: CAICT 2.0 (explainability)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-00000000009f",
@@ -12799,7 +12799,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：LGPD（被遗忘权/PII 分离）",
+      "description": "Framework field mapping: LGPD (right to be forgotten / PII separation)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000a1",
@@ -12916,7 +12916,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：DPDP（同 LGPD）",
+      "description": "Framework field mapping: DPDP (same as LGPD)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000a3",
@@ -13033,7 +13033,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "framework-field-mapping",
-      "description": "框架字段映射：IEEE P3395（跨系统关联）",
+      "description": "Framework field mapping: IEEE P3395 (cross-system correlation)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000a5",
@@ -13147,7 +13147,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "合规失败：激活字段缺失",
+      "description": "Compliance failure: activated field missing",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000a7",
@@ -13274,7 +13274,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "合规失败：合规画像被偷换",
+      "description": "Compliance failure: compliance profile swapped",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000a9",
@@ -13519,7 +13519,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "合规失败：法域不匹配",
+      "description": "Compliance failure: jurisdiction mismatch",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000ab",
@@ -13647,7 +13647,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "合规失败：高风险决策无人类监督",
+      "description": "Compliance failure: high-risk decision without human oversight",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000ad",
@@ -13775,7 +13775,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "合规失败：SoD 违反",
+      "description": "Compliance failure: SoD violation",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000af",
@@ -13903,7 +13903,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "合规失败：第一层合规声明篡改",
+      "description": "Compliance failure: first-layer compliance claim tampered",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000b1",
@@ -14156,7 +14156,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "合规失败：备案与身份字段篡改",
+      "description": "Compliance failure: filing & identity fields tampered",
       "base_do": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000b3",
@@ -14401,7 +14401,7 @@
       "category": "V-COMP",
       "decision_type": "REQUEST_HUMAN",
       "scenario": "compliance-failure",
-      "description": "合规失败：critical 风险未激活 signature（风险条件层未生效）",
+      "description": "Compliance failure: critical risk did not activate signature (risk-condition layer not effective)",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000b5",
@@ -14529,7 +14529,7 @@
       "category": "V-COMP",
       "decision_type": "REQUEST_HUMAN",
       "scenario": "compliance-failure",
-      "description": "合规失败：critical 已激活 signature 但字段缺失",
+      "description": "Compliance failure: critical activated signature but field missing",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000b7",
@@ -14658,7 +14658,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "多重违规优先级：法域码不可识别 + 激活字段缺失 → 报 P1",
+      "description": "Multi-breach priority: unrecognized jurisdiction code + missing activated field → report P1",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000b9",
@@ -14788,7 +14788,7 @@
       "category": "V-COMP",
       "decision_type": "ALLOW",
       "scenario": "compliance-failure",
-      "description": "多重违规优先级：树快照分歧（证据层）+ 引用不可解析（告警级）→ 报 P5，告警不得掩盖违规",
+      "description": "Multi-breach priority: tree snapshot divergence (evidence) + unresolvable reference (warning) → report P5; warnings must not mask breaches",
       "decision_object": {
         "spec": "decision-object-v1.5",
         "decision_id": "019b5c5a-0000-7000-8000-0000000000bb",

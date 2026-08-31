@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * generate-v-engine.mjs — V-ENGINE 223 条向量生成器（依赖 @openoba/erdl 参考引擎）
+ * generate-v-engine.mjs — V-ENGINE 223-vector generator (depends on the @openoba/erdl reference engine)
  *
- * 生成逻辑（v-engine.mjs，从参考引擎迁入）逐条构建 expr_tree/context，用 @openoba/erdl
- * 求值产出 expected，序列化为 v-engine-vectors.json。
+ * The generation logic (v-engine.mjs, migrated from the reference engine) builds expr_tree/context per vector, using @openoba/erdl
+ * to evaluate and produce expected, serialized to v-engine-vectors.json.
  *
- * 写入走「临时文件 + rename 原子替换」，避免并发读者看到截断产物。
+ * Writes via "temp file + rename atomic replace", avoiding concurrent readers seeing truncated output.
  */
 import {
   generateAllVectors, generateNodeVectors, generateConstraintVectors, generateSimpleVectors,
@@ -39,4 +39,4 @@ const serialized = JSON.stringify(output, null, 2);
 const tmpPath = `${outPath}.tmp-${process.pid}`;
 writeFileSync(tmpPath, serialized, 'utf8');
 renameSync(tmpPath, outPath);
-console.log(`V-ENGINE 向量已生成: ${vectors.length} 条 → ${outPath}`);
+console.log(`V-ENGINE vectors generated: ${vectors.length} → ${outPath}`);

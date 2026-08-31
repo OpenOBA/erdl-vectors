@@ -1,33 +1,33 @@
 #!/usr/bin/env node
 /**
- * verify-v1.5.js — ERDL Decision Object v1.5 验证器（七步验证法，原「五步」，Step 0–6 共 7 步，RFC-002 §7）
+ * verify-v1.5.js — ERDL Decision Object v1.5 verifier (seven-step method, originally "five-step", Step 0–6 = 7 steps, RFC-002 §7)
  *
- * 零依赖验证 decision-object-vectors-v1.5.json（self-built JCS + SHA-256）。
+ * Zero-dependency verification of decision-object-vectors-v1.5.json (self-built JCS + SHA-256).
  *
- * 五步验证法（RFC-002 §7）：
- *   Step 0: 版本判别（v1.5 扁平哈希 / v1.3 历史路径）
- *   Step 1: 读 audit.preimage_version（域分隔符常量）
- *   Step 2: Deep clone → 唯一删除点 DELETE audit.hash（零投影）
+ * Five-step verification (RFC-002 §7):
+ *   Step 0: version discrimination (v1.5 flat hash / v1.3 legacy path)
+ *   Step 1: read audit.preimage_version (domain separator constant)
+ *   Step 2: deep clone → single deletion point DELETE audit.hash (zero projection)
  *   Step 3: JCS(RFC 8785) → canonical bytes
  *   Step 4: SHA-256 → recomputed hash
- *   Step 5: 对比 stored audit.hash
- *   Step 6: 答案文件交叉比对（canonical_hex，物理隔离；覆盖向量集全部 DO，含 BREACH/tampered/链成员）
+ *   Step 5: compare with stored audit.hash
+ *   Step 6: answer-file cross-check (canonical_hex, physically isolated; covers ALL DOs in the vector set, incl. BREACH/tampered/chain members)
  *
- * 语义检测层（RFC-002 §8 链断裂 / §9.1 合规失败）：
- *   单 DO：compliance_field_missing（含 risk_level=critical → signature 强制）/ jurisdiction_mismatch / oversight_missing / sod_violation
- *   多重违规：按 §9.1.1 优先级 P1→P6 报首项；向量 MUST 在 expected.also_present 声明被拑压项（验证器强制校验）
- *   链：hash_mismatch / version_unsupported / chain_genesis_mismatch / previous_hash_dangling
+ * Semantic detection layer (RFC-002 §8 chain break / §9.1 compliance failure):
+ *   single DO: compliance_field_missing (incl. risk_level=critical → signature mandatory) / jurisdiction_mismatch / oversight_missing / sod_violation
+ *   multi-breach: report first hit by §9.1.1 priority P1→P6; vectors MUST declare suppressed breaches in expected.also_present (enforced by the verifier)
+ *   chain: hash_mismatch / version_unsupported / chain_genesis_mismatch / previous_hash_dangling
  *        / chain_seq_gap / mode_mixed_chain / time_regression
  *
- * 向量形态：
- *   - decision_object：独立 DO（MATCH 正例 / 语义 BREACH / 金丝雀）
- *   - chain：DO 链（C01 正常链 + C02~C08 攻击链，断言具体 breach 码）
- *   - base_do + tampered_do：篡改对（base 自洽，tampered 失配 → hash_mismatch）
+ * Vector shapes:
+ *   - decision_object: standalone DO (MATCH positive / semantic BREACH / canary)
+ *   - chain: DO chain (C01 normal chain + C02~C08 attack chains, asserting a specific breach code)
+ *   - base_do + tampered_do: tamper pair (base self-consistent, tampered mismatches → hash_mismatch)
  *
- * 用法：
+ * Usage:
  *   node verify-v1.5.js [path/to/vectors.json] [--answers <path>]
  *
- * @author 唐浩然 (Tang Haoran) · OpenOBA AI 执行官
+ * @author Tang Haoran · OpenOBA AI Executive
  * @since 2026-08-22
  * @license MIT
  */
@@ -38,7 +38,7 @@ const fs = require('fs');
 const path = require('path');
 
 // ═══════════════════════════════════════════════════
-//  常量（冻结）
+//  Constants (frozen)
 // ═══════════════════════════════════════════════════
 const PREIMAGE_VERSION = 'erdl-do-v1.5-hash-flat';
 const KNOWN_JURISDICTIONS = ['CN', 'EU', 'US', 'SG', 'BR', 'IN'];
@@ -58,10 +58,10 @@ function hasLoneSurrogate(s) {
     const c = s.charCodeAt(i);
     if (c >= 0xd800 && c <= 0xdbff) {
       const next = s.charCodeAt(i + 1);
-      if (!(next >= 0xdc00 && next <= 0xdfff)) return true; // 高代理无配对
+      if (!(next >= 0xdc00 && next <= 0xdfff)) return true; // high surrogate without pair
       i++;
     } else if (c >= 0xdc00 && c <= 0xdfff) {
-      return true; // 孤立低代理
+      return true; // isolated low surrogate
     }
   }
   return false;
@@ -102,7 +102,7 @@ function jcsCanonicalize(value) {
 }
 
 // ═══════════════════════════════════════════════════
-//  RFC-002 §1.3#3：number 字段 MUST 为安全整数（禁小数/越界）
+//  RFC-002 §1.3#3: number fields MUST be safe integers (no decimals / out-of-range)
 // ═══════════════════════════════════════════════════
 function assertSafeIntegers(value) {
   if (Array.isArray(value)) { value.forEach(assertSafeIntegers); return; }
@@ -118,23 +118,23 @@ function assertSafeIntegers(value) {
 }
 
 // ═══════════════════════════════════════════════════
-//  点分路径取值
+//  dot-separated path getter
 // ═══════════════════════════════════════════════════
 function getField(obj, path) {
   return path.split('.').reduce((cur, k) => (cur == null ? undefined : cur[k]), obj);
 }
 
 // ═══════════════════════════════════════════════════
-//  五步验证法（Step 0–5）
+//  five-step verification (Step 0–5)
 // ═══════════════════════════════════════════════════
 function verifyDO(decisionObject) {
-  // DoS 保护
+  // DoS protection
   const doJson = JSON.stringify(decisionObject);
   if (doJson.length > 1024 * 1024) {
     return { passed: false, error: 'resource_limit_exceeded: DO exceeds 1 MB' };
   }
 
-  // Step 0: 版本判别（canonical_tree 或 v1.5 特征字段 → v1.5 扁平哈希）
+  // Step 0: version discrimination (canonical_tree or v1.5 signature fields → v1.5 flat hash)
   const evalObj = decisionObject.evaluation;
   const hasCanonicalTree =
     evalObj && Array.isArray(evalObj.matched_rules) &&
@@ -143,24 +143,24 @@ function verifyDO(decisionObject) {
     (decisionObject.audit && decisionObject.audit.preimage_version === PREIMAGE_VERSION) ||
     (decisionObject.compliance_profile && Array.isArray(decisionObject.compliance_profile.activated_fields));
   if (!hasCanonicalTree && !hasV15Field) {
-    return { passed: false, error: 'v1.3 历史路径（无 v1.5 特征），本验证器仅处理 v1.5' };
+    return { passed: false, error: 'v1.3 legacy path (no v1.5 signature), this verifier handles v1.5 only' };
   }
 
-  // Step 1: 读 preimage_version
+  // Step 1: read preimage_version
   const preimageVersion = decisionObject.audit && decisionObject.audit.preimage_version;
   if (preimageVersion !== PREIMAGE_VERSION) {
-    return { passed: false, error: 'preimage_version 不支持: ' + preimageVersion };
+    return { passed: false, error: 'preimage_version unsupported: ' + preimageVersion };
   }
 
-  // 整数约束（RFC-002 §1.3#3）
+  // integer constraints (RFC-002 §1.3#3)
   try {
     assertSafeIntegers(decisionObject);
   } catch (e) {
     return { passed: false, error: e.message };
   }
 
-  // Step 2: Deep clone → 删除点（R2）：audit.hash 自引用排除 + signature/signing_key_id 防御性删除
-  // （哈希模式下后两者不存在，删除为 no-op；签名模式下 MUST 剔除，RFC-002 §1.1 / RUNNER_CONTRACT R2）
+  // Step 2: deep clone → deletion point (R2): audit.hash self-reference exclusion + defensive deletion of signature/signing_key_id
+  // (the latter two do not exist in hash mode, deletion is no-op; in signature mode they MUST be removed, RFC-002 §1.1 / RUNNER_CONTRACT R2)
   const clone = JSON.parse(JSON.stringify(decisionObject));
   delete clone.audit.hash;
   delete clone.signature;
@@ -172,7 +172,7 @@ function verifyDO(decisionObject) {
   // Step 4: SHA-256
   const computedHash = 'sha256:' + sha256(canonical);
 
-  // Step 5: 对比
+  // Step 5: compare
   const storedHash = decisionObject.audit.hash;
   return {
     passed: computedHash === storedHash,
@@ -183,48 +183,48 @@ function verifyDO(decisionObject) {
 }
 
 // ═══════════════════════════════════════════════════
-//  单 DO 语义 breach 检测（RFC-002 §9.1 第三组）
+//  single-DO semantic breach detection (RFC-002 §9.1 group 3)
 //
-//  【规范优先级 P1→P6】（RFC-002 §9.1.1，与 §8 链层优先级同构）
-//  P1 jurisdiction_mismatch      法域码不可识别 → 画像整体不可解释，其余判定失去前提
-//  P2 compliance_field_missing   画像声明的必需字段缺失（含 critical → signature 强制）
-//  P3 oversight_missing          高风险/关键决策缺人类监督记录
-//  P4 sod_violation              职责分离违反（agent.id == policies[].author_id）
-//  P5 tree_snapshot_divergence   证据层：决策记录的树快照与规则源不一致
-//  P6 content_unresolvable       引用完整性【告警级】（RFC §8：告警非断裂）→ MUST 最后
+//  [spec priority P1→P6] (RFC-002 §9.1.1, isomorphic with §8 chain-layer priority)
+//  P1 jurisdiction_mismatch      unrecognized jurisdiction code → profile uninterpretable, other checks lose their premise
+//  P2 compliance_field_missing   profile-declared required field missing (incl. critical → signature mandatory)
+//  P3 oversight_missing          high-risk / critical decision missing human-oversight record
+//  P4 sod_violation              separation-of-duties violation (agent.id == policies[].author_id)
+//  P5 tree_snapshot_divergence   evidence layer: decision tree snapshot inconsistent with the rule source
+//  P6 content_unresolvable       reference integrity [warning-level] (RFC §8: warning, not a break) → MUST be last
 //
-//  为何 P6 必须最后：content_unresolvable 是告警而非违规，若排在前面，
-//  一条冷存储已删除的知识引用会掩盖同时存在的真实违规（如 SoD）。
-//  为何 P1 最先：未知法域码若被后置，可用编造法域码 + 空激活集绕过字段完备性检查。
+//  Why P6 must be last: content_unresolvable is a warning, not a breach; if placed earlier,
+//  a cold-storage-deleted knowledge reference would mask a co-occurring real breach (e.g. SoD).
+//  Why P1 first: if an unknown jurisdiction code were placed later, a fabricated code + empty activation set could bypass the field-completeness check.
 // ═══════════════════════════════════════════════════
 function detectDOBreach(doObj, meta) {
   return collectDOBreaches(doObj, meta)[0] || null;
 }
 
 /**
- * 按 §9.1.1 优先级返回**全部同时成立**的 breach（有序）。
- * detectDOBreach 取其首项；验证器用全量结果强制校验向量的 `expected.also_present`（共存性 + 被拑压性）。
+ * Returns ALL simultaneously-holding breaches ordered by §9.1.1 priority.
+ * detectDOBreach takes the first item; the verifier uses the full result to enforce the vector's `expected.also_present` (co-occurrence + suppression).
  */
 function collectDOBreaches(doObj, meta) {
   const cp = doObj.compliance_profile || {};
   const hits = [];
 
-  // P1. jurisdiction_mismatch：法域码不在权威集合（RFC-002 §5.2 六法域）
-  //     语义已显式收窄为「不可识别的法域码」（fail-closed）；
-  //     「DO 声明法域 ≠ 部署期望法域」不属无状态验证器范围（见 RFC §9.1.2）。
+  // P1. jurisdiction_mismatch: jurisdiction code not in the authoritative set (RFC-002 §5.2 six jurisdictions)
+  //     semantics explicitly narrowed to "unrecognized jurisdiction code" (fail-closed);
+  //     "DO-declared jurisdiction ≠ deployment-expected jurisdiction" is outside a stateless verifier's scope (see RFC §9.1.2).
   const juris = Array.isArray(cp.jurisdictions) ? cp.jurisdictions : [];
   if (juris.some((j) => !KNOWN_JURISDICTIONS.includes(j))) hits.push('jurisdiction_mismatch');
 
-  // P2. compliance_field_missing：激活字段缺失
+  // P2. compliance_field_missing: activated field missing
   const activated = Array.isArray(cp.activated_fields) ? cp.activated_fields : [];
   const fieldMissing = activated.some((f) => getField(doObj, f) == null);
-  // P2b. 风险条件层（RFC-002 §5.2）：risk_level=critical → signature 强制
-  //      画像 MUST 将 signature 纳入 activated_fields；未纳入即风险条件层未生效，
-  //      合规后果与「已激活但缺值」同质（缺必需合规字段），故复用同一 breach 码，不新增码。
+  // P2b. risk-condition layer (RFC-002 §5.2): risk_level=critical → signature mandatory
+  //      the profile MUST include signature in activated_fields; failing to do so means the risk-condition layer is not effective,
+  //      the compliance consequence is the same as "activated but missing" (missing a required compliance field), so the same breach code is reused, no new code.
   const criticalWithoutSignature = cp.risk_level === 'critical' && !activated.includes('signature');
   if (fieldMissing || criticalWithoutSignature) hits.push('compliance_field_missing');
 
-  // P3. oversight_missing：高风险无人类监督
+  // P3. oversight_missing: high risk without human oversight
   const risk = cp.risk_level;
   const oversight = doObj.human_oversight;
   if ((risk === 'high' || risk === 'critical') && (!oversight || oversight.required !== true)) {
@@ -237,7 +237,7 @@ function collectDOBreaches(doObj, meta) {
     hits.push('sod_violation');
   }
 
-  // P5. tree_snapshot_divergence：canonical_tree 快照与规则源（policies[].when）重编译不一致
+  // P5. tree_snapshot_divergence: canonical_tree snapshot inconsistent with recompiled rule source (policies[].when)
   const matched = doObj.evaluation && doObj.evaluation.matched_rules;
   const policies = Array.isArray(doObj.policies) ? doObj.policies : [];
   if (Array.isArray(matched)) {
@@ -251,7 +251,7 @@ function collectDOBreaches(doObj, meta) {
     }
   }
 
-  // P6. content_unresolvable（引用完整性告警，非断裂）：knowledge_reference.entry_id 不在可解析集
+  // P6. content_unresolvable (reference-integrity warning, not a break): knowledge_reference.entry_id not in the resolvable set
   const refs = doObj.evaluation && doObj.evaluation.knowledge_references;
   if (Array.isArray(refs) && meta && Array.isArray(meta.resolvable_entry_ids)) {
     if (refs.some((r) => !meta.resolvable_entry_ids.includes(r.entry_id))) hits.push('content_unresolvable');
@@ -261,10 +261,10 @@ function collectDOBreaches(doObj, meta) {
 }
 
 // ═══════════════════════════════════════════════════
-//  链 breach 检测（RFC-002 §8 断裂判定 + §9.2）
+//  chain breach detection (RFC-002 §8 break determination + §9.2)
 // ═══════════════════════════════════════════════════
 function detectChainBreach(chain) {
-  // ① hash 重算不匹配 / ④ preimage 版本不支持
+  // ① hash recompute mismatch / ④ preimage version unsupported
   for (const dobj of chain) {
     const r = verifyDO(dobj);
     if (!r.passed) {
@@ -272,27 +272,27 @@ function detectChainBreach(chain) {
       return 'hash_mismatch';
     }
   }
-  // 创世块 previous_hash 非 null → chain_genesis_mismatch
+  // genesis block previous_hash non-null → chain_genesis_mismatch
   if (chain.length > 0 && chain[0].audit && chain[0].audit.previous_hash !== null) {
     return 'chain_genesis_mismatch';
   }
   for (let i = 1; i < chain.length; i++) {
     const prev = chain[i - 1].audit;
     const cur = chain[i].audit;
-    // ② previous_hash 与上一条 hash 不一致
+    // ② previous_hash inconsistent with the previous record's hash
     if (cur.previous_hash !== prev.hash) return 'previous_hash_dangling';
-    // ③ 链中 DO 缺失（chain_seq 跳变）
+    // ③ a DO missing from the chain (chain_seq gap)
     if (cur.chain_seq !== prev.chain_seq + 1) return 'chain_seq_gap';
-    // ⑤ mode 混链
+    // ⑤ mixed-mode chain
     if (cur.mode !== prev.mode) return 'mode_mixed_chain';
-    // 时钟回退（time_regression）
+    // clock regression (time_regression)
     if (chain[i].timestamp < chain[i - 1].timestamp) return 'time_regression';
   }
   return null;
 }
 
 // ═══════════════════════════════════════════════════
-//  主函数
+//  main
 // ═══════════════════════════════════════════════════
 function main() {
   const args = process.argv.slice(2);
@@ -341,53 +341,53 @@ function main() {
 
       if (exp.type === 'MATCH') {
         let ok = r.passed;
-        // 字段完整性（RFC-002 §9.1 第一/二组）
+        // field completeness (RFC-002 §9.1 groups 1/2)
         if (ok && Array.isArray(exp.required_fields)) {
           for (const f of exp.required_fields) {
             if (getField(doObj, f) == null) {
               ok = false;
-              errors.push(v.id + ' required_field 缺失: ' + f);
+              errors.push(v.id + ' required_field missing: ' + f);
             }
           }
         }
-        // 语义检查（SoD）
+        // semantic check (SoD)
         if (ok && Array.isArray(exp.checks) && exp.checks.includes('sod')) {
           const agentId = doObj.agent && doObj.agent.id;
           if (agentId && Array.isArray(doObj.policies) && doObj.policies.some((p) => p.author_id === agentId)) {
             ok = false;
-            errors.push(v.id + ' SoD 违反');
+            errors.push(v.id + ' SoD violation');
           }
         }
         if (ok) { pass++; breakdown[cat].pass++; }
-        else { fail++; if (!r.passed && errors.length && !errors.some((e) => e.startsWith(v.id))) errors.push(v.id + ' 自洽失败: ' + (r.error || 'hash mismatch')); }
+        else { fail++; if (!r.passed && errors.length && !errors.some((e) => e.startsWith(v.id))) errors.push(v.id + ' self-consistency failure: ' + (r.error || 'hash mismatch')); }
       } else if (exp.type === 'BREACH') {
         if (v.id === 'V-DO-v15-K01') {
-          // 金丝雀：正确实现（只删 audit.hash）MISMATCH
+          // canary: correct implementation (deletes only audit.hash) MISMATCH
           if (!r.passed) { canaryOk++; pass++; breakdown[cat].pass++; }
-          else { fail++; errors.push(v.id + ' 金丝雀 FALSE_PASS'); }
+          else { fail++; errors.push(v.id + ' canary FALSE_PASS'); }
         } else {
-          // 语义 breach：hash 自洽 + 语义检测器检出具体 breach 码
+          // semantic breach: hash self-consistent + semantic detector reports the specific breach code
           if (!r.passed) {
             fail++;
-            errors.push(v.id + ' hash 不自洽（语义向量应自洽）: ' + (r.error || 'hash mismatch'));
+            errors.push(v.id + ' hash not self-consistent (semantic vector should be): ' + (r.error || 'hash mismatch'));
           } else {
             const allHits = collectDOBreaches(doObj, exp);
             const breach = allHits[0] || null;
-            if (breach !== exp.breach) { fail++; errors.push(v.id + ' breach 不符：期望 ' + exp.breach + '，检出 ' + breach); }
+            if (breach !== exp.breach) { fail++; errors.push(v.id + ' breach mismatch: expected ' + exp.breach + ', detected ' + breach); }
             else {
-              // §9.1.1 不变式：向量 MUST 显式声明全部同时成立的 breach（also_present），
-              // 且声明项 MUST 真实成立、MUST 排在主 breach 之后（被优先级拑压）。
-              // 这道校验使「优先级声明」自验证，避免 also_present 变成无人读的死声明。
+              // §9.1.1 invariant: a vector MUST explicitly declare all simultaneously-holding breaches (also_present),
+              // and declared items MUST actually hold and MUST sort after the primary breach (suppressed by priority).
+              // this check makes the "priority declaration" self-verifying, avoiding also_present becoming a dead declaration nobody reads.
               const declared = Array.isArray(exp.also_present) ? exp.also_present : [];
               const actualExtra = allHits.slice(1);
               const missingDecl = actualExtra.filter((c) => !declared.includes(c));
               const falseDecl = declared.filter((c) => !actualExtra.includes(c));
               if (missingDecl.length) {
                 fail++;
-                errors.push(v.id + ' 同时成立但未在 also_present 声明的 breach: ' + missingDecl.join(','));
+                errors.push(v.id + ' breach co-holding but undeclared in also_present: ' + missingDecl.join(','));
               } else if (falseDecl.length) {
                 fail++;
-                errors.push(v.id + ' also_present 声明但实际不成立（或未被拑压）: ' + falseDecl.join(','));
+                errors.push(v.id + ' also_present declared but not actually holding (or not suppressed): ' + falseDecl.join(','));
               } else {
                 pass++; breakdown[cat].pass++;
               }
@@ -396,63 +396,63 @@ function main() {
         }
       } else {
         fail++;
-        errors.push(v.id + ' 未知 expected.type: ' + exp.type);
+        errors.push(v.id + ' unknown expected.type: ' + exp.type);
       }
     } else if (v.chain) {
       breakdown[cat].total++;
       const breach = detectChainBreach(v.chain);
       if (v.id === 'V-DO-v15-C01') {
         if (breach === null) { pass++; breakdown[cat].pass++; }
-        else { fail++; errors.push(v.id + ' 正常链误报 ' + breach); }
+        else { fail++; errors.push(v.id + ' normal-chain false positive ' + breach); }
       } else {
         if (breach === exp.breach) { pass++; breakdown[cat].pass++; }
-        else { fail++; errors.push(v.id + ' breach 不符：期望 ' + exp.breach + '，检出 ' + breach); }
+        else { fail++; errors.push(v.id + ' breach mismatch: expected ' + exp.breach + ', detected ' + breach); }
       }
     } else if (v.base_do) {
       breakdown[cat].total++;
       const baseR = verifyDO(v.base_do);
       const tamR = verifyDO(v.tampered_do);
-      // 篡改对：base 自洽 + tampered 失配（flat-hash 检出）
-      // 注：A02(content_unresolvable)/A07~A10(tree_snapshot_divergence) 的语义层检测
-      //     依赖外部系统（知识库解析 / 规则重编译），本哈希层验证器以 flat-hash 失配兜底，
-      //     具体 breach 码待语义验证器补入（与签名层 S3 同理）。
+      // tamper pair: base self-consistent + tampered mismatch (detected by flat hash)
+      // note: semantic-layer detection for A02(content_unresolvable)/A07~A10(tree_snapshot_divergence)
+      //     depends on external systems (knowledge-base resolution / rule recompilation); this hash-layer verifier falls back to flat-hash mismatch,
+      //     the specific breach codes await the semantic verifier (same as the S3 signature layer).
       if (baseR.passed && !tamR.passed) { pass++; breakdown[cat].pass++; }
-      else { fail++; errors.push(v.id + ' base自洽=' + baseR.passed + ' tampered失配=' + !tamR.passed); }
+      else { fail++; errors.push(v.id + ' baseSelfConsistent=' + baseR.passed + ' tamperedMismatch=' + !tamR.passed); }
     }
   }
 
-  // ── 汇总 ──
-  console.log('── 五步验证法（Step 0–5）+ 语义检测 ──');
+  // ── summary ──
+  console.log('── Five-step verification (Step 0–5) + semantic detection ──');
   for (const [cat, s] of Object.entries(breakdown)) {
     const mark = s.pass === s.total ? '✓' : '✗';
     console.log(`  ${mark} ${cat.padEnd(8)} ${s.pass}/${s.total}`);
   }
   console.log('');
-  console.log(`  总计: ${pass}/${pass + fail} 通过`);
-  console.log(`  金丝雀 K01 正确判别: ${canaryOk}/1`);
+  console.log(`  total: ${pass}/${pass + fail} passed`);
+  console.log(`  canary K01 correct discrimination: ${canaryOk}/1`);
   if (errors.length) {
     console.log('');
-    console.log('  失败明细:');
+    console.log('  failure details:');
     errors.forEach((e) => console.log('    ✗ ' + e));
   }
   console.log('');
 
-  // ── Step 6: 答案文件交叉比对（RUNNER_CONTRACT R4 Check 2 / R5 金丝雀 Check 2）──
-  // 覆盖面 = 向量集全部 DO（decision_object / base_do+tampered_do / chain 成员），非仅 MATCH 型：
-  // Step 5 验「工件自报 hash」，Step 6 验「字节是否漂移」，二者正交——BREACH 型向量的字节同样必须稳定。
+  // ── Step 6: answer-file cross-check (RUNNER_CONTRACT R4 Check 2 / R5 canary Check 2) ──
+  // coverage = ALL DOs in the vector set (decision_object / base_do+tampered_do / chain members), not just MATCH-type:
+  // Step 5 verifies "artifact self-reported hash", Step 6 verifies "byte drift" — they are orthogonal; BREACH-type vector bytes must also be stable.
   if (answersData && answersData.answers) {
     let ansMatch = 0, ansMismatch = 0, ansMissing = 0, ansNA = 0;
     const readKeys = new Set();
     let canaryCheck2 = null;
 
     const crossCheck = (key, dobj) => {
-      // 版本门：preimage_version 不支持的 DO（C07 版本降级攻击）按契约在 Step 1 提前终止，
-      // 本质上不存在 v1.5 管线的 canonical bytes → Step 6 不适用（N/A），且 MUST 无预言键。
+      // version gate: DOs with unsupported preimage_version (C07 version-downgrade attack) terminate early at Step 1 per contract,
+      // no v1.5-pipeline canonical bytes exist in essence → Step 6 is N/A, and there MUST be no oracle key.
       const pv = dobj && dobj.audit && dobj.audit.preimage_version;
       if (pv !== PREIMAGE_VERSION) {
         ansNA++;
         if (answersData.answers[key] !== undefined) {
-          errors.push(key + ' 版本不支持却存在预言键（会逗验证器绕过版本门）');
+          errors.push(key + ' unsupported version yet has an oracle key (would lure the verifier past the version gate)');
         }
         return;
       }
@@ -460,7 +460,7 @@ function main() {
       const oracle = answersData.answers[key];
       if (oracle === undefined) {
         ansMissing++;
-        errors.push(key + ' 缺答案文件预言键（Step 6 未覆盖）');
+        errors.push(key + ' missing answer-file oracle key (Step 6 uncovered)');
         return;
       }
       readKeys.add(key);
@@ -470,7 +470,7 @@ function main() {
       } else {
         ansMismatch++;
         if (key === 'V-DO-v15-K01') canaryCheck2 = 'MISMATCH';
-        errors.push(key + ' 答案文件 MISMATCH');
+        errors.push(key + ' answer file MISMATCH');
       }
     };
 
@@ -483,27 +483,27 @@ function main() {
       if (v.chain) v.chain.forEach((dobj, i) => crossCheck(`${v.id}[${i}]`, dobj));
     }
 
-    // 死键守卫：答案文件中存在从未被读取的键 → 预言与向量集脱节（覆盖假象）
+    // dead-key guard: a key in the answer file that is never read → oracle disconnected from the vector set (coverage illusion)
     const deadKeys = Object.keys(answersData.answers).filter((k) => !readKeys.has(k));
     if (deadKeys.length) {
-      errors.push('答案文件死键（永不被读取，覆盖假象）: ' + deadKeys.join(', '));
+      errors.push('answer file dead keys (never read, coverage illusion): ' + deadKeys.join(', '));
     }
 
-    console.log('── Step 6: 答案文件交叉比对 ──');
-    console.log(`  canonical_hex 比对: ${ansMatch} MATCH / ${ansMismatch} MISMATCH / ${ansMissing} 缺预言`);
-    console.log(`  覆盖面: ${ansMatch + ansMismatch}/${ansMatch + ansMismatch + ansMissing} 适用 DO（另 ${ansNA} 条 N/A：版本不支持，按契约提前终止）`);
-    console.log(`  答案文件死键: ${deadKeys.length}`);
-    console.log(`  金丝雀 K01 Check 2（字节层应 MATCH）: ${canaryCheck2 || 'N/A'}`);
+    console.log('── Step 6: answer-file cross-check ──');
+    console.log(`  canonical_hex compare: ${ansMatch} MATCH / ${ansMismatch} MISMATCH / ${ansMissing} missing oracle`);
+    console.log(`  coverage: ${ansMatch + ansMismatch}/${ansMatch + ansMismatch + ansMissing} applicable DOs (${ansNA} more N/A: unsupported version, terminated early per contract)`);
+    console.log(`  answer file dead keys: ${deadKeys.length}`);
+    console.log(`  canary K01 Check 2 (byte-level should MATCH): ${canaryCheck2 || 'N/A'}`);
     console.log('');
     if (ansMismatch || ansMissing || deadKeys.length) fail += ansMismatch + ansMissing + deadKeys.length;
   }
 
   if (fail === 0 && errors.length === 0) {
     console.log('  ✅ ALL VERIFICATIONS PASSED');
-    console.log('  V-DO-v15 哈希层 ' + data.vectors.length + ' 条向量跨实现可验证。');
+    console.log('  V-DO-v15 hash layer ' + data.vectors.length + ' vectors cross-implementation verifiable.');
     process.exit(0);
   } else {
-    console.log('  ❌ VERIFICATION FAILED (' + fail + ' 失败)');
+    console.log('  ❌ VERIFICATION FAILED (' + fail + ' failures)');
     process.exit(1);
   }
 }
@@ -512,5 +512,5 @@ if (require.main === module) {
   main();
 }
 
-// 导出核心函数（供 vitest 测试）
+// export core functions (for vitest tests)
 module.exports = { verifyDO, jcsCanonicalize, sha256, detectDOBreach, collectDOBreaches, detectChainBreach, getField };
