@@ -78,7 +78,8 @@ conforming runner MUST **自行实现 JCS（RFC 8785）**，MUST NOT 读取答�
 1. **自行实现**：从本契约 + RFC 8785 从第一性原理实现（禁依赖 ERDL SDK / json-canonicalize）；
 2. **逐条验证**：对 `decision-object-vectors-v1.5.json` 全部向量运行，Check 1 + Check 2 双门通过；
 3. **金丝雀判别**：K01 满足 Check 1 MISMATCH + Check 2 MATCH；
-4. **提交注册**：PR 到 `submissions/`，登记于 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md)。
+4. **自动记录**：CI 运行 `scripts/generate-conformance.cjs`，在验证通过后自动生成 [conformance/CONFORMANCE.md](conformance/CONFORMANCE.md)（记录谁、哪天、通过多少条 + Check 1/2 + K01 判别 + R1–R6 对照结论）——结果由验证运行本身产出，非手工背书；
+5. **提交注册**：PR 到 `submissions/`，登记于 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md)。
 
 ---
 
