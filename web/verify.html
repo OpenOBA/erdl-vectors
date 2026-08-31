@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ERDL Decision Object · 在线验证器</title>
+<title>ERDL Decision Object · Online Verifier</title>
 <style>
   :root { --bg:#f6f7f9; --card:#fff; --ink:#172033; --muted:#5b6475; --blue:#1e56a0; --green:#0e7c66; --red:#c0392b; --border:#e2e6ec; }
   * { box-sizing: border-box; }
@@ -32,31 +32,31 @@
 </head>
 <body>
 <header>
-  <h1>ERDL Decision Object · 在线验证器</h1>
-  <p>浏览器端 self-built JCS（RFC 8785）+ Web Crypto SHA-256 · 零依赖 · 与厂商无关的独立重算</p>
+  <h1>ERDL Decision Object · Online Verifier</h1>
+  <p>Browser-side self-built JCS (RFC 8785) + Web Crypto SHA-256 · zero dependency · vendor-independent independent recomputation</p>
 </header>
 <main>
   <div class="card">
-    <h2>① 验证单条 Decision Object 的 audit.hash</h2>
-    <textarea id="doInput" spellcheck="false" placeholder='粘贴 Decision Object JSON，例如：
+    <h2>① Verify the audit.hash of a single Decision Object</h2>
+    <textarea id="doInput" spellcheck="false" placeholder='Paste a Decision Object JSON, e.g.:
 {
   "agent": {"id":"agent-001","role":"guardian","version":"v1.5.0"},
   "audit": {"mode":"hash","preimage_version":"erdl-do-v1.5-hash-flat","hash":"sha256:..."}
 }'></textarea>
     <div class="row">
-      <button onclick="verifySingle()">验证 hash</button>
-      <button class="ghost" onclick="loadExample()">加载示例 DO</button>
-      <button class="ghost" onclick="document.getElementById('doInput').value=''">清空</button>
+      <button onclick="verifySingle()">Verify hash</button>
+      <button class="ghost" onclick="loadExample()">Load example DO</button>
+      <button class="ghost" onclick="document.getElementById('doInput').value=''">Clear</button>
     </div>
     <div id="result"></div>
-    <p class="note">验证规则：deep clone → 仅删除 audit.hash → JCS 规范化 → SHA-256 → 与存储 audit.hash 对比。完整规范见 docs/VERIFIER-GUIDE.md。</p>
+    <p class="note">Verification rule: deep clone → delete only audit.hash → JCS normalize → SHA-256 → compare with stored audit.hash. Full spec in docs/VERIFIER-GUIDE.md。</p>
   </div>
 
   <div class="card">
-    <h2>② 验证完整向量集（decision-object-vectors-v1.5.json）</h2>
+    <h2>② Verify the full vector set (decision-object-vectors-v1.5.json)</h2>
     <input type="file" id="vectorFile" accept=".json" onchange="verifyVectors(event)" />
     <div id="vectorResult"></div>
-    <p class="note">选择向量文件后自动逐条验证（Step 0–5 + 语义 breach + 金丝雀）。答案文件永不参与（物理隔离）。</p>
+    <p class="note">After choosing a vector file, auto-verify per vector (Step 0–5 + semantic breach + canary). The answer file never participates (physically isolated).</p>
   </div>
 </main>
 
@@ -100,9 +100,9 @@ async function verifyDO(decisionObject){
   const evalObj=decisionObject.evaluation;
   const hasTree=evalObj&&Array.isArray(evalObj.matched_rules)&&evalObj.matched_rules.some(m=>m.canonical_tree!==undefined);
   const hasV15=(decisionObject.audit&&decisionObject.audit.preimage_version===PREIMAGE_VERSION)||(decisionObject.compliance_profile&&Array.isArray(decisionObject.compliance_profile.activated_fields));
-  if(!hasTree&&!hasV15)return{passed:false,error:'v1.3 历史路径（本验证器仅处理 v1.5）'};
+  if(!hasTree&&!hasV15)return{passed:false,error:'v1.3 legacy path (this verifier handles v1.5 only)'};
   const pv=decisionObject.audit&&decisionObject.audit.preimage_version;
-  if(pv!==PREIMAGE_VERSION)return{passed:false,error:'preimage_version 不支持: '+pv};
+  if(pv!==PREIMAGE_VERSION)return{passed:false,error:'preimage_version unsupported: '+pv};
   try{assertSafeIntegers(decisionObject);}catch(e){return{passed:false,error:e.message};}
   const clone=JSON.parse(JSON.stringify(decisionObject));
   delete clone.audit.hash;
@@ -112,14 +112,14 @@ async function verifyDO(decisionObject){
   return{passed:computedHash===storedHash,computedHash,storedHash,canonical};
 }
 
-// ── 语义 breach ──
+// ── semantic breach ──
 function collectDOBreaches(o,meta){
   const cp=o.compliance_profile||{};
   const hits=[];
   // P1 jurisdiction_mismatch（§9.1.1）
   const juris=Array.isArray(cp.jurisdictions)?cp.jurisdictions:[];
   if(juris.some(j=>!KNOWN_JURISDICTIONS.includes(j)))hits.push('jurisdiction_mismatch');
-  // P2 compliance_field_missing（含 risk_level=critical → signature 强制）
+  // P2 compliance_field_missing (incl. risk_level=critical → signature mandatory)
   const activated=Array.isArray(cp.activated_fields)?cp.activated_fields:[];
   const fieldMissing=activated.some(f=>getField(o,f)==null);
   const criticalWithoutSignature=cp.risk_level==='critical'&&!activated.includes('signature');
@@ -133,7 +133,7 @@ function collectDOBreaches(o,meta){
   // P5 tree_snapshot_divergence
   const matched=o.evaluation&&o.evaluation.matched_rules, policies=Array.isArray(o.policies)?o.policies:[];
   if(Array.isArray(matched)){for(const m of matched){const p=policies.find(pp=>pp.id===m.rule_id);if(p&&m.canonical_tree!==undefined&&p.when!==undefined&&jcsCanonicalize(m.canonical_tree)!==jcsCanonicalize(p.when)){hits.push('tree_snapshot_divergence');break;}}}
-  // P6 content_unresolvable（告警级，MUST 最后）
+  // P6 content_unresolvable (warning-level, MUST be last)
   const refs=o.evaluation&&o.evaluation.knowledge_references;
   if(Array.isArray(refs)&&meta&&Array.isArray(meta.resolvable_entry_ids)){for(const r of refs){if(!meta.resolvable_entry_ids.includes(r.entry_id)){hits.push('content_unresolvable');break;}}}
   return hits;
@@ -150,32 +150,32 @@ async function detectChainBreach(chain){
   return null;
 }
 
-// ── UI：单条验证 ──
+// ── UI: single verification ──
 async function verifySingle(){
   const el=document.getElementById('result');
   const raw=document.getElementById('doInput').value.trim();
-  if(!raw){el.innerHTML='<div class="badge fail">请输入 DO JSON</div>';return;}
+  if(!raw){el.innerHTML='<div class="badge fail">Please enter DO JSON</div>';return;}
   try{
     const dobj=JSON.parse(raw);
     const r=await verifyDO(dobj);
     if(r.passed){
-      el.innerHTML='<div class="badge pass">✓ MATCH — hash 自洽</div>'+
+      el.innerHTML='<div class="badge pass">✓ MATCH — hash self-consistent</div>'+
         '<div class="kv"><span class="k">canonical (JCS)</span><span class="v">'+escapeHtml(r.canonical)+'</span></div>'+
         '<div class="kv"><span class="k">computed hash</span><span class="v">'+r.computedHash+'</span></div>';
     }else{
       const breach=detectDOBreach(dobj,null);
-      el.innerHTML='<div class="badge fail">✗ '+escapeHtml(r.error||('hash_mismatch（存储 '+r.storedHash+'）'))+'</div>'+
-        (breach?'<div class="kv"><span class="k">语义 breach</span><span class="v">'+breach+'</span></div>':'')+
+      el.innerHTML='<div class="badge fail">✗ '+escapeHtml(r.error||('hash_mismatch (stored '+r.storedHash+')'))+'</div>'+
+        (breach?'<div class="kv"><span class="k">semantic breach</span><span class="v">'+breach+'</span></div>':'')+
         (r.computedHash?'<div class="kv"><span class="k">computed</span><span class="v">'+r.computedHash+'</span></div>':'')+
         (r.storedHash?'<div class="kv"><span class="k">stored</span><span class="v">'+r.storedHash+'</span></div>':'');
     }
   }catch(e){
-    el.innerHTML='<div class="badge fail">✗ 解析/规范化失败：'+escapeHtml(e.message)+'</div>';
+    el.innerHTML='<div class="badge fail">✗ parse/normalize failure: '+escapeHtml(e.message)+'</div>';
   }
 }
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-// ── UI：示例 ──
+// ── UI: example ──
 function loadExample(){
   document.getElementById('doInput').value=JSON.stringify({
     agent:{id:'agent-001',role:'guardian',version:'v1.5.0'},
@@ -185,12 +185,12 @@ function loadExample(){
   },null,2);
 }
 
-// ── UI：完整向量集 ──
+// ── UI: full vector set ──
 async function verifyVectors(ev){
   const el=document.getElementById('vectorResult');
   const file=ev.target.files[0];
   if(!file){return;}
-  el.innerHTML='<p class="note">读取中…</p>';
+  el.innerHTML='<p class="note">Reading…</p>';
   try{
     const text=await file.text();
     const data=JSON.parse(text);
@@ -202,29 +202,29 @@ async function verifyVectors(ev){
       if(v.decision_object){breakdown[cat].total++;
         const r=await verifyDO(v.decision_object);
         if(exp.type==='MATCH'){let ok=r.passed;
-          if(ok&&Array.isArray(exp.required_fields)){for(const f of exp.required_fields){if(getField(v.decision_object,f)==null){ok=false;errors.push(v.id+' required_field 缺失: '+f);}}}
-          if(ok&&Array.isArray(exp.checks)&&exp.checks.includes('sod')){const aid=v.decision_object.agent&&v.decision_object.agent.id;if(aid&&Array.isArray(v.decision_object.policies)&&v.decision_object.policies.some(p=>p.author_id===aid)){ok=false;errors.push(v.id+' SoD 违反');}}
+          if(ok&&Array.isArray(exp.required_fields)){for(const f of exp.required_fields){if(getField(v.decision_object,f)==null){ok=false;errors.push(v.id+' required_field missing: '+f);}}}
+          if(ok&&Array.isArray(exp.checks)&&exp.checks.includes('sod')){const aid=v.decision_object.agent&&v.decision_object.agent.id;if(aid&&Array.isArray(v.decision_object.policies)&&v.decision_object.policies.some(p=>p.author_id===aid)){ok=false;errors.push(v.id+' SoD violation');}}
           if(ok){pass++;breakdown[cat].pass++;}else{fail++;}}
         else if(exp.type==='BREACH'){
-          if(v.id==='V-DO-v15-K01'){if(!r.passed){canaryOk++;pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' 金丝雀 FALSE_PASS');}}
-          else{if(!r.passed){fail++;errors.push(v.id+' hash 不自洽');}else{const allHits=collectDOBreaches(v.decision_object,exp);const b=allHits[0]||null;if(b!==exp.breach){fail++;errors.push(v.id+' breach 不符：期望 '+exp.breach+' 检出 '+b);}else{const declared=Array.isArray(exp.also_present)?exp.also_present:[];const actualExtra=allHits.slice(1);const missing=actualExtra.filter(c=>!declared.includes(c));const falseD=declared.filter(c=>!actualExtra.includes(c));if(missing.length){fail++;errors.push(v.id+' 未声明 also_present: '+missing.join(','));}else if(falseD.length){fail++;errors.push(v.id+' also_present 声明但不成立: '+falseD.join(','));}else{pass++;breakdown[cat].pass++;}}}}
+          if(v.id==='V-DO-v15-K01'){if(!r.passed){canaryOk++;pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' canary FALSE_PASS');}}
+          else{if(!r.passed){fail++;errors.push(v.id+' hash not self-consistent');}else{const allHits=collectDOBreaches(v.decision_object,exp);const b=allHits[0]||null;if(b!==exp.breach){fail++;errors.push(v.id+' breach mismatch: expected '+exp.breach+' detected '+b);}else{const declared=Array.isArray(exp.also_present)?exp.also_present:[];const actualExtra=allHits.slice(1);const missing=actualExtra.filter(c=>!declared.includes(c));const falseD=declared.filter(c=>!actualExtra.includes(c));if(missing.length){fail++;errors.push(v.id+' undeclared also_present: '+missing.join(','));}else if(falseD.length){fail++;errors.push(v.id+' also_present declared but not holding: '+falseD.join(','));}else{pass++;breakdown[cat].pass++;}}}}
         }else{fail++;}
       }else if(v.chain){breakdown[cat].total++;
         const b=await detectChainBreach(v.chain);
-        if(v.id==='V-DO-v15-C01'){if(b===null){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' 正常链误报 '+b);}}
-        else{if(b===exp.breach){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' breach 不符：期望 '+exp.breach+' 检出 '+b);}}
+        if(v.id==='V-DO-v15-C01'){if(b===null){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' normal-chain false positive '+b);}}
+        else{if(b===exp.breach){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' breach mismatch: expected '+exp.breach+' detected '+b);}}
       }else if(v.base_do){breakdown[cat].total++;
         const br=await verifyDO(v.base_do),tr=await verifyDO(v.tampered_do);
-        if(br.passed&&!tr.passed){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' base自洽='+br.passed+' tampered失配='+!tr.passed);}
+        if(br.passed&&!tr.passed){pass++;breakdown[cat].pass++;}else{fail++;errors.push(v.id+' baseSelfConsistent='+br.passed+' tamperedMismatch='+!tr.passed);}
       }
     }
-    let html='<div class="badge '+(fail===0?'pass':'fail')+'">'+(fail===0?'✓ 全部通过 '+pass+'/'+(pass+fail):'✗ '+fail+' 失败')+'</div><p>';
+    let html='<div class="badge '+(fail===0?'pass':'fail')+'">'+(fail===0?'✓ all passed '+pass+'/'+(pass+fail):'✗ '+fail+' failures')+'</div><p>';
     for(const[cat,s]of Object.entries(breakdown)){html+=cat+' '+s.pass+'/'+s.total+'　';}
     html+='</p>';
     if(errors.length)html+='<pre>'+errors.map(escapeHtml).join('\n')+'</pre>';
     el.innerHTML=html;
   }catch(e){
-    el.innerHTML='<div class="badge fail">✗ 读取/验证失败：'+escapeHtml(e.message)+'</div>';
+    el.innerHTML='<div class="badge fail">✗ read/verify failure: '+escapeHtml(e.message)+'</div>';
   }
 }
 </script>

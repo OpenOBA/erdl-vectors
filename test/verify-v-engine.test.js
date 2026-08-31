@@ -1,14 +1,14 @@
 /**
- * verify-v-engine.test.js — V-ENGINE 独立验证器回归
+ * verify-v-engine.test.js — V-ENGINE independent verifier regression
  *
- * scripts/verify-v-engine.mjs 是独立参考实现（第二来源，§48.2 双实现生成制），
- * 不 import 参考引擎源码，独立按 SPEC 文本重算「语义敏感」向量（E2/E8/E10 + 算术/时间/聚合节点）。
+ * scripts/verify-v-engine.mjs is the independent reference implementation (second source, §48.2 dual-implementation generation),
+ * not importing reference-engine source, independently recomputing "semantic-sensitive" vectors from the SPEC text (E2/E8/E10 + arithmetic/time/aggregate nodes).
  */
 const { spawnSync } = require('child_process');
 const path = require('path');
 
-describe('V-ENGINE 独立验证器（scripts/verify-v-engine.mjs）', () => {
-  it('57 条语义敏感向量独立重算一致（exit 0）', () => {
+describe('V-ENGINE independent verifier (scripts/verify-v-engine.mjs)', () => {
+  it('57 semantic-sensitive vectors independently recomputed consistent (exit 0)', () => {
     const r = spawnSync(
       process.execPath,
       [path.join(__dirname, '..', 'scripts', 'verify-v-engine.mjs')],

@@ -1,30 +1,30 @@
 /**
- * adversarial-do.test.js — 逐条逆向（对抗）验证：篡改每条自洽 DO → hash 必失配
+ * adversarial-do.test.js — per-vector reverse (adversarial) verification: tamper each self-consistent DO → hash must mismatch
  *
- * 覆盖 78 条 V-DO-v15 向量中的全部「自洽 DO」（verifyDO 通过者）：
- *   - MATCH 正例（D/C01/G 领域/V-COMP 正例）
- *   - 语义 BREACH 单 DO（A02/A07~A10/F01/F03~F05/F08~F11，hash 自洽 + 语义违规）
- *   - base_do（A 哈希类/G 结构类/F02/F06/F07 的 base 侧）
- *   - 链成员（C01 正常 + C03~C08 结构攻击的 hash 自洽成员）
+ * Covers all "self-consistent DOs" (those passing verifyDO) among the 78 V-DO-v15 vectors:
+ *   - MATCH positives (D / C01 / G domain / V-COMP positives)
+ *   - semantic BREACH single DOs (A02/A07~A10/F01/F03~F05/F08~F11, hash self-consistent + semantic violation)
+ *   - base_do (base side of A hash-type / G structure-type / F02/F06/F07)
+ *   - chain members (hash self-consistent members of C01 normal + C03~C08 structural attacks)
  *
- * 金丝雀 K01（hash 有意「错误」）与 C02 被篡改成员、各 tampered_do（本身已失配）不在此列。
+ * The canary K01 (hash intentionally "wrong"), the C02 tampered member, and each tampered_do (already mismatched) are excluded.
  */
 const { verifyDO } = require('../scripts/verify-v1.5.js');
 const vectors = require('../decision-object-vectors-v1.5.json').vectors;
 
-/** 篡改一个非 hash 的核心字段（decision_id 常驻且进原像） */
+/** Tamper one non-hash core field (decision_id is resident and enters the preimage) */
 function tamper(obj) {
   const t = JSON.parse(JSON.stringify(obj));
   t.decision_id = (t.decision_id || 'x') + '_TAMPERED';
   return t;
 }
 
-describe('逆向：逐条篡改自洽 DO → hash 必失配', () => {
-  it('所有 verifyDO 自洽的 DO，篡改 decision_id 后必失配', () => {
+describe('reverse: tamper each self-consistent DO → hash must mismatch', () => {
+  it('all verifyDO self-consistent DOs must mismatch after tampering decision_id', () => {
     let checked = 0;
     const per = (id, obj) => {
-      if (!verifyDO(obj).passed) return; // 仅测自洽 DO
-      expect(verifyDO(tamper(obj)).passed, `${id} 篡改后应失配`).toBe(false);
+      if (!verifyDO(obj).passed) return; // test self-consistent DOs only
+      expect(verifyDO(tamper(obj)).passed, `${id} should mismatch after tamper`).toBe(false);
       checked++;
     };
     vectors.forEach((v) => {
@@ -32,7 +32,7 @@ describe('逆向：逐条篡改自洽 DO → hash 必失配', () => {
       if (v.base_do) per(`${v.id}-base`, v.base_do);
       if (v.chain) v.chain.forEach((d, i) => per(`${v.id}[${i}]`, d));
     });
-    // 自洽 DO 应覆盖绝大多数（K01/C02 篡改成员/tampered_do 除外）
+    // self-consistent DOs should cover the vast majority (excluding K01 / C02 tampered member / tampered_do)
     expect(checked).toBeGreaterThan(50);
   });
 });

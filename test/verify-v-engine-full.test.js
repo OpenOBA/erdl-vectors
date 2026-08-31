@@ -1,14 +1,14 @@
 /**
- * verify-v-engine-full.test.js — V-ENGINE 全量 223 条向量验证回归
+ * verify-v-engine-full.test.js — V-ENGINE full 223-vector verification regression
  *
- * scripts/verify-v-engine-full.mjs 用 @openoba/erdl 参考引擎逐条求值
- * v-engine-vectors.json（34 节点 × 4 场景 + E1-E12 约束 + Simple + gloss + projection）。
+ * scripts/verify-v-engine-full.mjs evaluates per vector with the @openoba/erdl reference engine
+ * v-engine-vectors.json (34 nodes × 4 scenarios + E1-E12 constraints + Simple + gloss + projection).
  */
 const { spawnSync } = require('child_process');
 const path = require('path');
 
-describe('V-ENGINE 全量验证器（scripts/verify-v-engine-full.mjs）', () => {
-  it('223 条向量全量重算一致（exit 0）', () => {
+describe('V-ENGINE full verifier (scripts/verify-v-engine-full.mjs)', () => {
+  it('223 vectors full recompute consistent (exit 0)', () => {
     const r = spawnSync(
       process.execPath,
       [path.join(__dirname, '..', 'scripts', 'verify-v-engine-full.mjs')],

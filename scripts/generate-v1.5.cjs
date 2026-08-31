@@ -2,14 +2,14 @@
 /**
  * generate-v1.5.cjs — ERDL Decision Object v1.5 Vector Generator
  *
- * 生成 V-DO-v15 哈希层 78 条向量（D13 + C8 + A10 + K1 + G14 + V-COMP32）。
- * 对齐 RFC-002 §1（扁平哈希 + 唯一删除点）+ SPEC §45.1（审计层矩阵）。
+ * Generates the V-DO-v15 hash-layer 78 vectors (D13 + C8 + A10 + K1 + G14 + V-COMP32).
+ * Aligns with RFC-002 §1 (flat hash + single deletion point) and SPEC §45.1 (audit-layer matrix).
  *
- * 哈希公式（哈希模式）：
- *   audit.hash = "sha256:" + HEX(SHA-256(JCS(DO 全量字段 − audit.hash)))
- *   preimage_version = "erdl-do-v1.5-hash-flat" 进原像
+ * Hash formula (hash mode):
+ *   audit.hash = "sha256:" + HEX(SHA-256(JCS(all DO fields − audit.hash)))
+ *   preimage_version = "erdl-do-v1.5-hash-flat" enters the preimage
  *
- * @author 唐浩然 (Tang Haoran) · OpenOBA AI 执行官
+ * @author Tang Haoran · OpenOBA AI Executive
  * @since 2026-08-22
  * @license MIT
  */
@@ -21,13 +21,13 @@ const fs = require('fs');
 const path = require('path');
 
 // ═══════════════════════════════════════════════════
-//  工具
+//  Utilities
 // ═══════════════════════════════════════════════════
 const sha256 = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
 const jcs = (o) => canonicalize(o);
 
 // ═══════════════════════════════════════════════════
-//  常量（冻结）
+//  Constants (frozen)
 // ═══════════════════════════════════════════════════
 const PREIMAGE_VERSION = 'erdl-do-v1.5-hash-flat';
 const SPEC = 'decision-object-v1.5';
@@ -36,7 +36,7 @@ const AGENT_ID = 'did:erdl:sha256:test-runner-v1.5';
 const AGENT_AID = '91110108MA12345678A00000001E';
 const VIRTUAL_SHA256 = 'sha256:0000000000000000000000000000000000000000000000000000000000000000';
 
-// 确定性 UUIDv7（冻结时间戳 2026-08-22 → 前缀 019b5c5a）
+// Deterministic UUIDv7 (frozen timestamp 2026-08-22 → prefix 019b5c5a)
 const UUID_BASE = '019b5c5a-0000-7000-8000-';
 let uuidIndex = 0;
 function deterministicUuid() {
@@ -44,30 +44,30 @@ function deterministicUuid() {
 }
 
 // ═══════════════════════════════════════════════════
-//  buildDO — 构建 v1.5 结构 Decision Object（哈希模式）
+//  buildDO — builds the v1.5 Decision Object (hash mode)
 // ═══════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════
-//  答案文件（canonical_hex 物理隔离，合规运行不可读）
+//  Answer file (canonical_hex physically isolated, not readable by compliant runs)
 // ═══════════════════════════════════════════════════
 const answers = {}; // vectorId -> canonical_hex
 
 /**
  * @param {object} o
- * @param {string} o.decisionType   决策类型（13 种之一）
- * @param {object} o.context        评估上下文
- * @param {Array}  o.rules          规则定义 [{id,name,when(canonical S-expr),then,priority,ring}]
- * @param {string} o.chainId        链 ID（session_id）
- * @param {number} o.chainSeq       链内序号（0 起）
- * @param {string|null} o.previousHash 上一条 hash（创世为 null）
- * @param {object} [o.outcome]      结论层（G 系列）
- * @param {Array}  [o.extensions]   extensions（默认 []）
- * @param {Array}  [o.activatedFields] 激活字段（默认全量 CN 激活集）
- * @param {object} [o.override]     构建后覆盖（篡改向量用）
- * @param {object} [o.extra]        额外字段（锚定字段等，哈希前 deep merge）
- * @param {string} [o.authorId]      policies[].author_id（默认 author-openoba，SoD 向量用）
- * @param {Array}  [o.omitFields]    从激活字段中物理省略（compliance_field_missing 向量用）
- * @param {string} [o.answerId]     答案文件键（收集 canonical_hex）
+ * @param {string} o.decisionType   decision type (one of 13)
+ * @param {object} o.context        evaluation context
+ * @param {Array}  o.rules          rule definitions [{id,name,when(canonical S-expr),then,priority,ring}]
+ * @param {string} o.chainId        chain ID (session_id)
+ * @param {number} o.chainSeq       chain sequence number (0-based)
+ * @param {string|null} o.previousHash previous hash (null for genesis)
+ * @param {object} [o.outcome]      outcome layer (G series)
+ * @param {Array}  [o.extensions]  extensions (default [])
+ * @param {Array}  [o.activatedFields] activated fields (default: full CN activation set)
+ * @param {object} [o.override]     post-build override (for tamper vectors)
+ * @param {object} [o.extra]        extra fields (anchoring fields etc., deep-merged before hashing)
+ * @param {string} [o.authorId]     policies[].author_id (default author-openoba, for SoD vectors)
+ * @param {Array}  [o.omitFields]   physically omitted from activated fields (for compliance_field_missing vectors)
+ * @param {string} [o.answerId]     answer file key (collects canonical_hex)
  */
 function buildDO(o) {
   const decisionType = o.decisionType;
@@ -86,20 +86,20 @@ function buildDO(o) {
       author_id: o.authorId || 'author-openoba',
       hash: '',
     };
-    // 计算 policy.hash（自引用排除）
+    // compute policy.hash (self-reference exclusion)
     const { hash, ...rest } = policy;
     policy.hash = 'sha256:' + sha256(jcs(rest));
     return policy;
   });
 
-  // ── rule_set_version.id（policies 去 hash 后 JCS）──
+  // ── rule_set_version.id (JCS of policies with hash removed) ──
   const rsJcs = jcs(policies.map((p) => {
     const { hash, ...rest } = p;
     return rest;
   }));
   const ruleSetId = 'sha256:' + sha256(rsJcs);
 
-  // ── evaluation.matched_rules（含 canonical_tree）──
+  // ── evaluation.matched_rules (with canonical_tree) ──
   const matchedRules = (o.rules || []).map((r) => ({
     rule_id: r.id,
     canonical_tree: r.when || {},
@@ -122,12 +122,12 @@ function buildDO(o) {
       { framework: 'GB-Z-185-2026', version: '2026-05-22', jurisdiction: 'CN' },
     ],
   };
-  // Omit over Null：industries 空数组物理删除（RFC-002 §1.3#6）
+  // Omit over Null: physically delete empty industries array (RFC-002 §1.3#6)
   if (o.industries && o.industries.length > 0) complianceProfile.industries = o.industries;
   const { profile_hash: _ph, ...cpRest } = complianceProfile;
   complianceProfile.profile_hash = 'sha256:' + sha256(jcs(cpRest));
 
-  // ── JUR 字段值（全量池，按 activated_fields 裁剪）──
+  // ── JUR field values (full pool, trimmed by activated_fields) ──
   const JUR_VALUES = {
     model_id: 'test-model-v1.5',
     confidence_score: 95,
@@ -144,12 +144,12 @@ function buildDO(o) {
     'agent.model_registration_id': 'MR-2026-000000',
   };
 
-  // ── agent（基础 + 激活的 agent 子字段）+ 顶层 JUR 字段 ──
+  // ── agent (base + activated agent sub-fields) + top-level JUR fields ──
   const agent = { id: AGENT_ID, role: 'guardian', version: 'v1.5.0' };
   const topJur = {};
   const omitFields = o.omitFields || [];
   for (const f of activatedFields) {
-    if (omitFields.includes(f)) continue;  // compliance_field_missing 向量：激活字段物理缺失
+    if (omitFields.includes(f)) continue;  // compliance_field_missing vectors: activated field physically missing
     const v = JUR_VALUES[f];
     if (v === undefined) continue;
     if (f.startsWith('agent.')) {
@@ -169,10 +169,10 @@ function buildDO(o) {
   };
   if (o.outcome !== undefined) result.outcome = o.outcome;
 
-  // ── human_oversight（对象化）──
+  // ── human_oversight (object) ──
   const humanOversight = { required: decisionType === 'REQUEST_HUMAN' };
 
-  // ── audit（哈希模式）──
+  // ── audit (hash mode) ──
   const audit = {
     mode: 'hash',
     hash: '',
@@ -188,7 +188,7 @@ function buildDO(o) {
     chain_seq: chainSeq,
   };
 
-  // ── 组装全 DO ──
+  // ── assemble full DO ──
   let doObj = {
     spec: SPEC,
     decision_id: deterministicUuid(),
@@ -212,18 +212,19 @@ function buildDO(o) {
     extensions: o.extensions !== undefined ? o.extensions : [],
   };
 
-  // ── 应用额外字段（锚定字段，哈希前 deep merge）──
+  // ── apply extra fields (anchoring fields, deep-merge before hashing) ──
   if (o.extra) {
     doObj = deepMerge(doObj, o.extra);
   }
 
-  // ── 应用覆盖（篡改向量用，在哈希计算之前）──
+  // ── apply override (for tamper vectors, before hashing) ──
   if (o.override) {
     doObj = applyOverride(doObj, o.override);
   }
 
-  // ── 扁平哈希：删除点 = audit.hash（自引用）+ signature/signing_key_id（防御性，哈希模式下 no-op）──
-  // 与验证器 Step 2 / RUNNER_CONTRACT R2 严格同构，避免未来签名模式向量出现生成端与验证端原像分歧
+  // ── flat hash: deletion point = audit.hash (self-reference) + signature/signing_key_id (defensive, no-op in hash mode) ──
+  // Strictly isomorphic with verifier Step 2 / RUNNER_CONTRACT R2, to avoid future signature-mode
+  // generator-vs-verifier preimage divergence.
   const clone = JSON.parse(JSON.stringify(doObj));
   delete clone.audit.hash;
   delete clone.signature;
@@ -231,24 +232,24 @@ function buildDO(o) {
   const canonical = jcs(clone);
   const canonicalHex = Buffer.from(canonical, 'utf8').toString('hex');
   doObj.audit.hash = 'sha256:' + sha256(canonical);
-  // canonical_hex 不进 decision_object（物理隔离，进独立答案文件）
+  // canonical_hex does not enter decision_object (physically isolated into the separate answer file)
   if (o.answerId) answers[o.answerId] = canonicalHex;
 
   return doObj;
 }
 
 /**
- * 答案预言登记（RUNNER_CONTRACT R4 Check 2）——对任意 DO 计算 canonical_hex 并入答案文件。
+ * Answer-oracle registration (RUNNER_CONTRACT R4 Check 2) — computes canonical_hex for any DO into the answer file.
  *
- * 与 buildDO 内部计算严格同构：deep clone → 删 audit.hash → JCS → UTF-8 hex。
- * 用于 buildDO 之后才定型的 DO（篡改链成员、tampered_do、语义类篡改 DO、金丝雀），
- * 使答案预言覆盖「向量集全部 DO」而非仅 MATCH 型——零死键、零未覆盖。
+ * Strictly isomorphic with buildDO internal computation: deep clone → delete audit.hash → JCS → UTF-8 hex.
+ * Used for DOs finalized only after buildDO (tampered chain members, tampered_do, semantic-tamper DOs, canaries),
+ * so the answer oracle covers ALL DOs in the vector set, not just MATCH-type — zero dead keys, zero uncovered.
  */
 function registerAnswer(key, doObj) {
   if (!key || !doObj) return;
-  // 版本不支持的 DO（如 C07 版本降级攻击的那一条）不登记预言：
-  // conforming runner MUST 在 Step 1 提前终止（version_unsupported），永不会产出 v1.5 管线的 canonical bytes。
-  // 登记预言反而会逗验证器跳过版本门 → 属于契约违反。
+  // DOs with unsupported versions (e.g. the C07 version-downgrade attack) are NOT registered as oracles:
+  // a conforming runner MUST terminate early at Step 1 (version_unsupported), never producing v1.5-pipeline canonical bytes.
+  // Registering an oracle would lure the verifier past the version gate → a contract violation.
   if (!doObj.audit || doObj.audit.preimage_version !== PREIMAGE_VERSION) return;
   const clone = JSON.parse(JSON.stringify(doObj));
   delete clone.audit.hash;
@@ -257,7 +258,7 @@ function registerAnswer(key, doObj) {
   answers[key] = Buffer.from(jcs(clone), 'utf8').toString('hex');
 }
 
-/** 深度覆盖：path 用点分（如 'result.decision'），支持数组索引（如 'policies.0.hash'） */
+/** Deep override: path is dot-separated (e.g. 'result.decision'), supports array indices (e.g. 'policies.0.hash'). */
 function applyOverride(obj, override) {
   const clone = JSON.parse(JSON.stringify(obj));
   for (const [p, v] of Object.entries(override)) {
@@ -274,7 +275,7 @@ function setPath(obj, pathStr, value) {
   cur[parts[parts.length - 1]] = value;
 }
 
-/** 递归 deep merge（extra 字段合并进 doObj，用于锚定字段） */
+/** Recursive deep merge (extra fields merged into doObj, for anchoring fields). */
 function deepMerge(target, source) {
   const out = JSON.parse(JSON.stringify(target));
   for (const [k, v] of Object.entries(source)) {
@@ -287,14 +288,14 @@ function deepMerge(target, source) {
   return out;
 }
 
-/** 重算 audit.hash（篡改后重算使 hash 自洽，用于语义类攻击向量） */
+/** Recompute audit.hash (recompute after tamper to keep hash self-consistent, for semantic-attack vectors). */
 function recomputeHash(doObj) {
   const clone = JSON.parse(JSON.stringify(doObj));
   delete clone.audit.hash;
   doObj.audit.hash = 'sha256:' + sha256(jcs(clone));
 }
 
-/** 从 fromIndex 起重算 hash（fromIndex 的 previous_hash 保持不变），其后重链 previous_hash */
+/** Recompute hash from fromIndex onward (fromIndex's previous_hash stays unchanged), then re-chain previous_hash. */
 function rechainFrom(chain, fromIndex) {
   recomputeHash(chain[fromIndex]);
   for (let i = fromIndex + 1; i < chain.length; i++) {
@@ -303,13 +304,13 @@ function rechainFrom(chain, fromIndex) {
   }
 }
 
-/** 点分路径取值 */
+/** Dot-separated path getter. */
 function getField(obj, path) {
   return path.split('.').reduce((cur, k) => (cur == null ? undefined : cur[k]), obj);
 }
 
 // ═══════════════════════════════════════════════════
-//  向量定义工具
+//  Vector definition helpers
 // ═══════════════════════════════════════════════════
 function V(def) {
   return def;
@@ -318,13 +319,13 @@ function Rule(r) {
   return r;
 }
 
-// 简写：canonical_tree 的常见节点
+// Shorthands: common canonical_tree nodes
 const field = (p) => ({ field: p });
 const eq = (l, r) => ({ eq: [l, r] });
 const and = (...args) => ({ and: args });
 
 // ═══════════════════════════════════════════════════
-//  D 系列 — 13 决策类型覆盖
+//  D series — 13 decision-type coverage
 // ═══════════════════════════════════════════════════
 const D_TYPES = [
   'ALLOW', 'DENY', 'CORRECT', 'NOTIFY', 'REQUEST_HUMAN', 'ESCALATE',
@@ -345,7 +346,7 @@ const D_SERIES = D_TYPES.map((dt, i) => {
     category: 'D',
     decision_type: dt,
     scenario: `decision-type-${dt.toLowerCase()}`,
-    description: `决策类型覆盖：${dt}（扁平哈希 + canonical_tree 字段）`,
+    description: `Decision type coverage: ${dt} (flat hash + canonical_tree field)`,
     rules: [Rule({ id: `rule-d-${dt.toLowerCase()}`, name: `D ${dt}`, when, then: dt, priority: 100, ring: dt === 'EMERGENCY_HALT' ? 0 : 3 })],
     context: dt === 'DENY' ? { tool: { name: 'exec' } }
       : dt === 'ALLOW' ? { operation: 'read' }
@@ -353,15 +354,15 @@ const D_SERIES = D_TYPES.map((dt, i) => {
       : { flag: dt.toLowerCase() },
     chainId: 'chain-d-series',
     chainSeq: i,
-    previousHash: i === 0 ? null : null, // 每条独立创世（D 系列非链式），由生成器回填
+    previousHash: i === 0 ? null : null, // each is an independent genesis (D series is non-chained), backfilled by the generator
   });
 });
 
 // ═══════════════════════════════════════════════════
-//  C 系列 — 8 链攻击检测
+//  C series — 8 chain-attack detection
 // ═══════════════════════════════════════════════════
 
-// C01 正常链：3 条 DO 组成合法链（previous_hash 串行锚定）。answerPrefix 为空则不记录答案（供攻击链复用）
+// C01 normal chain: 3 DOs forming a valid chain (serially anchored previous_hash). Empty answerPrefix means no answer is recorded (reused for attack chains).
 function buildNormalChain(answerPrefix) {
   const chainId = 'chain-c01-normal';
   const seq = [];
@@ -380,38 +381,39 @@ function buildNormalChain(answerPrefix) {
   return seq;
 }
 
-// C02~C08：对正常链做各种攻击，产出一条「被篡改的链」。
-// 语义类攻击（C03~C08）篡改后**重算 hash 保持自洽**，让验证器靠各自的语义检测器（而非 hash 失配）检出具体 breach 码。
+// C02~C08: apply various attacks to the normal chain, producing a "tampered chain".
+// Semantic attacks (C03~C08) recompute the hash after tamper to keep it self-consistent, so the verifier
+// detects the specific breach code via its semantic detectors (not hash mismatch).
 function buildTamperedChain(attackType) {
   const seq = buildNormalChain(null);
   const clone = JSON.parse(JSON.stringify(seq));
 
   switch (attackType) {
-    case 'c02': // 单条篡改（decision 字段，不重算）→ hash_mismatch
+    case 'c02': // single-record tamper (decision field, not recomputed) → hash_mismatch
       clone[1].result.decision = 'DENY';
       return { vectors: clone, breach: 'hash_mismatch' };
-    case 'c03': // 删中间记录（chain_seq 跳变，重链 previous_hash 使唯一异常为 seq 跳变）
+    case 'c03': // delete a middle record (chain_seq gap; re-chain previous_hash so the only anomaly is the seq gap)
       clone.splice(1, 1);
       clone[1].audit.previous_hash = clone[0].audit.hash;
       recomputeHash(clone[1]);
       return { vectors: clone, breach: 'chain_seq_gap' };
-    case 'c04': // 指针悬空（previous_hash 悬空，重算 hash 保持自洽）
+    case 'c04': // dangling pointer (previous_hash dangling; recompute hash to stay self-consistent)
       clone[1].audit.previous_hash = 'sha256:' + 'f'.repeat(64);
       rechainFrom(clone, 1);
       return { vectors: clone, breach: 'previous_hash_dangling' };
-    case 'c05': // 时钟回退（timestamp 倒退，重算 hash 保持自洽）
+    case 'c05': // clock regression (timestamp rolls back; recompute hash to stay self-consistent)
       clone[2].timestamp = '2026-08-21T00:00:00.000Z';
       rechainFrom(clone, 2);
       return { vectors: clone, breach: 'time_regression' };
-    case 'c06': // 整链删除后重建（genesis previous_hash 非 null，重算 hash）
+    case 'c06': // rebuild after full-chain deletion (genesis previous_hash non-null; recompute hash)
       clone[0].audit.previous_hash = 'sha256:' + 'e'.repeat(64);
       rechainFrom(clone, 0);
       return { vectors: clone, breach: 'chain_genesis_mismatch' };
-    case 'c07': // 版本降级（preimage_version 篡改为不支持值，重算 hash）
+    case 'c07': // version downgrade (preimage_version tampered to an unsupported value; recompute hash)
       clone[1].audit.preimage_version = 'erdl-do-v1.3-hash-flat';
       rechainFrom(clone, 1);
       return { vectors: clone, breach: 'version_unsupported' };
-    case 'c08': // 模式混链（相邻 DO mode 不同，重算 hash）
+    case 'c08': // mixed-mode chain (adjacent DOs have different modes; recompute hash)
       clone[1].audit.mode = 'signature';
       rechainFrom(clone, 1);
       return { vectors: clone, breach: 'mode_mixed_chain' };
@@ -421,14 +423,14 @@ function buildTamperedChain(attackType) {
 }
 
 // ═══════════════════════════════════════════════════
-//  主函数
+//  Main
 // ═══════════════════════════════════════════════════
 function main() {
   console.log('═══════════════════════════════════════════════');
   console.log('  ERDL Decision Object v1.5 Vector Generator');
   console.log('═══════════════════════════════════════════════');
 
-  // D 系列（独立创世）
+  // D series (independent genesis)
   const dVectors = D_SERIES.map((def) => {
     const doObj = buildDO({
       decisionType: def.decision_type,
@@ -448,18 +450,18 @@ function main() {
       context: def.context,
       rules: def.rules.map((r) => r),
       decision_object: doObj,
-      expected: { type: 'MATCH', note: 'audit.hash 自洽（独立创世）' },
+      expected: { type: 'MATCH', note: 'audit.hash self-consistent (independent genesis)' },
     };
   });
 
-  // C 系列
+  // C series
   const cVectors = [];
   {
     const normal = buildNormalChain('V-DO-v15-C01');
     cVectors.push({
       id: 'V-DO-v15-C01', category: 'C', decision_type: 'ALLOW',
-      scenario: 'normal-chain', description: '正常链（3 条 DO 串行锚定，无攻击）',
-      chain: normal, expected: { type: 'MATCH', note: '全链 audit.hash 自洽 + previous_hash 连续' },
+      scenario: 'normal-chain', description: 'Normal chain (3 DOs serially anchored, no attack)',
+      chain: normal, expected: { type: 'MATCH', note: 'full-chain audit.hash self-consistent + previous_hash continuous' },
     });
   }
   for (const at of ['c02', 'c03', 'c04', 'c05', 'c06', 'c07', 'c08']) {
@@ -469,14 +471,14 @@ function main() {
       category: 'C',
       decision_type: 'ALLOW',
       scenario: 'chain-attack',
-      description: `链攻击：${at}`,
+      description: `Chain attack: ${at}`,
       chain: vectors,
       expected: { type: 'BREACH', breach },
     });
   }
 
   // ═══════════════════════════════════════════════════
-  //  A 系列 — 10 锚定攻击（base 自洽 + tampered 篡改）
+  //  A series — 10 anchoring attacks (base self-consistent + tampered)
   // ═══════════════════════════════════════════════════
   function buildAnchoredBase(answerId, entryId) {
     return buildDO({
@@ -500,45 +502,45 @@ function main() {
   }
 
   const A_DEFS = [
-    { id: 'V-DO-v15-A01', breach: 'hash_mismatch', tamper: { 'evaluation.knowledge_references.0.content_hash': 'sha256:9999999999999999999999999999999999999999999999999999999999999999' }, desc: '知识正文篡改' },
-    { id: 'V-DO-v15-A02', breach: 'content_unresolvable', semantic: true, resolvable_entry_ids: ['kb-001'], tamper: { 'evaluation.knowledge_references.0.entry_id': 'kb-nonexistent' }, desc: '引用不可解析（告警非断裂）' },
-    { id: 'V-DO-v15-A03', breach: 'hash_mismatch', tamper: { 'evaluation.knowledge_references.0.fragment_hash': 'sha256:8888888888888888888888888888888888888888888888888888888888888888' }, desc: '分片哈希不符' },
-    { id: 'V-DO-v15-A04', breach: 'hash_mismatch', tamper: { 'context.attachments.0.content_hash': 'sha256:7777777777777777777777777777777777777777777777777777777777777777' }, desc: '附件篡改' },
-    { id: 'V-DO-v15-A05', breach: 'hash_mismatch', tamper: { 'context.intent.summary_hash': 'sha256:6666666666666666666666666666666666666666666666666666666666666666' }, desc: '意图指针篡改' },
-    { id: 'V-DO-v15-A06', breach: 'hash_mismatch', tamper: { 'context.memory_keys.0': 'mem-evil' }, desc: '记忆键篡改' },
-    { id: 'V-DO-v15-A07', breach: 'tree_snapshot_divergence', semantic: true, tamper: { 'evaluation.matched_rules.0.canonical_tree': { eq: [{ field: 'context.amount' }, '1.00'] } }, desc: '树快照伪造' },
-    { id: 'V-DO-v15-A08', breach: 'hash_mismatch', tamper: { 'result.reason': 'evil reason injected' }, desc: 'B 类文本篡改' },
-    { id: 'V-DO-v15-A09', breach: 'tree_snapshot_divergence', semantic: true, tamper: { 'evaluation.matched_rules.0.canonical_tree': { eq: ['0.95', { field: 'context.amount' }] } }, desc: '树篡改（节点交换序）' },
-    { id: 'V-DO-v15-A10', breach: 'tree_snapshot_divergence', semantic: true, tamper: { 'evaluation.matched_rules.0.canonical_tree': { eq: [{ field: 'context.amount' }, '0.950'] } }, desc: '树篡改（字面量精度）' },
+    { id: 'V-DO-v15-A01', breach: 'hash_mismatch', tamper: { 'evaluation.knowledge_references.0.content_hash': 'sha256:9999999999999999999999999999999999999999999999999999999999999999' }, desc: 'knowledge body tamper' },
+    { id: 'V-DO-v15-A02', breach: 'content_unresolvable', semantic: true, resolvable_entry_ids: ['kb-001'], tamper: { 'evaluation.knowledge_references.0.entry_id': 'kb-nonexistent' }, desc: 'unresolvable reference (warning, not a break)' },
+    { id: 'V-DO-v15-A03', breach: 'hash_mismatch', tamper: { 'evaluation.knowledge_references.0.fragment_hash': 'sha256:8888888888888888888888888888888888888888888888888888888888888888' }, desc: 'fragment hash mismatch' },
+    { id: 'V-DO-v15-A04', breach: 'hash_mismatch', tamper: { 'context.attachments.0.content_hash': 'sha256:7777777777777777777777777777777777777777777777777777777777777777' }, desc: 'attachment tamper' },
+    { id: 'V-DO-v15-A05', breach: 'hash_mismatch', tamper: { 'context.intent.summary_hash': 'sha256:6666666666666666666666666666666666666666666666666666666666666666' }, desc: 'intent pointer tamper' },
+    { id: 'V-DO-v15-A06', breach: 'hash_mismatch', tamper: { 'context.memory_keys.0': 'mem-evil' }, desc: 'memory key tamper' },
+    { id: 'V-DO-v15-A07', breach: 'tree_snapshot_divergence', semantic: true, tamper: { 'evaluation.matched_rules.0.canonical_tree': { eq: [{ field: 'context.amount' }, '1.00'] } }, desc: 'tree snapshot forgery' },
+    { id: 'V-DO-v15-A08', breach: 'hash_mismatch', tamper: { 'result.reason': 'evil reason injected' }, desc: 'type-B text tamper' },
+    { id: 'V-DO-v15-A09', breach: 'tree_snapshot_divergence', semantic: true, tamper: { 'evaluation.matched_rules.0.canonical_tree': { eq: ['0.95', { field: 'context.amount' }] } }, desc: 'tree tamper (node order swap)' },
+    { id: 'V-DO-v15-A10', breach: 'tree_snapshot_divergence', semantic: true, tamper: { 'evaluation.matched_rules.0.canonical_tree': { eq: [{ field: 'context.amount' }, '0.950'] } }, desc: 'tree tamper (literal precision)' },
   ];
 
   const aVectors = A_DEFS.map((def) => {
     if (def.semantic) {
-      // 语义类：篡改 + 重算 hash（自洽），语义检测器检出具体 breach 码
+      // semantic: tamper + recompute hash (self-consistent); semantic detector reports the specific breach code
       const doObj = buildAnchoredBase(null);
       for (const [p, v] of Object.entries(def.tamper)) setPath(doObj, p, v);
       recomputeHash(doObj);
       return {
         id: def.id, category: 'A', decision_type: 'ALLOW',
-        scenario: 'anchor-attack', description: `锚定攻击：${def.desc}`,
+        scenario: 'anchor-attack', description: `Anchoring attack: ${def.desc}`,
         decision_object: doObj,
         expected: { type: 'BREACH', breach: def.breach, resolvable_entry_ids: def.resolvable_entry_ids },
       };
     }
-    // hash 类：base 自洽 + tampered 篡改（不重算）→ hash_mismatch
+    // hash: base self-consistent + tampered (not recomputed) → hash_mismatch
     const base = buildAnchoredBase(def.id + '-base');
     const tampered = JSON.parse(JSON.stringify(base));
     for (const [p, v] of Object.entries(def.tamper)) setPath(tampered, p, v);
     return {
       id: def.id, category: 'A', decision_type: 'ALLOW',
-      scenario: 'anchor-attack', description: `锚定攻击：${def.desc}`,
+      scenario: 'anchor-attack', description: `Anchoring attack: ${def.desc}`,
       base_do: base, tampered_do: tampered,
       expected: { type: 'BREACH', breach: def.breach },
     };
   });
 
   // ═══════════════════════════════════════════════════
-  //  K 系列 — 1 金丝雀（链位置金丝雀，延续 AV-013）
+  //  K series — 1 canary (chain-position canary, continues AV-013)
   // ═══════════════════════════════════════════════════
   function buildCanary() {
     const doObj = buildDO({
@@ -547,7 +549,7 @@ function main() {
       rules: [Rule({ id: 'rule-k01', name: 'K01', when: eq(field('context.operation'), 'read'), then: 'ALLOW', priority: 100, ring: 3 })],
       chainId: 'chain-k01', chainSeq: 0, previousHash: null,
     });
-    // 存储「缺陷实现」（删整个 audit）会算出的哈希——正确实现只删 audit.hash，重算 MISMATCH
+    // store the hash a "defective implementation" (deleting the whole audit) would compute — a correct implementation deletes only audit.hash, recomputes MISMATCH
     const regressed = JSON.parse(JSON.stringify(doObj));
     delete regressed.audit;
     doObj.audit.hash = 'sha256:' + sha256(jcs(regressed));
@@ -555,13 +557,13 @@ function main() {
   }
   const kVector = {
     id: 'V-DO-v15-K01', category: 'K', decision_type: 'ALLOW',
-    scenario: 'chain-position-canary', description: '链位置金丝雀（缺陷实现删整个 audit，正确实现只删 audit.hash → MISMATCH）',
+    scenario: 'chain-position-canary', description: 'Chain-position canary (defective impl deletes the whole audit, correct impl deletes only audit.hash → MISMATCH)',
     decision_object: buildCanary(),
-    expected: { type: 'BREACH', breach: 'canary_mismatch', note: '正确实现重算 MISMATCH，缺陷实现 MATCH' },
+    expected: { type: 'BREACH', breach: 'canary_mismatch', note: 'correct impl recomputes MISMATCH, defective impl MATCH' },
   };
 
   // ═══════════════════════════════════════════════════
-  //  G 系列 — 14 结论层（结构攻击 6 + 领域示例 8）
+  //  G series — 14 outcome layer (6 structural attacks + 8 domain examples)
   // ═══════════════════════════════════════════════════
   function buildOutcomeDO(scenario, outcome, answerId) {
     return buildDO({
@@ -575,12 +577,12 @@ function main() {
   }
 
   const G_STRUCT = [
-    { id: 'V-DO-v15-G01', tamper: { 'result.outcome.verdict': 'rejected' }, desc: 'verdict 篡改' },
-    { id: 'V-DO-v15-G02', tamper: { 'result.outcome.grade': 'F' }, desc: 'grade·rank 篡改' },
-    { id: 'V-DO-v15-G03', tamper: { 'result.outcome.basis': [] }, desc: 'basis 删除' },
-    { id: 'V-DO-v15-G04', tamper: { 'result.outcome.extra': { note: 'evil' } }, desc: 'extra 篡改' },
-    { id: 'V-DO-v15-G05', tamper: { 'result.outcome.basis.0': 'sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' }, desc: 'registry 引用篡改' },
-    { id: 'V-DO-v15-G06', tamper: null, deleteOutcome: true, desc: 'outcome 整体删除' },
+    { id: 'V-DO-v15-G01', tamper: { 'result.outcome.verdict': 'rejected' }, desc: 'verdict tamper' },
+    { id: 'V-DO-v15-G02', tamper: { 'result.outcome.grade': 'F' }, desc: 'grade·rank tamper' },
+    { id: 'V-DO-v15-G03', tamper: { 'result.outcome.basis': [] }, desc: 'basis deletion' },
+    { id: 'V-DO-v15-G04', tamper: { 'result.outcome.extra': { note: 'evil' } }, desc: 'extra tamper' },
+    { id: 'V-DO-v15-G05', tamper: { 'result.outcome.basis.0': 'sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' }, desc: 'registry reference tamper' },
+    { id: 'V-DO-v15-G06', tamper: null, deleteOutcome: true, desc: 'whole-outcome deletion' },
   ];
 
   const gStructVectors = G_STRUCT.map((def) => {
@@ -593,21 +595,21 @@ function main() {
     }
     return {
       id: def.id, category: 'G', decision_type: 'ALLOW',
-      scenario: 'outcome-structure-attack', description: `结论层结构攻击：${def.desc}`,
+      scenario: 'outcome-structure-attack', description: `Outcome structure attack: ${def.desc}`,
       base_do: base, tampered_do: tampered,
       expected: { type: 'BREACH', breach: 'hash_mismatch' },
     };
   });
 
   const G_SCENARIOS = [
-    { id: 'V-DO-v15-G07', scenario: 'gov.approval', verdict: 'approved', desc: '政务·行政审批' },
-    { id: 'V-DO-v15-G08', scenario: 'gov.review', verdict: 'passed', desc: '政务·多级审核' },
-    { id: 'V-DO-v15-G09', scenario: 'gov.selection', verdict: 'selected', rank: 1, desc: '政务·评选' },
-    { id: 'V-DO-v15-G10', scenario: 'gov.appraisal', verdict: 'rated', grade: 'A', desc: '政务·评定' },
-    { id: 'V-DO-v15-G11', scenario: 'corp.hiring', verdict: 'hired', desc: '企业·招聘审批' },
-    { id: 'V-DO-v15-G12', scenario: 'corp.procurement', verdict: 'awarded', rank: 2, desc: '企业·采购评标' },
-    { id: 'V-DO-v15-G13', scenario: 'corp.performance', verdict: 'rated', grade: 'B+', desc: '企业·绩效评定' },
-    { id: 'V-DO-v15-G14', scenario: 'corp.contract', verdict: 'approved', desc: '企业·合同审批' },
+    { id: 'V-DO-v15-G07', scenario: 'gov.approval', verdict: 'approved', desc: 'Government · administrative approval' },
+    { id: 'V-DO-v15-G08', scenario: 'gov.review', verdict: 'passed', desc: 'Government · multi-level review' },
+    { id: 'V-DO-v15-G09', scenario: 'gov.selection', verdict: 'selected', rank: 1, desc: 'Government · selection' },
+    { id: 'V-DO-v15-G10', scenario: 'gov.appraisal', verdict: 'rated', grade: 'A', desc: 'Government · appraisal' },
+    { id: 'V-DO-v15-G11', scenario: 'corp.hiring', verdict: 'hired', desc: 'Enterprise · hiring approval' },
+    { id: 'V-DO-v15-G12', scenario: 'corp.procurement', verdict: 'awarded', rank: 2, desc: 'Enterprise · procurement evaluation' },
+    { id: 'V-DO-v15-G13', scenario: 'corp.performance', verdict: 'rated', grade: 'B+', desc: 'Enterprise · performance rating' },
+    { id: 'V-DO-v15-G14', scenario: 'corp.contract', verdict: 'approved', desc: 'Enterprise · contract approval' },
   ];
   const gScenarioVectors = G_SCENARIOS.map((def) => {
     const outcome = { verdict: def.verdict };
@@ -616,30 +618,30 @@ function main() {
     const doObj = buildOutcomeDO(def.scenario, outcome, def.id);
     return {
       id: def.id, category: 'G', decision_type: 'ALLOW',
-      scenario: 'outcome-domain-example', description: `结论层领域示例：${def.desc}`,
+      scenario: 'outcome-domain-example', description: `Outcome domain example: ${def.desc}`,
       decision_object: doObj,
-      expected: { type: 'MATCH', note: 'outcome 结论层随扁平哈希自洽' },
+      expected: { type: 'MATCH', note: 'outcome layer self-consistent under flat hash' },
     };
   });
 
   // ═══════════════════════════════════════════════════
-  //  V-COMP 系列 — 26 法域合规（辖区激活 5 + 框架映射 14 + 失败检测 7）
+  //  V-COMP series — 32 jurisdiction compliance (7 jurisdiction activation + 14 framework mapping + 11 failure detection)
   // ═══════════════════════════════════════════════════
-  // 权威法域集合（RFC-002 §5.2）
+  // authoritative jurisdiction set (RFC-002 §5.2)
   const KNOWN_JURISDICTIONS = ['CN', 'EU', 'US', 'SG', 'BR', 'IN'];
 
   const CN_FIELDS = ['agent.aid', 'agent.tool_registry_hash', 'agent.algorithm_filing_no', 'agent.model_registration_id', 'data_modification_expected', 'autonomy_level', 'context_snapshot_hash', 'sanitized_context'];
   const EU_FIELDS = ['model_id', 'agent.known_limitations', 'confidence_score', 'fairness_assessment', 'impact_assessment_id', 'data_modification_expected', 'autonomy_level', 'context_snapshot_hash', 'sanitized_context'];
   const US_FIELDS = ['model_id', 'confidence_score', 'fairness_assessment', 'impact_assessment_id', 'data_modification_expected', 'autonomy_level', 'context_snapshot_hash', 'sanitized_context'];
   const SG_FIELDS = ['autonomy_level', 'confidence_score', 'data_modification_expected'];
-  // BR · LGPD（Lei 13.709/2018）：Art.20 自动化决策复核权 → autonomy_level（是否「仅基于自动化处理」）；
-  // Art.20 §1 标准与程序可告知 → model_id；Art.18 删除权 + PII 分离 → sanitized_context；
-  // 处理可溯源 → context_snapshot_hash；是否变更个人数据 → data_modification_expected。
-  // LGPD 不明文要求人工介入（原草案要求，2019 修正删除），故不激活 human_oversight 强制。
+  // BR · LGPD (Lei 13.709/2018): Art.20 automated-decision review right → autonomy_level (whether "solely automated");
+  // Art.20 §1 inform standards & procedures → model_id; Art.18 erasure + PII separation → sanitized_context;
+  // processing traceability → context_snapshot_hash; whether personal data changes → data_modification_expected.
+  // LGPD does not explicitly require human intervention (draft requirement removed by the 2019 amendment), so human_oversight is not force-activated.
   const BR_FIELDS = ['model_id', 'data_modification_expected', 'autonomy_level', 'context_snapshot_hash', 'sanitized_context'];
-  // IN · DPDP（2023 Act No.22）：§12(1)(d) 擦除权（目的完成/撤回同意）→ sanitized_context；
-  // §12(1)(a-c) 更正/补全/更新 → data_modification_expected；§12(2) 下游级联通知需数据流可溯 → context_snapshot_hash。
-  // DPDP 未设自动化决策专条，故不激活 autonomy_level / model_id。
+  // IN · DPDP (2023 Act No.22): §12(1)(d) erasure right (purpose fulfilled / consent withdrawn) → sanitized_context;
+  // §12(1)(a-c) correction/completion/update → data_modification_expected; §12(2) downstream cascade notification needs traceable data flow → context_snapshot_hash.
+  // DPDP has no dedicated automated-decision clause, so autonomy_level / model_id are not activated.
   const IN_FIELDS = ['data_modification_expected', 'context_snapshot_hash', 'sanitized_context'];
 
   function buildVcompDO(def, answerId) {
@@ -655,14 +657,14 @@ function main() {
     });
   }
 
-  // 辖区激活字段完整性（RFC-002 §9.1 第一组）
-  // signature 随 S3 签名层落地后补入，哈希层向量暂不含（§10.3 拟定冻结）
+  // jurisdiction activation field completeness (RFC-002 §9.1 group 1)
+  // signature is added once the S3 signature layer lands; hash-layer vectors do not include it yet (§10.3 planned-frozen)
   const VCOMP_JURIS = [
     { id: 'V-COMP-001', juris: ['CN'], activated: CN_FIELDS, required: CN_FIELDS, desc: 'CN · GB/Z 185' },
     { id: 'V-COMP-002', juris: ['EU'], activated: EU_FIELDS, required: EU_FIELDS, desc: 'EU · AI Act' },
-    { id: 'V-COMP-003', juris: ['US'], activated: US_FIELDS, required: US_FIELDS, desc: 'US 综合' },
+    { id: 'V-COMP-003', juris: ['US'], activated: US_FIELDS, required: US_FIELDS, desc: 'US composite' },
     { id: 'V-COMP-004', juris: ['SG'], activated: SG_FIELDS, required: SG_FIELDS, desc: 'SG · MGF' },
-    { id: 'V-COMP-005', juris: ['CN', 'EU'], activated: [...new Set([...CN_FIELDS, ...EU_FIELDS])], required: [...new Set([...CN_FIELDS, ...EU_FIELDS])], desc: 'CN+EU 多法域并集' },
+    { id: 'V-COMP-005', juris: ['CN', 'EU'], activated: [...new Set([...CN_FIELDS, ...EU_FIELDS])], required: [...new Set([...CN_FIELDS, ...EU_FIELDS])], desc: 'CN+EU multi-jurisdiction union' },
     { id: 'V-COMP-020', juris: ['BR'], activated: BR_FIELDS, required: BR_FIELDS, desc: 'BR · LGPD' },
     { id: 'V-COMP-021', juris: ['IN'], activated: IN_FIELDS, required: IN_FIELDS, desc: 'IN · DPDP' },
   ];
@@ -670,41 +672,41 @@ function main() {
     const doObj = buildVcompDO(def, def.id);
     return {
       id: def.id, category: 'V-COMP', decision_type: 'ALLOW',
-      scenario: 'jurisdiction-activation', description: `辖区激活字段完整性：${def.desc}`,
+      scenario: 'jurisdiction-activation', description: `Jurisdiction activation field completeness: ${def.desc}`,
       decision_object: doObj, expected: { type: 'MATCH', required_fields: def.required },
     };
   });
 
-  // 框架字段映射（RFC-002 §9.1 第二组）
-  // activated = 需激活的 JUR 字段；required = 完整检查字段路径（含 CORE/result 常驻字段）；checks = 语义检查
+  // framework field mapping (RFC-002 §9.1 group 2)
+  // activated = JUR fields to activate; required = full checked field paths (incl. CORE/result resident fields); checks = semantic checks
   const VCOMP_FRAMEWORKS = [
     { id: 'V-COMP-006', activated: ['agent.known_limitations'], required: ['evaluation_duration_ms', 'human_oversight', 'agent.known_limitations'], desc: 'EU AI Act Art.12/14/13' },
     { id: 'V-COMP-007', activated: ['model_id', 'confidence_score', 'fairness_assessment'], required: ['model_id', 'confidence_score', 'fairness_assessment'], desc: 'NIST AI RMF' },
-    { id: 'V-COMP-008', activated: [], required: ['rule_set_version'], checks: ['sod'], desc: 'COSO GenAI（SoD）' },
+    { id: 'V-COMP-008', activated: [], required: ['rule_set_version'], checks: ['sod'], desc: 'COSO GenAI (SoD)' },
     { id: 'V-COMP-009', activated: ['impact_assessment_id'], required: ['impact_assessment_id'], desc: 'ISO/IEC 42001' },
-    { id: 'V-COMP-010', activated: ['agent.aid', 'agent.tool_registry_hash', 'agent.algorithm_filing_no'], required: ['agent.aid', 'agent.tool_registry_hash', 'agent.algorithm_filing_no', 'audit.retention'], desc: 'GB/Z 185（留存≥36月）' },
-    { id: 'V-COMP-011', activated: [], required: ['result.decision', 'result.reason'], desc: 'OWASP Agentic（可解释）' },
-    { id: 'V-COMP-012', activated: ['data_modification_expected', 'sanitized_context'], required: ['data_modification_expected', 'sanitized_context'], desc: 'HIPAA（signature 随 S3）' },
-    { id: 'V-COMP-013', activated: ['data_modification_expected'], required: ['data_modification_expected'], desc: 'PCI DSS（signature 随 S3）' },
+    { id: 'V-COMP-010', activated: ['agent.aid', 'agent.tool_registry_hash', 'agent.algorithm_filing_no'], required: ['agent.aid', 'agent.tool_registry_hash', 'agent.algorithm_filing_no', 'audit.retention'], desc: 'GB/Z 185 (retention ≥36 months)' },
+    { id: 'V-COMP-011', activated: [], required: ['result.decision', 'result.reason'], desc: 'OWASP Agentic (explainability)' },
+    { id: 'V-COMP-012', activated: ['data_modification_expected', 'sanitized_context'], required: ['data_modification_expected', 'sanitized_context'], desc: 'HIPAA (signature with S3)' },
+    { id: 'V-COMP-013', activated: ['data_modification_expected'], required: ['data_modification_expected'], desc: 'PCI DSS (signature with S3)' },
     { id: 'V-COMP-014', activated: ['fairness_assessment'], required: ['result.decision', 'result.reason', 'fairness_assessment'], desc: 'Colorado SB 205' },
     { id: 'V-COMP-015', activated: ['autonomy_level'], required: ['autonomy_level'], desc: 'Singapore MGF' },
-    { id: 'V-COMP-016', activated: ['data_modification_expected'], required: ['data_modification_expected', 'result.decision', 'result.reason'], desc: '中国信通院 2.0（可解释）' },
-    { id: 'V-COMP-017', activated: ['sanitized_context'], required: ['sanitized_context'], desc: 'LGPD（被遗忘权/PII 分离）' },
-    { id: 'V-COMP-018', activated: ['sanitized_context'], required: ['sanitized_context'], desc: 'DPDP（同 LGPD）' },
-    { id: 'V-COMP-019', activated: [], required: ['execution_trace_id'], desc: 'IEEE P3395（跨系统关联）' },
+    { id: 'V-COMP-016', activated: ['data_modification_expected'], required: ['data_modification_expected', 'result.decision', 'result.reason'], desc: 'CAICT 2.0 (explainability)' },
+    { id: 'V-COMP-017', activated: ['sanitized_context'], required: ['sanitized_context'], desc: 'LGPD (right to be forgotten / PII separation)' },
+    { id: 'V-COMP-018', activated: ['sanitized_context'], required: ['sanitized_context'], desc: 'DPDP (same as LGPD)' },
+    { id: 'V-COMP-019', activated: [], required: ['execution_trace_id'], desc: 'IEEE P3395 (cross-system correlation)' },
   ];
   const vcompFrameworkVectors = VCOMP_FRAMEWORKS.map((def) => {
     const doObj = buildVcompDO(def, def.id);
     return {
       id: def.id, category: 'V-COMP', decision_type: 'ALLOW',
-      scenario: 'framework-field-mapping', description: `框架字段映射：${def.desc}`,
+      scenario: 'framework-field-mapping', description: `Framework field mapping: ${def.desc}`,
       decision_object: doObj, expected: { type: 'MATCH', required_fields: def.required, checks: def.checks || [] },
     };
   });
 
-  // F01~F07 失败检测（RFC-002 §9.1 第三组）
-  // 语义类（F01/F03/F04/F05）：hash 自洽 + 语义检测器检出具体 breach
-  // hash 类（F02/F06/F07）：base 自洽 + tampered 篡改（不重算）→ hash_mismatch
+  // F01~F11 failure detection (RFC-002 §9.1 group 3)
+  // semantic (F01/F03/F04/F05): hash self-consistent + semantic detector reports the specific breach
+  // hash (F02/F06/F07): base self-consistent + tampered (not recomputed) → hash_mismatch
   function buildFBase(answerId, opts) {
     return buildDO({
       decisionType: 'ALLOW',
@@ -718,71 +720,71 @@ function main() {
   }
   const fVectors = [];
   {
-    // F01 激活字段缺失（agent.aid 在 activated_fields 但物理缺失，hash 自洽）
+    // F01 activated field missing (agent.aid in activated_fields but physically missing; hash self-consistent)
     const doObj = buildFBase(null, { omitFields: ['agent.aid'] });
-    fVectors.push({ id: 'V-COMP-F01', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '合规失败：激活字段缺失', decision_object: doObj, expected: { type: 'BREACH', breach: 'compliance_field_missing' } });
+    fVectors.push({ id: 'V-COMP-F01', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Compliance failure: activated field missing', decision_object: doObj, expected: { type: 'BREACH', breach: 'compliance_field_missing' } });
   }
   {
-    // F02 合规画像被偷换（篡改 profile_hash，不重算 → hash_mismatch）
+    // F02 compliance profile swapped (profile_hash tampered, not recomputed → hash_mismatch)
     const base = buildFBase('V-COMP-F02-base');
     const tampered = JSON.parse(JSON.stringify(base));
     tampered.compliance_profile.profile_hash = 'sha256:9999999999999999999999999999999999999999999999999999999999999999';
-    fVectors.push({ id: 'V-COMP-F02', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '合规失败：合规画像被偷换', base_do: base, tampered_do: tampered, expected: { type: 'BREACH', breach: 'hash_mismatch' } });
+    fVectors.push({ id: 'V-COMP-F02', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Compliance failure: compliance profile swapped', base_do: base, tampered_do: tampered, expected: { type: 'BREACH', breach: 'hash_mismatch' } });
   }
   {
-    // F03 法域不匹配（jurisdictions=['XX']，hash 自洽 → jurisdiction_mismatch）
+    // F03 jurisdiction mismatch (jurisdictions=['XX']; hash self-consistent → jurisdiction_mismatch)
     const doObj = buildFBase(null, { jurisdictions: ['XX'] });
-    fVectors.push({ id: 'V-COMP-F03', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '合规失败：法域不匹配', decision_object: doObj, expected: { type: 'BREACH', breach: 'jurisdiction_mismatch' } });
+    fVectors.push({ id: 'V-COMP-F03', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Compliance failure: jurisdiction mismatch', decision_object: doObj, expected: { type: 'BREACH', breach: 'jurisdiction_mismatch' } });
   }
   {
-    // F04 高风险无人类监督（riskLevel=high 但 human_oversight.required=false，hash 自洽 → oversight_missing）
+    // F04 high risk without human oversight (riskLevel=high but human_oversight.required=false; hash self-consistent → oversight_missing)
     const doObj = buildFBase(null, { riskLevel: 'high' });
-    fVectors.push({ id: 'V-COMP-F04', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '合规失败：高风险决策无人类监督', decision_object: doObj, expected: { type: 'BREACH', breach: 'oversight_missing' } });
+    fVectors.push({ id: 'V-COMP-F04', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Compliance failure: high-risk decision without human oversight', decision_object: doObj, expected: { type: 'BREACH', breach: 'oversight_missing' } });
   }
   {
-    // F05 SoD 违反（policies[].author_id = agent.id，hash 自洽 → sod_violation）
+    // F05 SoD violation (policies[].author_id = agent.id; hash self-consistent → sod_violation)
     const doObj = buildFBase(null, { authorId: AGENT_ID });
-    fVectors.push({ id: 'V-COMP-F05', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '合规失败：SoD 违反', decision_object: doObj, expected: { type: 'BREACH', breach: 'sod_violation' } });
+    fVectors.push({ id: 'V-COMP-F05', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Compliance failure: SoD violation', decision_object: doObj, expected: { type: 'BREACH', breach: 'sod_violation' } });
   }
   {
-    // F06 第一层合规声明篡改（agent.known_limitations，不重算 → hash_mismatch）
+    // F06 first-layer compliance claim tampered (agent.known_limitations, not recomputed → hash_mismatch)
     const base = buildFBase('V-COMP-F06-base', { activatedFields: EU_FIELDS, jurisdictions: ['EU'] });
     const tampered = JSON.parse(JSON.stringify(base));
     tampered.agent.known_limitations = ['evil claim injected'];
-    fVectors.push({ id: 'V-COMP-F06', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '合规失败：第一层合规声明篡改', base_do: base, tampered_do: tampered, expected: { type: 'BREACH', breach: 'hash_mismatch' } });
+    fVectors.push({ id: 'V-COMP-F06', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Compliance failure: first-layer compliance claim tampered', base_do: base, tampered_do: tampered, expected: { type: 'BREACH', breach: 'hash_mismatch' } });
   }
   {
-    // F07 备案与身份字段篡改（agent.algorithm_filing_no，不重算 → hash_mismatch）
+    // F07 filing & identity fields tampered (agent.algorithm_filing_no, not recomputed → hash_mismatch)
     const base = buildFBase('V-COMP-F07-base');
     const tampered = JSON.parse(JSON.stringify(base));
     tampered.agent.algorithm_filing_no = 'EVIL-2026-999999';
-    fVectors.push({ id: 'V-COMP-F07', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '合规失败：备案与身份字段篡改', base_do: base, tampered_do: tampered, expected: { type: 'BREACH', breach: 'hash_mismatch' } });
+    fVectors.push({ id: 'V-COMP-F07', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Compliance failure: filing & identity fields tampered', base_do: base, tampered_do: tampered, expected: { type: 'BREACH', breach: 'hash_mismatch' } });
   }
   {
-    // F08 风险条件层未生效：risk_level=critical 但画像未将 signature 纳入 activated_fields
-    // （RFC-002 §5.2 critical → signature 强制）。decisionType=REQUEST_HUMAN 使 human_oversight.required=true，
-    // 排除 oversight_missing 干扰 —— 向量 MUST 只含单一 breach，不依赖未规范的检测优先级。
+    // F08 risk-condition layer not effective: risk_level=critical but the profile did not include signature in activated_fields
+    // (RFC-002 §5.2 critical → signature mandatory). decisionType=REQUEST_HUMAN makes human_oversight.required=true,
+    // ruling out oversight_missing interference — a vector MUST contain a single breach, not depend on unspecified detection priority.
     const doObj = buildFBase(null, { riskLevel: 'critical', decisionType: 'REQUEST_HUMAN' });
-    fVectors.push({ id: 'V-COMP-F08', category: 'V-COMP', decision_type: 'REQUEST_HUMAN', scenario: 'compliance-failure', description: '合规失败：critical 风险未激活 signature（风险条件层未生效）', decision_object: doObj, expected: { type: 'BREACH', breach: 'compliance_field_missing' } });
+    fVectors.push({ id: 'V-COMP-F08', category: 'V-COMP', decision_type: 'REQUEST_HUMAN', scenario: 'compliance-failure', description: 'Compliance failure: critical risk did not activate signature (risk-condition layer not effective)', decision_object: doObj, expected: { type: 'BREACH', breach: 'compliance_field_missing' } });
   }
   {
-    // F09 critical 已激活 signature 但字段缺失（值级缺失；JUR_VALUES 无 signature 值 → 物理缺失）。
-    // 此条是哈希层能验的那一半：存在性。认可的 critical 正例（签名模式 + 验签）属签名层，随 V-SIGN 落地。
+    // F09 critical activated signature but the field is missing (value-level missing; JUR_VALUES has no signature value → physically missing).
+    // This is the half the hash layer can verify: presence. The accepted critical positive case (signature mode + verify) belongs to the signature layer, landing with V-SIGN.
     const doObj = buildFBase(null, { riskLevel: 'critical', decisionType: 'REQUEST_HUMAN', activatedFields: [...CN_FIELDS, 'signature'] });
-    fVectors.push({ id: 'V-COMP-F09', category: 'V-COMP', decision_type: 'REQUEST_HUMAN', scenario: 'compliance-failure', description: '合规失败：critical 已激活 signature 但字段缺失', decision_object: doObj, expected: { type: 'BREACH', breach: 'compliance_field_missing' } });
+    fVectors.push({ id: 'V-COMP-F09', category: 'V-COMP', decision_type: 'REQUEST_HUMAN', scenario: 'compliance-failure', description: 'Compliance failure: critical activated signature but field missing', decision_object: doObj, expected: { type: 'BREACH', breach: 'compliance_field_missing' } });
   }
   {
-    // F10 多重违规 —— 铉住优先级上端：P1 jurisdiction_mismatch 先于 P2 compliance_field_missing。
-    // 同时成立：法域码 XX 不可识别（P1）+ 激活字段 agent.aid 物理缺失（P2）。
-    // 意义：防「编造法域码 + 空/残缺激活集」掩盖字段完备性失败（RFC §9.1.1）。
+    // F10 multi-breach — pins the top of the priority order: P1 jurisdiction_mismatch before P2 compliance_field_missing.
+    // Both hold: jurisdiction code XX unrecognized (P1) + activated field agent.aid physically missing (P2).
+    // Purpose: prevent "fabricated jurisdiction code + empty/incomplete activation set" from masking field-completeness failure (RFC §9.1.1).
     const doObj = buildFBase(null, { jurisdictions: ['XX'], omitFields: ['agent.aid'] });
-    fVectors.push({ id: 'V-COMP-F10', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '多重违规优先级：法域码不可识别 + 激活字段缺失 → 报 P1', decision_object: doObj, expected: { type: 'BREACH', breach: 'jurisdiction_mismatch', also_present: ['compliance_field_missing'] } });
+    fVectors.push({ id: 'V-COMP-F10', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Multi-breach priority: unrecognized jurisdiction code + missing activated field → report P1', decision_object: doObj, expected: { type: 'BREACH', breach: 'jurisdiction_mismatch', also_present: ['compliance_field_missing'] } });
   }
   {
-    // F11 多重违规 —— 铉住优先级下端：P5 tree_snapshot_divergence 先于 P6 content_unresolvable。
-    // 同时成立：树快照与规则源不一致（P5 证据层真实违规）+ 知识引用不可解析（P6 告警级）。
-    // 意义：告警级（冷存储删除/留存到期）MUST NOT 掩盖证据层违规（RFC §9.1.1）。
-    // 旧顶序会报 content_unresolvable，规范顶序报 tree_snapshot_divergence —— 本向量具鉴别力。
+    // F11 multi-breach — pins the bottom of the priority order: P5 tree_snapshot_divergence before P6 content_unresolvable.
+    // Both hold: tree snapshot inconsistent with the rule source (P5 evidence-layer real breach) + knowledge reference unresolvable (P6 warning-level).
+    // Purpose: a warning-level (cold-storage deletion / retention expiry) MUST NOT mask an evidence-layer breach (RFC §9.1.1).
+    // The old ordering reports content_unresolvable; the spec ordering reports tree_snapshot_divergence — this vector has discriminating power.
     const doObj = buildFBase(null, {
       extra: {
         evaluation: {
@@ -790,10 +792,10 @@ function main() {
         },
       },
     });
-    // 伪造树快照（与 policies[0].when 的 eq(context.operation,'read') 分歧），重算 hash 保持自洽
+    // forge tree snapshot (diverges from policies[0].when eq(context.operation,'read')); recompute hash to stay self-consistent
     setPath(doObj, 'evaluation.matched_rules.0.canonical_tree', { eq: [{ field: 'context.operation' }, 'write'] });
     recomputeHash(doObj);
-    fVectors.push({ id: 'V-COMP-F11', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: '多重违规优先级：树快照分歧（证据层）+ 引用不可解析（告警级）→ 报 P5，告警不得掩盖违规', decision_object: doObj, expected: { type: 'BREACH', breach: 'tree_snapshot_divergence', resolvable_entry_ids: ['kb-001'], also_present: ['content_unresolvable'] } });
+    fVectors.push({ id: 'V-COMP-F11', category: 'V-COMP', decision_type: 'ALLOW', scenario: 'compliance-failure', description: 'Multi-breach priority: tree snapshot divergence (evidence) + unresolvable reference (warning) → report P5; warnings must not mask breaches', decision_object: doObj, expected: { type: 'BREACH', breach: 'tree_snapshot_divergence', resolvable_entry_ids: ['kb-001'], also_present: ['content_unresolvable'] } });
   }
 
   const output = {
@@ -803,13 +805,13 @@ function main() {
     version: 'v1.5.0',
     created: '2026-08-22',
     maintainer: 'OpenOBA (https://openoba.com)',
-    description: 'V-DO-v15 哈希层向量（D + C + A + K + G + V-COMP 系列）。扁平哈希：JCS(DO − audit.hash) → SHA-256。',
+    description: 'V-DO-v15 hash-layer vectors (D + C + A + K + G + V-COMP series). Flat hash: JCS(DO − audit.hash) → SHA-256.',
     vectors: [...dVectors, ...cVectors, ...aVectors, kVector, ...gStructVectors, ...gScenarioVectors, ...vcompJurisVectors, ...vcompFrameworkVectors, ...fVectors],
   };
 
-  // ── 答案预言全覆盖（RUNNER_CONTRACT R4 Check 2 + R5 金丝雀 Check 2）──
-  // 每个 DO 一个键：decision_object → <id>；篡改对 → <id>-base / <id>-tampered；链 → <id>[i]。
-  // buildDO 已登记的键在此被同值重登记（幂等），新增的是攻击链成员 / tampered / 语义类篡改 DO / 金丝雀。
+  // ── answer-oracle full coverage (RUNNER_CONTRACT R4 Check 2 + R5 canary Check 2) ──
+  // one key per DO: decision_object → <id>; tamper pair → <id>-base / <id>-tampered; chain → <id>[i].
+  // keys already registered by buildDO are re-registered here with the same value (idempotent); the new ones are attack-chain members / tampered / semantic-tamper DOs / canary.
   for (const v of output.vectors) {
     if (v.decision_object) registerAnswer(v.id, v.decision_object);
     if (v.base_do) {
@@ -822,19 +824,19 @@ function main() {
   const outputPath = path.join(__dirname, '..', 'decision-object-vectors-v1.5.json');
   fs.writeFileSync(outputPath, JSON.stringify(output, null, 2), 'utf8');
 
-  // 答案文件（canonical_hex 物理隔离）
+  // answer file (canonical_hex physically isolated)
   const answersPath = path.join(__dirname, '..', 'decision-object-answers-v1.5.json');
   fs.writeFileSync(answersPath, JSON.stringify({ answers }, null, 2), 'utf8');
 
-  console.log(`  ✓ 写入 ${outputPath}`);
-  console.log(`  ✓ 写入答案文件 ${answersPath}（${Object.keys(answers).length} 条 canonical_hex）`);
-  console.log(`  D 系列: ${dVectors.length} 条`);
-  console.log(`  C 系列: ${cVectors.length} 条`);
-  console.log(`  A 系列: ${aVectors.length} 条`);
-  console.log(`  K 系列: 1 条`);
-  console.log(`  G 系列: ${gStructVectors.length + gScenarioVectors.length} 条（结构攻击 ${gStructVectors.length} + 领域示例 ${gScenarioVectors.length}）`);
-  console.log(`  V-COMP 系列: ${vcompJurisVectors.length + vcompFrameworkVectors.length + fVectors.length} 条（辖区 ${vcompJurisVectors.length} + 框架 ${vcompFrameworkVectors.length} + 失败检测 ${fVectors.length}）`);  const total = dVectors.length + cVectors.length + aVectors.length + 1 + gStructVectors.length + gScenarioVectors.length + vcompJurisVectors.length + vcompFrameworkVectors.length + fVectors.length;
-  console.log(`  合计: ${total} 条`);
+  console.log(`  ✓ wrote ${outputPath}`);
+  console.log(`  ✓ wrote answer file ${answersPath} (${Object.keys(answers).length} canonical_hex entries)`);
+  console.log(`  D series: ${dVectors.length}`);
+  console.log(`  C series: ${cVectors.length}`);
+  console.log(`  A series: ${aVectors.length}`);
+  console.log(`  K series: 1`);
+  console.log(`  G series: ${gStructVectors.length + gScenarioVectors.length} (structural attacks ${gStructVectors.length} + domain examples ${gScenarioVectors.length})`);
+  console.log(`  V-COMP series: ${vcompJurisVectors.length + vcompFrameworkVectors.length + fVectors.length} (jurisdiction ${vcompJurisVectors.length} + framework ${vcompFrameworkVectors.length} + failure detection ${fVectors.length})`);  const total = dVectors.length + cVectors.length + aVectors.length + 1 + gStructVectors.length + gScenarioVectors.length + vcompJurisVectors.length + vcompFrameworkVectors.length + fVectors.length;
+  console.log(`  total: ${total}`);
 }
 
 main();

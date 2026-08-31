@@ -1,13 +1,13 @@
 /**
- * v-engine — V-ENGINE 向量生成器（SPEC v2.0 §44.1）
+ * v-engine — V-ENGINE vector generator (SPEC v2.0 §44.1)
  *
- * 生成 V-ENGINE 201 条向量：
- *   - 节点语义 136 = 34 节点 × 4 场景（正常/边界/异常/空值）
- *   - 求值约束 35（E1-E12 可向量化子集）
- *   - Simple 编译 30（30 运算符 → 树）
+ * Generates the V-ENGINE 201 vectors:
+ *   - node semantics 136 = 34 nodes × 4 scenarios (normal/boundary/error/null)
+ *   - evaluation constraints 35 (E1-E12 vectorizable subset)
+ *   - Simple compilation 30 (30 operators → tree)
  *
- * 向量格式：{ id, node_group, node, scenario, expr_tree(S-expr), context, expected{value,type,warnings} }
- * 预期值由 @openoba/erdl 参考引擎产出（单实现来源，第三方比对后续补）。
+ * Vector format: { id, node_group, node, scenario, expr_tree(S-expr), context, expected{value,type,warnings} }
+ * Expected values produced by the @openoba/erdl reference engine (single-implementation source; third-party comparison to follow).
  *
  * @license MIT
  */
@@ -21,18 +21,18 @@ import { VirtualClock } from '@openoba/erdl';
 import { renderNode } from '@openoba/erdl';
 import { canonicalize } from 'json-canonicalize';
 
-/** E5（§10.2）：expr（Expression 投影面）与 field/operator/value（Simple 投影面）互斥 */
+/** E5 (§10.2): expr (Expression projection) and field/operator/value (Simple projection) are mutually exclusive */
 function checkExprExclusive(cond) {
   const hasExpr = cond && cond.expr !== undefined && cond.expr !== null;
   const hasSimple = cond && (cond.field !== undefined || cond.operator !== undefined || cond.value !== undefined);
   if (hasExpr && hasSimple) {
-    return { field: 'conditions', code: 'WHEN_EXPR_EXCLUSIVE', message: 'expr 与 field/operator/value 互斥', level: 'error' };
+    return { field: 'conditions', code: 'WHEN_EXPR_EXCLUSIVE', message: 'expr and field/operator/value are mutually exclusive', level: 'error' };
   }
   return null;
 }
 
 const AS_OF = new Date('2026-08-15T00:00:00Z');
-/** 序列化求值结果为跨实现可比较的 { value, type } */
+/** Serialize an evaluation result into cross-implementation-comparable { value, type } */
 export function serializeValue(v) {
     if (v === undefined)
         return { value: '__undefined__', type: 'undefined' };
@@ -48,34 +48,34 @@ export function serializeValue(v) {
         return { value: v, type: 'array' };
     if (v instanceof Date)
         return { value: v.toISOString(), type: 'date' };
-    // Rational（bigint num/den）→ 定点小数字符串（整数不带小数点，非整数去尾零）
+    // Rational (bigint num/den) → fixed-point decimal string (integer without decimal point, non-integer trailing-zero trimmed)
     if (typeof v === 'object' && v !== null && typeof v.num === 'bigint' && typeof v.den === 'bigint') {
         const r = v;
         if (r.den === 1n)
             return { value: r.num.toString(), type: 'rational' };
         return { value: toDecimalString(r, 14), type: 'rational' };
     }
-    // 普通对象：JCS 字典序（键排序 + 递归），跨实现逐字节一致（§28.2）
+    // plain object: JCS lexicographic (key sort + recursion), cross-implementation byte-identical (§28.2)
     if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
         return { value: canonicalize(v), type: 'object' };
     }
     return { value: JSON.stringify(v), type: 'object' };
 }
-/** 场景 → 编号后缀（§44.1 四场景：正常/边界/异常/空值） */
+/** scenario → number suffix (§44.1 four scenarios: normal/boundary/error/null) */
 const SCENARIO_INDEX = { normal: '001', boundary: '002', error: '003', null: '004' };
 export const NODE_DEFS = [
-    // ═══ 取值（3 节点）═══
+    // ═══ value (3 nodes) ═══
     {
-        group: '取值', node: 'field',
+        group: 'value', node: 'field',
         cases: [
             { scenario: 'normal', tree: { field: 'age' }, ctx: { age: 35 } },
-            { scenario: 'boundary', tree: { field: 'user.name' }, ctx: { user: { name: '张三' } } },
+            { scenario: 'boundary', tree: { field: 'user.name' }, ctx: { user: { name: 'John Doe' } } },
             { scenario: 'null', tree: { field: 'missing' }, ctx: {} },
             { scenario: 'error', tree: { field: 'a.b' }, ctx: { a: 1 } },
         ],
     },
     {
-        group: '取值', node: 'var',
+        group: 'value', node: 'var',
         cases: [
             { scenario: 'normal', tree: { var: '$' }, ctx: { a: 1 } },
             { scenario: 'boundary', tree: { var: '$.user.name' }, ctx: { user: { name: 'x' } } },
@@ -84,7 +84,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '取值', node: 'literal',
+        group: 'value', node: 'literal',
         cases: [
             { scenario: 'normal', tree: 42, ctx: {} },
             { scenario: 'boundary', tree: 0, ctx: {} },
@@ -92,9 +92,9 @@ export const NODE_DEFS = [
             { scenario: 'error', tree: 'e\u0301', ctx: {} },
         ],
     },
-    // ═══ 逻辑（3 节点）═══
+    // ═══ logic (3 nodes) ═══
     {
-        group: '逻辑', node: 'and',
+        group: 'logic', node: 'and',
         cases: [
             { scenario: 'normal', tree: { and: [true, true] }, ctx: {} },
             { scenario: 'boundary', tree: { and: [true, false] }, ctx: {} },
@@ -103,7 +103,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '逻辑', node: 'or',
+        group: 'logic', node: 'or',
         cases: [
             { scenario: 'normal', tree: { or: [false, true] }, ctx: {} },
             { scenario: 'boundary', tree: { or: [false, false] }, ctx: {} },
@@ -112,7 +112,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '逻辑', node: 'not',
+        group: 'logic', node: 'not',
         cases: [
             { scenario: 'normal', tree: { not: false }, ctx: {} },
             { scenario: 'boundary', tree: { not: true }, ctx: {} },
@@ -120,9 +120,9 @@ export const NODE_DEFS = [
             { scenario: 'error', tree: { not: { div: [1, 0] } }, ctx: {} },
         ],
     },
-    // ═══ 比较（6 节点）═══
+    // ═══ comparison (6 nodes) ═══
     {
-        group: '比较', node: 'eq',
+        group: 'comparison', node: 'eq',
         cases: [
             { scenario: 'normal', tree: { eq: [{ field: 'age' }, 35] }, ctx: { age: 35 } },
             { scenario: 'boundary', tree: { eq: [{ field: 'age' }, 34] }, ctx: { age: 35 } },
@@ -131,7 +131,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '比较', node: 'ne',
+        group: 'comparison', node: 'ne',
         cases: [
             { scenario: 'normal', tree: { ne: [{ field: 'age' }, 34] }, ctx: { age: 35 } },
             { scenario: 'boundary', tree: { ne: [{ field: 'age' }, 35] }, ctx: { age: 35 } },
@@ -140,7 +140,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '比较', node: 'gt',
+        group: 'comparison', node: 'gt',
         cases: [
             { scenario: 'normal', tree: { gt: [{ field: 'age' }, 60] }, ctx: { age: 61 } },
             { scenario: 'boundary', tree: { gt: [{ field: 'age' }, 60] }, ctx: { age: 60 } },
@@ -149,7 +149,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '比较', node: 'gte',
+        group: 'comparison', node: 'gte',
         cases: [
             { scenario: 'normal', tree: { gte: [{ field: 'age' }, 60] }, ctx: { age: 60 } },
             { scenario: 'boundary', tree: { gte: [{ field: 'age' }, 60] }, ctx: { age: 59 } },
@@ -158,7 +158,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '比较', node: 'lt',
+        group: 'comparison', node: 'lt',
         cases: [
             { scenario: 'normal', tree: { lt: [{ field: 'age' }, 60] }, ctx: { age: 59 } },
             { scenario: 'boundary', tree: { lt: [{ field: 'age' }, 60] }, ctx: { age: 60 } },
@@ -167,7 +167,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '比较', node: 'lte',
+        group: 'comparison', node: 'lte',
         cases: [
             { scenario: 'normal', tree: { lte: [{ field: 'age' }, 60] }, ctx: { age: 60 } },
             { scenario: 'boundary', tree: { lte: [{ field: 'age' }, 60] }, ctx: { age: 61 } },
@@ -175,19 +175,19 @@ export const NODE_DEFS = [
             { scenario: 'error', tree: { lte: [{ field: 'amount' }, 50] }, ctx: { amount: '100' } },
         ],
     },
-    // ═══ 集合（1 节点）═══
+    // ═══ set (1 node) ═══
     {
-        group: '集合', node: 'in',
+        group: 'set', node: 'in',
         cases: [
-            { scenario: 'normal', tree: { in: [{ field: 'cat' }, ['罕见重疾', '普通重疾']] }, ctx: { cat: '罕见重疾' } },
+            { scenario: 'normal', tree: { in: [{ field: 'cat' }, ['rare', 'common']] }, ctx: { cat: 'rare' } },
             { scenario: 'boundary', tree: { in: [{ field: 'cat' }, ['a', 'b']] }, ctx: { cat: 'c' } },
             { scenario: 'null', tree: { in: [{ field: 'missing' }, ['a']] }, ctx: {} },
             { scenario: 'error', tree: { in: [{ field: 'cat' }, 'not-array'] }, ctx: { cat: 'a' } },
         ],
     },
-    // ═══ 字符串（4 节点）═══
+    // ═══ string (4 nodes) ═══
     {
-        group: '字符串', node: 'contains',
+        group: 'string', node: 'contains',
         cases: [
             { scenario: 'normal', tree: { contains: [{ field: 'cmd' }, 'rm'] }, ctx: { cmd: 'rm -rf /' } },
             { scenario: 'boundary', tree: { contains: [{ field: 'cmd' }, 'ls'] }, ctx: { cmd: 'rm -rf /' } },
@@ -196,7 +196,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '字符串', node: 'match',
+        group: 'string', node: 'match',
         cases: [
             { scenario: 'normal', tree: { match: [{ field: 'cmd' }, '^(rm|sudo)$'] }, ctx: { cmd: 'rm' } },
             { scenario: 'boundary', tree: { match: [{ field: 'cmd' }, '^rm$'] }, ctx: { cmd: 'sudo' } },
@@ -205,7 +205,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '字符串', node: 'starts_with',
+        group: 'string', node: 'starts_with',
         cases: [
             { scenario: 'normal', tree: { starts_with: [{ field: 'name' }, 'safe_'] }, ctx: { name: 'safe_read' } },
             { scenario: 'boundary', tree: { starts_with: [{ field: 'name' }, 'safe_'] }, ctx: { name: 'unsafe_read' } },
@@ -214,7 +214,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '字符串', node: 'ends_with',
+        group: 'string', node: 'ends_with',
         cases: [
             { scenario: 'normal', tree: { ends_with: [{ field: 'name' }, '.log'] }, ctx: { name: 'sys.log' } },
             { scenario: 'boundary', tree: { ends_with: [{ field: 'name' }, '.log'] }, ctx: { name: 'sys.txt' } },
@@ -222,9 +222,9 @@ export const NODE_DEFS = [
             { scenario: 'error', tree: { ends_with: [{ field: 'name' }, 1] }, ctx: { name: 'x' } },
         ],
     },
-    // ═══ 存在/量纲（3 节点）═══
+    // ═══ existence/dimension (3 nodes) ═══
     {
-        group: '存在量纲', node: 'exists',
+        group: 'existence', node: 'exists',
         cases: [
             { scenario: 'normal', tree: { exists: { field: 'x' } }, ctx: { x: 1 } },
             { scenario: 'boundary', tree: { exists: { field: 'x' } }, ctx: {} },
@@ -233,7 +233,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '存在量纲', node: 'length',
+        group: 'existence', node: 'length',
         cases: [
             { scenario: 'normal', tree: { length: { field: 's' } }, ctx: { s: 'abc' } },
             { scenario: 'boundary', tree: { length: { field: 'arr' } }, ctx: { arr: [1, 2, 3, 4] } },
@@ -242,7 +242,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '存在量纲', node: 'between',
+        group: 'existence', node: 'between',
         cases: [
             { scenario: 'normal', tree: { between: [{ field: 'age' }, 16, 60] }, ctx: { age: 30 } },
             { scenario: 'boundary', tree: { between: [{ field: 'age' }, 16, 60] }, ctx: { age: 60 } },
@@ -250,9 +250,9 @@ export const NODE_DEFS = [
             { scenario: 'error', tree: { between: [{ field: 'age' }, 16, 60] }, ctx: { age: '30' } },
         ],
     },
-    // ═══ 量词（3 节点）═══
+    // ═══ quantifier (3 nodes) ═══
     {
-        group: '量词', node: 'all',
+        group: 'quantifier', node: 'all',
         cases: [
             { scenario: 'normal', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [1, 2, 3] } },
             { scenario: 'boundary', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
@@ -261,7 +261,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '量词', node: 'any',
+        group: 'quantifier', node: 'any',
         cases: [
             { scenario: 'normal', tree: { any: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 2] } } }, ctx: { items: [1, 2, 3] } },
             { scenario: 'boundary', tree: { any: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 2] } } }, ctx: { items: [1, 2] } },
@@ -270,7 +270,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '量词', node: 'none',
+        group: 'quantifier', node: 'none',
         cases: [
             { scenario: 'normal', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 10] } } }, ctx: { items: [1, 2, 3] } },
             { scenario: 'boundary', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: true } }, ctx: { items: [] } },
@@ -278,9 +278,9 @@ export const NODE_DEFS = [
             { scenario: 'error', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: true } }, ctx: { items: 'x' } },
         ],
     },
-    // ═══ 算术（5 节点）═══
+    // ═══ arithmetic (5 nodes) ═══
     {
-        group: '算术', node: 'add',
+        group: 'arithmetic', node: 'add',
         cases: [
             { scenario: 'normal', tree: { add: [1, 2] }, ctx: {} },
             { scenario: 'boundary', tree: { add: [0.1, 0.2] }, ctx: {} },
@@ -289,7 +289,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '算术', node: 'sub',
+        group: 'arithmetic', node: 'sub',
         cases: [
             { scenario: 'normal', tree: { sub: [5, 3] }, ctx: {} },
             { scenario: 'boundary', tree: { sub: [0.3, 0.1] }, ctx: {} },
@@ -298,7 +298,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '算术', node: 'mul',
+        group: 'arithmetic', node: 'mul',
         cases: [
             { scenario: 'normal', tree: { mul: [3, 4] }, ctx: {} },
             { scenario: 'boundary', tree: { mul: [0.1, 0.2] }, ctx: {} },
@@ -307,7 +307,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '算术', node: 'div',
+        group: 'arithmetic', node: 'div',
         cases: [
             { scenario: 'normal', tree: { div: [4, 3] }, ctx: {} },
             { scenario: 'boundary', tree: { div: [10, 0] }, ctx: {} },
@@ -316,7 +316,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '算术', node: 'round',
+        group: 'arithmetic', node: 'round',
         cases: [
             { scenario: 'normal', tree: { round: [3.5] }, ctx: {} },
             { scenario: 'boundary', tree: { round: [4.5] }, ctx: {} },
@@ -324,9 +324,9 @@ export const NODE_DEFS = [
             { scenario: 'error', tree: { round: ['x'] }, ctx: {} },
         ],
     },
-    // ═══ 时间（5 节点）═══
+    // ═══ time (5 nodes) ═══
     {
-        group: '时间', node: 'days_between',
+        group: 'time', node: 'days_between',
         cases: [
             { scenario: 'normal', tree: { days_between: ['2026-01-01', '2026-01-11'] }, ctx: {} },
             { scenario: 'boundary', tree: { days_between: ['2026-01-01', '2026-01-01'] }, ctx: {} },
@@ -335,7 +335,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '时间', node: 'epoch_ms',
+        group: 'time', node: 'epoch_ms',
         cases: [
             { scenario: 'normal', tree: { epoch_ms: '2026-01-01' }, ctx: {} },
             { scenario: 'boundary', tree: { epoch_ms: '1970-01-01' }, ctx: {} },
@@ -344,7 +344,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '时间', node: 'date_add',
+        group: 'time', node: 'date_add',
         cases: [
             { scenario: 'normal', tree: { date_add: { unit: 'years', base: '2024-01-15', amount: 2 } }, ctx: {} },
             { scenario: 'boundary', tree: { date_add: { unit: 'months', base: '2024-01-31', amount: 1 } }, ctx: {} },
@@ -353,7 +353,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '时间', node: 'date_part',
+        group: 'time', node: 'date_part',
         cases: [
             { scenario: 'normal', tree: { date_part: { unit: 'year', arg: '2026-08-15' } }, ctx: {} },
             { scenario: 'boundary', tree: { date_part: { unit: 'day_of_week', arg: '2026-08-15' } }, ctx: {} },
@@ -362,7 +362,7 @@ export const NODE_DEFS = [
         ],
     },
     {
-        group: '时间', node: 'month_last_day',
+        group: 'time', node: 'month_last_day',
         cases: [
             { scenario: 'normal', tree: { month_last_day: '2024-02-10' }, ctx: {} },
             { scenario: 'boundary', tree: { month_last_day: '2026-01-10' }, ctx: {} },
@@ -370,9 +370,9 @@ export const NODE_DEFS = [
             { scenario: 'error', tree: { month_last_day: 'not-a-date' }, ctx: {} },
         ],
     },
-    // ═══ 聚合（1 节点，fn 参数化）═══
+    // ═══ aggregate (1 node, fn-parameterized) ═══
     {
-        group: '聚合', node: 'aggregate',
+        group: 'aggregate', node: 'aggregate',
         cases: [
             { scenario: 'normal', tree: { count: { field: 'nums' } }, ctx: { nums: [1, 2, 3] } },
             { scenario: 'boundary', tree: { sum: { field: 'nums' } }, ctx: { nums: [0.1, 0.2, 0.3] } },
@@ -381,7 +381,7 @@ export const NODE_DEFS = [
         ],
     },
 ];
-/** 生成 V-ENGINE 节点语义向量（34 节点 × 4 场景 = 136 条，节点内编号 §47） */
+/** Generate V-ENGINE node-semantics vectors (34 nodes × 4 scenarios = 136, per-node numbering §47) */
 export function generateNodeVectors() {
     const ev = new ExprTreeEvaluator();
     const out = [];
@@ -405,51 +405,51 @@ export function generateNodeVectors() {
     return out;
 }
 const CONSTRAINTS_DEFS = [
-    // E1 纯函数（3）
-    { constraint: 'E1', scenario: '同输入恒同输出', tree: { add: [1, 2] }, ctx: {} },
-    { constraint: 'E1', scenario: '复杂表达式确定性', tree: { eq: [{ add: [0.1, 0.2] }, 0.3] }, ctx: {} },
-    { constraint: 'E1', scenario: '无副作用（求值不改 context）', tree: { field: 'x' }, ctx: { x: 1 } },
-    // E2 定点小数（8）
-    { constraint: 'E2', scenario: '0.1+0.2=0.3 精确', tree: { add: [0.1, 0.2] }, ctx: {} },
+    // E1 pure function (3)
+    { constraint: 'E1', scenario: 'same input → same output', tree: { add: [1, 2] }, ctx: {} },
+    { constraint: 'E1', scenario: 'complex-expression determinism', tree: { eq: [{ add: [0.1, 0.2] }, 0.3] }, ctx: {} },
+    { constraint: 'E1', scenario: 'no side effects (evaluation does not mutate context)', tree: { field: 'x' }, ctx: { x: 1 } },
+    // E2 fixed-point decimal (8)
+    { constraint: 'E2', scenario: '0.1+0.2=0.3 exact', tree: { add: [0.1, 0.2] }, ctx: {} },
     { constraint: 'E2', scenario: '1/3 scale=14', tree: { div: [1, 3] }, ctx: {} },
     { constraint: 'E2', scenario: 'half-even 0.5→0', tree: { round: [0.5] }, ctx: {} },
     { constraint: 'E2', scenario: 'half-even 1.5→2', tree: { round: [1.5] }, ctx: {} },
     { constraint: 'E2', scenario: 'half-even 2.5→2', tree: { round: [2.5] }, ctx: {} },
     { constraint: 'E2', scenario: 'half-even 3.5→4', tree: { round: [3.5] }, ctx: {} },
-    { constraint: 'E2', scenario: '大数 1e21 精确', tree: { add: [1e21, 1] }, ctx: {} },
-    { constraint: 'E2', scenario: '中间不舍入（0.1×3）', tree: { mul: [0.1, 3] }, ctx: {} },
-    // E3/E12 求值错误折叠（6）
-    { constraint: 'E3', scenario: '除零', tree: { div: [10, 0] }, ctx: {} },
-    { constraint: 'E3', scenario: 'gt 类型不匹配', tree: { gt: [{ field: 'amount' }, 50] }, ctx: { amount: '100' } },
-    { constraint: 'E3', scenario: '非法日期', tree: { days_between: ['not-a-date', '2026-01-11'] }, ctx: {} },
-    { constraint: 'E3', scenario: 'sub 单操作数', tree: { sub: [5] }, ctx: {} },
-    { constraint: 'E3', scenario: 'div 三操作数', tree: { div: [10, 2, 5] }, ctx: {} },
-    { constraint: 'E3', scenario: 'in 右侧非数组', tree: { in: [{ field: 'cat' }, 'x'] }, ctx: { cat: 'a' } },
-    // E4 资源上限（6，全部可确定性检查；时延≤50ms 为性能目标非确定性约束，不设向量）
-    { constraint: 'E4', scenario: '节点超限（65 节点）', expectThrow: true, tree: { and: Array.from({ length: 65 }, () => true) }, ctx: {} },
-    { constraint: 'E4', scenario: '树深超限（>6 层）', expectThrow: true, tree: { not: { not: { not: { not: { not: { not: { not: true } } } } } } }, ctx: {} },
-    { constraint: 'E4', scenario: '算术深度超限（>2）', expectThrow: true, tree: { add: [1, { add: [1, { add: [1, 2] }] }] }, ctx: {} },
-    { constraint: 'E4', scenario: '数组超限（>10000）', expectThrow: true, tree: { in: [{ field: 'x' }, Array.from({ length: 10001 }, (_, i) => i)] }, ctx: { x: 1 } },
-    { constraint: 'E4', scenario: '量词嵌套', expectThrow: true, tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { all: { binding: 'y', over: { field: 'items' }, predicate: true } } } }, ctx: { items: [1] } },
-    { constraint: 'E4', scenario: '正则嵌套量词 ReDoS', tree: { match: [{ field: 'cmd' }, '(a+)+$'] }, ctx: { cmd: 'aaaa' } },
-    // E5 when/expr 互斥（3，加载时校验 §10.2）
-    { constraint: 'E5', scenario: 'expr 与 field/operator/value 互斥（违规）', expectE5Exclusive: true, tree: { expr: { eq: [{ field: 'x' }, 1] }, field: 'x', operator: 'eq', value: 1 }, ctx: {} },
-    { constraint: 'E5', scenario: '仅 expr 合法', expectE5Exclusive: false, tree: { expr: { eq: [{ field: 'x' }, 1] } }, ctx: {} },
-    { constraint: 'E5', scenario: '仅 field/operator/value 合法', expectE5Exclusive: false, tree: { field: 'x', operator: 'eq', value: 1 }, ctx: {} },
-    // E8 量词安全折叠（3）
-    { constraint: 'E8', scenario: 'all(空)=false', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
-    { constraint: 'E8', scenario: 'any(空)=false', tree: { any: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
-    { constraint: 'E8', scenario: 'none(空)=false', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: true } }, ctx: { items: [] } },
-    // E10 NFC 规范化（2，分解 vs 预组合，验证求值层 NFC）
-    { constraint: 'E10', scenario: 'NFC 分解字段值 == 预组合字面量', tree: { eq: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301' } },
-    { constraint: 'E10', scenario: 'NFC 分解字段值 contains 预组合', tree: { contains: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301 au lait' } },
-    // E11 undefined 哨兵（4）
-    { constraint: 'E11', scenario: '字段缺失→undefined', tree: { field: 'missing' }, ctx: {} },
-    { constraint: 'E11', scenario: 'eq 缺失→false', tree: { eq: [{ field: 'missing' }, 1] }, ctx: {} },
-    { constraint: 'E11', scenario: 'exists 缺失→false', tree: { exists: { field: 'missing' } }, ctx: {} },
-    { constraint: 'E11', scenario: 'arith 缺失→type_mismatch', tree: { add: [{ field: 'missing' }, 1] }, ctx: {} },
+    { constraint: 'E2', scenario: 'large number 1e21 exact', tree: { add: [1e21, 1] }, ctx: {} },
+    { constraint: 'E2', scenario: 'no intermediate rounding (0.1×3)', tree: { mul: [0.1, 3] }, ctx: {} },
+    // E3/E12 evaluation-error folding (6)
+    { constraint: 'E3', scenario: 'division by zero', tree: { div: [10, 0] }, ctx: {} },
+    { constraint: 'E3', scenario: 'gt type mismatch', tree: { gt: [{ field: 'amount' }, 50] }, ctx: { amount: '100' } },
+    { constraint: 'E3', scenario: 'invalid date', tree: { days_between: ['not-a-date', '2026-01-11'] }, ctx: {} },
+    { constraint: 'E3', scenario: 'sub single operand', tree: { sub: [5] }, ctx: {} },
+    { constraint: 'E3', scenario: 'div three operands', tree: { div: [10, 2, 5] }, ctx: {} },
+    { constraint: 'E3', scenario: 'in right side not an array', tree: { in: [{ field: 'cat' }, 'x'] }, ctx: { cat: 'a' } },
+    // E4 resource limits (6, all deterministically checkable; latency ≤50ms is a performance target, not a deterministic constraint — no vector)
+    { constraint: 'E4', scenario: 'node over-limit (65 nodes)', expectThrow: true, tree: { and: Array.from({ length: 65 }, () => true) }, ctx: {} },
+    { constraint: 'E4', scenario: 'tree depth over-limit (>6 levels)', expectThrow: true, tree: { not: { not: { not: { not: { not: { not: { not: true } } } } } } }, ctx: {} },
+    { constraint: 'E4', scenario: 'arithmetic depth over-limit (>2)', expectThrow: true, tree: { add: [1, { add: [1, { add: [1, 2] }] }] }, ctx: {} },
+    { constraint: 'E4', scenario: 'array over-limit (>10000)', expectThrow: true, tree: { in: [{ field: 'x' }, Array.from({ length: 10001 }, (_, i) => i)] }, ctx: { x: 1 } },
+    { constraint: 'E4', scenario: 'quantifier nesting', expectThrow: true, tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { all: { binding: 'y', over: { field: 'items' }, predicate: true } } } }, ctx: { items: [1] } },
+    { constraint: 'E4', scenario: 'regex nested quantifier ReDoS', tree: { match: [{ field: 'cmd' }, '(a+)+$'] }, ctx: { cmd: 'aaaa' } },
+    // E5 when/expr mutual exclusion (3, load-time validation §10.2)
+    { constraint: 'E5', scenario: 'expr vs field/operator/value exclusive (violation)', expectE5Exclusive: true, tree: { expr: { eq: [{ field: 'x' }, 1] }, field: 'x', operator: 'eq', value: 1 }, ctx: {} },
+    { constraint: 'E5', scenario: 'expr-only valid', expectE5Exclusive: false, tree: { expr: { eq: [{ field: 'x' }, 1] } }, ctx: {} },
+    { constraint: 'E5', scenario: 'field/operator/value-only valid', expectE5Exclusive: false, tree: { field: 'x', operator: 'eq', value: 1 }, ctx: {} },
+    // E8 quantifier safe-folding (3)
+    { constraint: 'E8', scenario: 'all(empty)=false', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
+    { constraint: 'E8', scenario: 'any(empty)=false', tree: { any: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
+    { constraint: 'E8', scenario: 'none(empty)=false', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: true } }, ctx: { items: [] } },
+    // E10 NFC normalization (2, decomposed vs precomposed, verifies evaluation-layer NFC)
+    { constraint: 'E10', scenario: 'NFC decomposed field value == precomposed literal', tree: { eq: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301' } },
+    { constraint: 'E10', scenario: 'NFC decomposed field value contains precomposed', tree: { contains: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301 au lait' } },
+    // E11 undefined sentinel (4)
+    { constraint: 'E11', scenario: 'missing field → undefined', tree: { field: 'missing' }, ctx: {} },
+    { constraint: 'E11', scenario: 'eq missing → false', tree: { eq: [{ field: 'missing' }, 1] }, ctx: {} },
+    { constraint: 'E11', scenario: 'exists missing → false', tree: { exists: { field: 'missing' } }, ctx: {} },
+    { constraint: 'E11', scenario: 'arith missing → type_mismatch', tree: { add: [{ field: 'missing' }, 1] }, ctx: {} },
 ];
-/** 生成求值约束向量（约束内编号 §47；E4 支持 expectThrow，E5 用 checkExprExclusive） */
+/** Generate evaluation-constraint vectors (per-constraint numbering §47; E4 supports expectThrow, E5 uses checkExprExclusive) */
 export function generateConstraintVectors() {
     const ev = new ExprTreeEvaluator();
     const out = [];
@@ -458,7 +458,7 @@ export function generateConstraintVectors() {
         const idx = (idxMap[c.constraint] = (idxMap[c.constraint] ?? 0) + 1);
         let expected;
         if (c.expectE5Exclusive !== undefined) {
-            // E5：expr 与 field/operator/value 互斥（加载时校验，非求值）
+            // E5: expr vs field/operator/value mutual exclusion (load-time validation, not evaluation)
             const violation = checkExprExclusive(c.tree);
             expected = { value: violation !== null, value_type: 'boolean', warnings: [], errored: false };
         }
@@ -493,7 +493,7 @@ export function generateConstraintVectors() {
     return out;
 }
 // ═══════════════════════════════════════════════════
-//  V-GLOSS / V-GLOSS-INTEGRITY / V-PROJ 22 条
+//  V-GLOSS / V-GLOSS-INTEGRITY / V-PROJ 22
 // ═══════════════════════════════════════════════════
 const GLOSS_DEFS = [
     { node: 'eq', tree: { eq: [{ field: 'age' }, 35] } },
@@ -509,7 +509,7 @@ const GLOSS_DEFS = [
     { node: 'date_add', tree: { date_add: { unit: 'years', base: { field: 'date' }, amount: 2 } } },
     { node: 'aggregate', tree: { sum: { field: 'nums' } } },
 ];
-/** V-GLOSS 12 条：树 → 期望 gloss 字符串（G1 确定性渲染，连续编号 §46） */
+/** V-GLOSS 12: tree → expected gloss string (G1 deterministic rendering, consecutive numbering §46) */
 export function generateGlossVectors() {
     const out = [];
     GLOSS_DEFS.forEach((def, i) => {
@@ -525,13 +525,13 @@ export function generateGlossVectors() {
     });
     return out;
 }
-/** V-GLOSS-INTEGRITY 4 条：树篡改 → gloss 变化（渲染校验绑定，G2） */
+/** V-GLOSS-INTEGRITY 4: tree tamper → gloss change (render-validation binding, G2) */
 export function generateGlossIntegrityVectors() {
     const cases = [
-        { id: 'V-GLOSS-INTEGRITY-001', node: 'eq', scenario: '树字面量篡改 → gloss 变化', tree: { eq: [{ field: 'age' }, 35] }, tampered: { eq: [{ field: 'age' }, 36] } },
-        { id: 'V-GLOSS-INTEGRITY-002', node: 'eq', scenario: '树算子篡改 eq→ne → gloss 变化', tree: { eq: [{ field: 'age' }, 35] }, tampered: { ne: [{ field: 'age' }, 35] } },
-        { id: 'V-GLOSS-INTEGRITY-003', node: 'and', scenario: '逻辑子节点删减 → gloss 变化', tree: { and: [{ eq: [{ field: 'a' }, 1] }, { eq: [{ field: 'b' }, 2] }] }, tampered: { and: [{ eq: [{ field: 'a' }, 1] }] } },
-        { id: 'V-GLOSS-INTEGRITY-004', node: 'in', scenario: '集合字面量篡改 → gloss 变化', tree: { in: [{ field: 'cat' }, ['a', 'b']] }, tampered: { in: [{ field: 'cat' }, ['a', 'c']] } },
+        { id: 'V-GLOSS-INTEGRITY-001', node: 'eq', scenario: 'tree literal tamper → gloss change', tree: { eq: [{ field: 'age' }, 35] }, tampered: { eq: [{ field: 'age' }, 36] } },
+        { id: 'V-GLOSS-INTEGRITY-002', node: 'eq', scenario: 'tree operator tamper eq→ne → gloss change', tree: { eq: [{ field: 'age' }, 35] }, tampered: { ne: [{ field: 'age' }, 35] } },
+        { id: 'V-GLOSS-INTEGRITY-003', node: 'and', scenario: 'logic child-node removal → gloss change', tree: { and: [{ eq: [{ field: 'a' }, 1] }, { eq: [{ field: 'b' }, 2] }] }, tampered: { and: [{ eq: [{ field: 'a' }, 1] }] } },
+        { id: 'V-GLOSS-INTEGRITY-004', node: 'in', scenario: 'set literal tamper → gloss change', tree: { in: [{ field: 'cat' }, ['a', 'b']] }, tampered: { in: [{ field: 'cat' }, ['a', 'c']] } },
     ];
     return cases.map((c) => {
         const g1 = renderNode(fromSExpr(c.tree), 'zh');
@@ -539,21 +539,21 @@ export function generateGlossIntegrityVectors() {
         return {
             id: c.id, category: 'V-GLOSS', node: c.node, scenario: c.scenario,
             expr_tree: c.tree, tampered_tree: c.tampered,
-            // 只存原始材料，diverged 由验证器重算（不把布尔结论存入预期值）
+            // store raw material only; divergence recomputed by the verifier (no boolean conclusion stored in the expected value)
             expected: { gloss_zh: g1, tampered_gloss_zh: g2 },
         };
     });
 }
-/** V-PROJ 6 条：三书写投影面（Simple/Expression/决策表）编译到同一内核（E7） */
+/** V-PROJ 6: three writing projections (Simple/Expression/decision-table) compile to the same core (E7) */
 export function generateProjVectors() {
     const ev = new ExprTreeEvaluator();
-    // 3 条 Simple↔Expression（编译一致性）
+    // 3 Simple↔Expression (compile consistency)
     const sexprPairs = [
         { name: 'eq', simple: { operator: 'eq', field: 'age', value: 35, ctx: { age: 35 } }, sexpr: { eq: [{ field: 'age' }, 35] } },
         { name: 'in', simple: { operator: 'in', field: 'cat', value: ['a', 'b'], ctx: { cat: 'a' } }, sexpr: { in: [{ field: 'cat' }, ['a', 'b']] } },
         { name: 'contains', simple: { operator: 'contains', field: 'cmd', value: 'rm', ctx: { cmd: 'rm -rf' } }, sexpr: { contains: [{ field: 'cmd' }, 'rm'] } },
     ];
-    // 3 条 Simple↔决策表（决策表行编译 == Simple 编译，eq 语义）
+    // 3 Simple↔decision-table (decision-table row compile == Simple compile, eq semantics)
     const dtablePairs = [
         { name: 'eq', simple: { operator: 'eq', field: 'age', value: 35, ctx: { age: 35 } }, dtable: { columns: ['age'], rows: [{ conditions: { age: 35 }, decision: 'ALLOW' }] } },
         { name: 'eq2', simple: { operator: 'eq', field: 'status', value: 'active', ctx: { status: 'active' } }, dtable: { columns: ['status'], rows: [{ conditions: { status: 'active' }, decision: 'ALLOW' }] } },
@@ -600,7 +600,7 @@ export function generateProjVectors() {
     });
     return out;
 }
-/** 汇总：V-ENGINE 201 + V-GLOSS/V-PROJ 22 = 223 条 */
+/** Summary: V-ENGINE 201 + V-GLOSS/V-PROJ 22 = 223 */
 export function generateAllVectors() {
     return [
         ...generateNodeVectors(),
@@ -612,7 +612,7 @@ export function generateAllVectors() {
     ];
 }
 const SIMPLE_DEFS = [
-    // 直接节点 13
+    // direct nodes 13
     { operator: 'eq', field: 'age', value: 35, ctx: { age: 35 } },
     { operator: 'ne', field: 'age', value: 34, ctx: { age: 35 } },
     { operator: 'gt', field: 'age', value: 60, ctx: { age: 61 } },
@@ -626,14 +626,14 @@ const SIMPLE_DEFS = [
     { operator: 'ends_with', field: 'name', value: '.log', ctx: { name: 'sys.log' } },
     { operator: 'exists', field: 'x', ctx: { x: 1 } },
     { operator: 'between', field: 'age', value: [16, 60], ctx: { age: 30 } },
-    // not 组合 6
+    // not combinations 6
     { operator: 'not_in', field: 'cat', value: ['a', 'b'], ctx: { cat: 'c' } },
     { operator: 'not_contains', field: 'cmd', value: 'rm', ctx: { cmd: 'ls' } },
     { operator: 'not_starts_with', field: 'name', value: 'safe_', ctx: { name: 'unsafe' } },
     { operator: 'not_ends_with', field: 'name', value: '.log', ctx: { name: 'sys.txt' } },
     { operator: 'not_exists', field: 'x', ctx: {} },
     { operator: 'not_between', field: 'age', value: [16, 60], ctx: { age: 70 } },
-    // 长度/计数 9
+    // length/count 9
     { operator: 'length_gt', field: 's', value: 2, ctx: { s: 'abc' } },
     { operator: 'length_gte', field: 's', value: 3, ctx: { s: 'abc' } },
     { operator: 'length_lt', field: 's', value: 5, ctx: { s: 'abc' } },
@@ -644,7 +644,7 @@ const SIMPLE_DEFS = [
     { operator: 'count_lt', field: 'items', value: 5, ctx: { items: [1, 2] } },
     { operator: 'count_lte', field: 'items', value: 2, ctx: { items: [1, 2] } },
 ];
-/** 生成 Simple 编译向量（28 条件运算符 + 2 修饰符 = 30 条） */
+/** Generate Simple compile vectors (28 condition operators + 2 modifiers = 30) */
 export function generateSimpleVectors() {
     const ev = new ExprTreeEvaluator();
     const out = [];
@@ -664,7 +664,7 @@ export function generateSimpleVectors() {
             expected: { value: sv.value, value_type: sv.type, warnings: result.warnings.map((w) => w.kind), errored: result.errored },
         });
     }
-    // within/rate 2 修饰符（有状态算子，自包含状态操作序列 state_ops，第三方可重放）
+    // within/rate 2 modifiers (stateful operators, self-contained state-op sequence state_ops, replayable by third parties)
     {
         const clock = new VirtualClock(0);
         const gsm = new GuardStateManager(clock);
@@ -678,7 +678,7 @@ export function generateSimpleVectors() {
         out.push({
             id: `V-ENGINE-SIMPLE-rate-001`,
             category: 'V-ENGINE', subcategory: 'simple-modifier', modifier: 'rate',
-            scenario: 'rate 超限检测（record×3 后 checkRate 超限）',
+            scenario: 'rate over-limit detection (checkRate over-limit after record×3)',
             state_ops: stateOps,
             expected: { value: rateResult, value_type: 'boolean' },
         });
@@ -694,14 +694,14 @@ export function generateSimpleVectors() {
         out.push({
             id: `V-ENGINE-SIMPLE-within-001`,
             category: 'V-ENGINE', subcategory: 'simple-modifier', modifier: 'within',
-            scenario: 'within 窗口检测（record×1 后窗口内有历史）',
+            scenario: 'within window detection (history in window after record×1)',
             state_ops: stateOps,
             expected: { value: withinResult, value_type: 'boolean' },
         });
     }
     return out;
 }
-/** 重放状态操作序列（生成器内联；验证器独立实现同样的重放） */
+/** Replay the state-op sequence (inlined in the generator; the verifier independently implements the same replay) */
 function replayStateOps(gsm, ops) {
     let result = null;
     for (const o of ops) {
