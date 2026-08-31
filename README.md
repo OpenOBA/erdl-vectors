@@ -4,6 +4,7 @@
 
 > **规范依据**：ERDL-DOBJ-RFC-002 — Decision Object v1.5 扁平哈希链（[`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)）
 > **向量版本**：v1.5.0 · Core 向量 301 条（审计层 78 + 表达层 223）
+> **基于 ERDL 设计**：[ERDL（Entity-Rule Definition Language）](https://github.com/OpenOBA/erdl-landing) —— 声明式规则执行协议；Decision Object 即其决策的审计记录，数据模型见 [ERDL 规范 v2.0](https://github.com/OpenOBA/erdl-landing/blob/main/spec/erdl-spec-v2.0.md)
 
 AI 治理的跨实现验证基准：一套不属于任何单一实现的中性测试向量。任何语言、任何技术栈的 runner，都可以仅凭规范从第一性原理独立实现 JCS（RFC 8785）+ SHA-256，逐字节重算 Decision Object 哈希并比对。
 
@@ -19,7 +20,7 @@ AI Agent 正在越来越多地替企业做决定：审批、放行、拒绝、�
 
 ## Decision Object：每一次决策的审计记录
 
-Decision Object 是一次决策的审计记录，完整记录决策发生时的命中规则、匹配运算符与评估上下文。数据模型与哈希规则定义于规范 [`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)。
+Decision Object 是 ERDL 规则引擎一次决策的审计记录——基于 [ERDL（Entity-Rule Definition Language）](https://github.com/OpenOBA/erdl-landing) 设计，完整记录决策发生时的命中规则、匹配运算符与评估上下文。数据模型与哈希规则定义于规范 [`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)。
 
 其完整性由哈希链锚定：
 
