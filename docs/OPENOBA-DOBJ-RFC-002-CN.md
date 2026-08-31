@@ -12,7 +12,7 @@
 > **上位规范**：ERDL SPEC v2.0
 > **前序文档**：ERDL-RFC-001（v1.3，哈希管线基座）
 >
-> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。2026-08-31：补 `compliance_profile.profile_version` 字段定义（§5.1）、链规模治理指针（§8），全线计数口径统一（审计层 78 / Core 301）。
+> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。2026-08-31：链规模治理指针（§8），全线计数口径统一（审计层 78 / Core 301）。
 >
 > **关键字解释**：本文档中的 "MUST"、"MUST NOT"、"SHOULD"、"MAY" 等关键字遵循 RFC 2119 和 RFC 8174 的语义解释。
 
@@ -135,7 +135,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 ### 5.1 合规画像锚定
 
-`compliance_profile.profile_hash`（画像本体 JCS+SHA-256）随扁平哈希——堵“偷换法域声明”攻击（V-COMP-F02）。画像版本号以 `compliance_profile.profile_version` 承载（多版本画像共存，SPEC §20.5），与 `profile_hash` 并存。画像变更不溯及既往（grandfathering，SPEC v2.0）。
+`compliance_profile.profile_hash`（画像本体 JCS+SHA-256）随扁平哈希——堵“偷换法域声明”攻击（V-COMP-F02）。画像变更不溯及既往（grandfathering，SPEC v2.0）。
 
 ### 5.2 三层激活维度（14 框架全覆盖）
 
