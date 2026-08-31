@@ -12,7 +12,7 @@
 > **上位规范**：ERDL SPEC v2.0
 > **前序文档**：ERDL-RFC-001（v1.3，哈希管线基座）
 >
-> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。
+> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。2026-08-31：补 `compliance_profile.profile_version` 字段定义（§5.1）、链规模治理指针（§8），全线计数口径统一（审计层 78 / Core 301）。
 >
 > **关键字解释**：本文档中的 "MUST"、"MUST NOT"、"SHOULD"、"MAY" 等关键字遵循 RFC 2119 和 RFC 8174 的语义解释。
 
@@ -135,7 +135,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 ### 5.1 合规画像锚定
 
-`compliance_profile.profile_hash`（画像本体 JCS+SHA-256）随扁平哈希——堵"偷换法域声明"攻击（V-COMP-F02）。画像变更不溯及既往（grandfathering，SPEC v2.0）。
+`compliance_profile.profile_hash`（画像本体 JCS+SHA-256）随扁平哈希——堵“偷换法域声明”攻击（V-COMP-F02）。画像版本号以 `compliance_profile.profile_version` 承载（多版本画像共存，SPEC §20.5），与 `profile_hash` 并存。画像变更不溯及既往（grandfathering，SPEC v2.0）。
 
 ### 5.2 三层激活维度（14 框架全覆盖）
 
@@ -196,7 +196,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 > **检测优先级（补充）**：验证器先做 hash 自洽（①），再判版本支持（④），仅当全链 hash 自洽后才做结构语义检测，并按「genesis 失配（§9.2 C06）→ previous_hash 悬空 → chain_seq 跳变 → mode 混链 → 时间回退（§9.2 C05）」顺序报告第一条命中。
 
-引用完整性告警（非断裂）：content_unresolvable（冷存储删除/灭失）。
+引用完整性告警（非断裂）：content_unresolvable（冷存储删除/灭失）。链规模治理（分片 + Merkle + Checkpoint + 增量验证）见 SPEC §29.7——本节只定义线性链的断裂判定。
 
 金丝雀：v1.5 链位置金丝雀延续 AV-013 模式——正确实现 MISMATCH，regressed 实现（跳过独立重算/错取原像）MATCH 被捕。金丝雀向量的 `expected.breach` 标记为专有码 `canary_mismatch`（非语义 breach，仅标识「正确实现 MUST hash MISMATCH」）。
 
