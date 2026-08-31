@@ -1,0 +1,49 @@
+name: Record Verified Runners (post-merge auto-record)
+
+# After a runner-submission PR is merged to main, this workflow regenerates the
+# IMPLEMENTATIONS.md Registry from submissions/*.json (cross-verifying each) and
+# auto-commits the result. The PR-stage CI (verify-v1.5.yml) already cross-verifies
+# before merge; this stage makes the registry self-updating — "measurements are
+# recorded automatically, not hand-edited".
+#
+# Why post-merge (not in-PR): a fork PR's GITHUB_TOKEN is read-only, so an auto-commit
+# must run on the repo's own push event (where the token has write access).
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'submissions/**'
+
+concurrency:
+  group: record-runners
+  cancel-in-progress: false
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Regenerate registry from submissions (cross-verify each)
+        run: node scripts/update-registry.cjs
+
+      - name: Auto-commit registry update
+        run: |
+          if ! git diff --exit-code IMPLEMENTATIONS.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add IMPLEMENTATIONS.md
+            git commit -m "chore: auto-record verified runner(s) to registry"
+            git push
+            echo "PASS: registry auto-recorded"
+          else
+            echo "No registry change (no new verified runners)."
+          fi
