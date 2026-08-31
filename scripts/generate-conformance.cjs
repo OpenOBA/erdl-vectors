@@ -27,7 +27,7 @@
  * the verification run itself, not hand-edited — "Measurements, not endorsements".
  *
  * Usage: node scripts/generate-conformance.cjs
- * @license MIT
+ * @license Apache-2.0
  */
 'use strict';
 

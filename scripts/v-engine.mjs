@@ -25,7 +25,7 @@
  * Vector format: { id, node_group, node, scenario, expr_tree(S-expr), context, expected{value,type,warnings} }
  * Expected values produced by the @openoba/erdl reference engine (single-implementation source; third-party comparison to follow).
  *
- * @license MIT
+ * @license Apache-2.0
  */
 import { ExprTreeEvaluator, objectContext } from '@openoba/erdl';
 import { fromSExpr, toSExpr } from '@openoba/erdl';
