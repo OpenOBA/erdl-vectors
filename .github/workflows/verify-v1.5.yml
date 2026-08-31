@@ -48,5 +48,14 @@ jobs:
         run: |
           node scripts/verify-v1.5.js decision-object-vectors-v1.5.json --answers decision-object-answers-v1.5.json
 
+      - name: Generate CONFORMANCE.md (auto-record)
+        run: |
+          node scripts/generate-conformance.cjs
+          if ! git diff --exit-code conformance/CONFORMANCE.md; then
+            echo "FAIL: CONFORMANCE.md is stale — commit the regenerated report"
+            exit 1
+          fi
+          echo "PASS: CONFORMANCE.md is current"
+
       - name: Run tests (vitest)
         run: npm test

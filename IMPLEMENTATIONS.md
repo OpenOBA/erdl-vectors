@@ -14,6 +14,7 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 - **向量文件**：`decision-object-vectors-v1.5.json`（V-DO-v15 哈希层 78 条）
 - **验证程序**：五步验证法 Step 0–6（RFC-002 §7），`scripts/verify-v1.5.js`（零依赖 self-built JCS）
 - **答案文件**：`decision-object-answers-v1.5.json`（canonical_hex 物理隔离，.gitignore，提交者不可读）
+- **自动记录**：`conformance/CONFORMANCE.md`（CI 自动生成，记录 Check 1 + Check 2 + K01 判别 + R1–R6 对照结论；`npm run conformance`）
 
 ## Registry
 
