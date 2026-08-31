@@ -27,7 +27,7 @@
  * Usage:
  *   node verify-v1.5.js [path/to/vectors.json] [--answers <path>]
  *
- * @author Tang Haoran · OpenOBA AI Executive
+ * @author Tang Qixin
  * @since 2026-08-22
  * @license MIT
  */

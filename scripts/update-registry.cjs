@@ -11,7 +11,7 @@
  *
  * Usage: node scripts/update-registry.cjs
  *
- * @author Tang Haoran · OpenOBA AI Executive
+ * @author Tang Qixin
  * @since 2026-08-31
  * @license MIT
  */

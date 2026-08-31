@@ -2,7 +2,7 @@
 
 > ⚠️ **Known Issue（P2-3 残留）**：`scripts/verify.js` L560 `expectedPassCount = 11` 硬编码未动态化（CHANGELOG v1.3.3 声称已修但实际未修）。本归档作为「JCS 规范化回归套件」使用时，若 AV 数量扩展需手动同步该常量。v1.5 现行版本（`scripts/verify-v1.5.js`）已无此问题。
 
-> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
 
 > **现行标准**：OPENOBA-DOBJ-RFC-002（Decision Object v1.5，扁平哈希链 + 表达式树字段，见 `docs/OPENOBA-DOBJ-RFC-002-CN.md`）
 > **向量版本**：v2.0（对齐 ERDL SPEC v2.0，`repos/erdl-landing/spec/erdl-spec-v2.0.md`）

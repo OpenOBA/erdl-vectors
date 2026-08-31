@@ -1,6 +1,6 @@
 # Contributing to ERDL Decision Object Vectors
 
-> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
 
 ## Core Principle
 

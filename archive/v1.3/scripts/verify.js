@@ -32,8 +32,8 @@
  * AV vectors carry diag_hash (audit.hash prefix) for debug anchoring only.
  * No canonical bytes are exposed in the vector file.
  *
- * Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
- * Author: Tang Haoran — OpenOBA AI Executive
+ * Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
+ * Author: Tang Qixin
  * Date: 2026-07-29 · Updated: 2026-08-06 (dual verification)
  *
  * RFC 8785 (JCS) implementation notes:

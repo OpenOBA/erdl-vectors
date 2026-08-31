@@ -1,6 +1,6 @@
 ﻿# ERDL Decision Object v1.3 — Cross-Implementation Test Vectors
 
-> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
 
 > **Version**: v1.3.3 · 2026-08-06  
 > **Status**: Released  

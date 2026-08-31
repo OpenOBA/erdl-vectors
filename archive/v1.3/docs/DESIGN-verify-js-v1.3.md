@@ -1,6 +1,6 @@
 # DESIGN: verify.js — Universal Zero-Dependency Verifier v1.3
 
-> Copyright (c) 2026 Tang Qixin. All rights reserved.
+> Copyright (c) 2026 Shenzhen Miaojing Technology Co., Ltd.
 
 > Version: 1.3.3 · 2026-08-06
 > Status: Released

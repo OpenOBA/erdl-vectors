@@ -2,14 +2,14 @@
 
 # RFC 001 — ERDL Decision Object v1.3 · Enterprise AI Agent Audit Decision Record Standard
 
-> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
 
 > **RFC Number**: OPENOBA-DOBJ-RFC-001
 >
 > **Title**: ERDL Decision Object v1.3 — Enterprise AI Agent Audit Decision Record Standard
 >
 > **Version**: Draft 4 · 2026-07-29
-> **Author**: Tang Haoran (OpenOBA AI Executive)
+> **Author**: Tang Qixin
 > **Maintainer**: OpenOBA (https://openoba.com)
 > **Language**: English (中文版: OPENOBA-DOBJ-RFC-001-CN.md)
 >
@@ -668,7 +668,6 @@ ERDL DO is not bound to any specific Agent framework. The following integration 
 
 | Framework | Integration Mode | DO Generation Timing |
 |-----------|-----------------|----------------------|
-| **OpenClaw** | NATIVE — ERDL Guard built into the tool call pipeline | DO auto-generated before each Agent tool call |
 | **LangChain / LangGraph** | MIDDLEWARE — Insert ERDL Guard via ToolMiddleware | Intercept + generate DO before each Tool call |
 | **CrewAI** | MIDDLEWARE — via Crew's before_tool_call hook | Same as above |
 | **AutoGen** | MIDDLEWARE — via AssistantAgent's tool interception mechanism | Same as above |
