@@ -25,22 +25,30 @@ Place a single JSON file in this directory:
 submissions/<your-runner-name>-output.json
 ```
 
-Each entry records a verification result:
+It records your **canonical bytes** — the JCS (RFC 8785) canonical string of each Decision Object (after deleting `audit.hash`), hex-encoded. This is what the CI cross-verifies byte-for-byte against the reference:
 
 ```json
-[
-  {
-    "runner": "concordia-python",
-    "method": "Python, spec-only, self-built JCS (RFC 8785)",
-    "date": "2026-08-31",
-    "check1_total": "78/78",
-    "check2_total": "107/107",
-    "canary_k01": "MISMATCH (Check 1) + MATCH (Check 2)",
-    "breach_codes": "all R3 breach codes surfaced",
-    "artifact": "https://github.com/<you>/<runner-repo>"
+{
+  "runner": "concordia-python",
+  "method": "Python, spec-only, self-built JCS (RFC 8785) + hashlib SHA-256",
+  "date": "2026-08-31",
+  "artifact": "https://github.com/<you>/<runner-repo>",
+  "k01_check1": "MISMATCH",
+  "canonical_hex": {
+    "V-DO-v15-D01": "3f2a…",
+    "V-DO-v15-C01[0]": "9b1c…",
+    "V-DO-v15-C01[1]": "…",
+    "V-COMP-F06-base": "…",
+    "V-COMP-F06-tampered": "…"
   }
-]
+}
 ```
+
+**Keying** (mirrors the answer-file oracle): `<id>` for a standalone DO, `<id>-base` / `<id>-tampered` for a tamper pair, `<id>[i]` for the i-th member of a chain. **Version-gated DOs** (e.g. `V-DO-v15-C07[1]`, unsupported `preimage_version`) MUST NOT have a key — the reference terminates early there.
+
+**`k01_check1`** MUST be `"MISMATCH"`: a correct implementation deletes only `audit.hash`, so its recomputed hash differs from the canary's stored hash (a defective impl that deletes the whole `audit` object would report MATCH and be caught).
+
+The simplest way to generate this file: run your own JCS+SHA-256 over every DO, collect the hex output. The CI re-runs the reference algorithm and compares byte-for-byte.
 
 ## What Gets Verified
 
@@ -62,7 +70,7 @@ A conforming runner (RUNNER_CONTRACT.md R1–R6) MUST:
 5. **Update** `IMPLEMENTATIONS.md` — add a row to the registry.
 6. **Open a Pull Request**.
 
-CI runs `scripts/verify-v1.5.js` (dual check) and `scripts/generate-conformance.cjs`; results are posted as a PR comment.
+CI runs `scripts/verify-submission.cjs --submission <your-file>` (recomputes the reference canonical bytes and compares byte-for-byte) plus `scripts/verify-v1.5.js` (dual check) and `scripts/generate-conformance.cjs`; results are posted as a PR comment.
 
 ## Principles
 

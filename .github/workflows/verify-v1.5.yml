@@ -8,6 +8,7 @@ on:
       - 'decision-object-vectors-v1.5.json'
       - 'scripts/**'
       - 'test/**'
+      - 'submissions/**'
       - '.github/workflows/verify-v1.5.yml'
       - 'package.json'
   workflow_dispatch:
@@ -56,6 +57,17 @@ jobs:
             exit 1
           fi
           echo "PASS: CONFORMANCE.md is current"
+
+      - name: Cross-verify runner submissions
+        run: |
+          if ls submissions/*.json >/dev/null 2>&1; then
+            for f in submissions/*.json; do
+              echo "=== Cross-verifying $f ==="
+              node scripts/verify-submission.cjs --submission "$f" || exit 1
+            done
+          else
+            echo "No runner submissions to cross-verify (only README.md present)."
+          fi
 
       - name: Run tests (vitest)
         run: npm test
