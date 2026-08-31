@@ -1,4 +1,4 @@
-> ⚠️ **归档声明（2026-08-18）**：本 RFC 已被 **OPENOBA-DOBJ-RFC-002**（Decision Object v1.5）取代，不再是现行标准。保留于 archive/ 作为历史记录：v1.3 全 DO 原像模式 + §3.1 通用序列化约束（由 RFC-002 §1.3 继承）+ §13.3 嵌套五步验证法（仅供历史档案 DO 验证）。v1.3 冻结向量（AV-001~013）保留为历史档案 + JCS 规范化层回归套件。
+> ⚠️ **归档声明（2026-08-18）**：本 RFC 已被 **OPENOBA-DOBJ-RFC-002**（Decision Object v1.5）取代，不再是现行标准。保留于 archive/ 作为历史记录：v1.3 全 DO 原像模式 + §3.1 通用序列化约束（由 RFC-002 §1.3 继承）+ §13.3 嵌套五步验证法（仅供历史档案 DO 验证）。v1.3 冻结向量（AV-001..013）保留为历史档案 + JCS 规范化层回归套件。
 
 # RFC 001 — ERDL Decision Object v1.3 · 企业 AI Agent 审计决策记录标准
 
@@ -269,7 +269,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | 19 | `data_modification_expected` | boolean | HIPAA / PCI DSS / 信通院合规 |
 | 20 | `context_snapshot_hash` | string | 含 PII 场景 / 跨 Agent 验证 |
 | 21 | `sanitized_context` | string | 含 PII 场景 / GDPR 合规 |
-| 22 | `confidence_score` | integer | NIST AI RMF 合规（0~100，整数，表示百分比；如 95 表示 95%） |
+| 22 | `confidence_score` | integer | NIST AI RMF 合规（0..100，整数，表示百分比；如 95 表示 95%） |
 | 23 | `signature` | string (Base64url) | HIPAA / PCI DSS（critical 决策）。ECDSA P-256 签名，覆盖除 audit/signature/signing_key_id 外的全部 DO 内容 |
 | 24 | `signing_key_id` | string | 配套 `signature` 字段，标识用于验证签名的公钥版本。审计员通过此 ID 从 KMS 拉取对应公钥。不参与 JCS 序列化，不参与签名原像（签名原像 = JCS 原像，两者使用完全相同的字段集——均排除 audit.hash、signature、signing_key_id 三个字段）。其角色纯粹为密钥元数据，更换 key_id 不影响签名值 |
 
@@ -342,7 +342,7 @@ IETF draft-sharif-agent-audit-trail-00 使用完全相同的密码学原语：
 | `evaluation.matched_rules[].ring` | integer | 执行环级别（0-3） |
 | `evaluation.total_evaluated` | integer | 评估的规则总数 |
 | `evaluation.total_matched` | integer | 命中的规则总数 |
-| `evaluation.llm_raw_confidence` | integer | LLM 提供的原始置信度（整数，0~100，表示百分比；如 95 表示 95%） | 
+| `evaluation.llm_raw_confidence` | integer | LLM 提供的原始置信度（整数，0..100，表示百分比；如 95 表示 95%） | 
 
 > ⚠️ **与顶层 `confidence_score` 的区别**：`evaluation.llm_raw_confidence` 是 LLM 在本次评估中返回的原始置信度值（每次评估可能不同），属于规则引擎执行记录。顶层 JURISDICTION 的 `confidence_score` 是 NIST AI RMF 要求的可配置置信度基准（可在 JURISDICTION 中激活/配置），属于合规声明。两者独立填充，互不替代。
 
@@ -1176,7 +1176,7 @@ Agent 主线程只负责生成 DO 明文 JSON 并推送到内存队列，旁路�
 |------|:---:|------|
 | 静态决策向量 | 63 | 13 种外部决策类型 + 13 运算符全覆盖 + 空值传播/类型安全/速率限制边缘情况穷尽 |
 | 动态决策向量 | 26 | 时间戳(10) + 种子(8) + 状态(8) |
-| 审计哈希向量 | 12 | AV-001~AV-007 + AV-009~AV-013（含 AV-013 链完整性金丝雀，AV-008 已被 AV-013 替代） |
+| 审计哈希向量 | 12 | AV-001..AV-007 + AV-009..AV-013（含 AV-013 链完整性金丝雀，AV-008 已被 AV-013 替代） |
 | **总计** | **101** | |
 
 **注**：v1.3.1 从向量文件中完全移除了 `canonical_hex`（JCS 直接输出的十六进制编码）。AV 向量改用 `diag_hash`（`audit.hash` 前 14 字符，即 `"sha256:" + 8 位十六进制）作为调试锚点——SHA-256 是单向函数，`diag_hash` 不能反推 JCS 输出，无法用于绕过 JCS 实现的作弊。完整 `canonical_hex` 答案集保存在独立答案文件 `decision-object-answers-v1.3.json` 中，仅供开发诊断使用。合规运行 MUST NOT 读取答案文件。

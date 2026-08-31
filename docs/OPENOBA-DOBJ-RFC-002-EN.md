@@ -218,15 +218,15 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 
 | Category | Number range | Count | Content |
 |------|------|:---:|------|
-| Decision-type coverage | V-DO-v15-D01~D13 | 13 | 13 decision types (ALLOW/DENY/CORRECT/NOTIFY/REQUEST_HUMAN/ESCALATE/DELEGATE/DEFER/EMERGENCY_HALT/ROLLBACK/QUARANTINE/WORKFLOW/GUIDE) × flat hash (with canonical_tree field) |
-| Chain-attack detection | V-DO-v15-C01~C08 | 8 | normal-chain baseline + 7 attacks (single-record tamper / record deletion / dangling pointer / clock regression / whole-chain rebuild / version downgrade / mixed chain, see §9.2) |
-| Anchoring-attack detection | V-DO-v15-A01~A10 | 10 | knowledge tamper / unresolvable reference / fragment mismatch / attachment tamper / intent tamper / memory-key tamper / tree-snapshot forgery / tree tamper ×2 (node order swap / literal precision) / type-B text tamper (see §9.3) |
-| Signature chain (planned, not generated) | V-SIGN-001~005 | 5 | valid verify / tamper verify-fail / chain trace-back / forged signature / signature canary, §10.3; added after the signature layer lands |
-| Time anchoring (planned, not generated) | V-DO-v15-T01~T03 | 3 | TSA token / clock_drift / key decision without anchor; added after the signature layer lands |
+| Decision-type coverage | V-DO-v15-D01..D13 | 13 | 13 decision types (ALLOW/DENY/CORRECT/NOTIFY/REQUEST_HUMAN/ESCALATE/DELEGATE/DEFER/EMERGENCY_HALT/ROLLBACK/QUARANTINE/WORKFLOW/GUIDE) × flat hash (with canonical_tree field) |
+| Chain-attack detection | V-DO-v15-C01..C08 | 8 | normal-chain baseline + 7 attacks (single-record tamper / record deletion / dangling pointer / clock regression / whole-chain rebuild / version downgrade / mixed chain, see §9.2) |
+| Anchoring-attack detection | V-DO-v15-A01..A10 | 10 | knowledge tamper / unresolvable reference / fragment mismatch / attachment tamper / intent tamper / memory-key tamper / tree-snapshot forgery / tree tamper ×2 (node order swap / literal precision) / type-B text tamper (see §9.3) |
+| Signature chain (planned, not generated) | V-SIGN-001..005 | 5 | valid verify / tamper verify-fail / chain trace-back / forged signature / signature canary, §10.3; added after the signature layer lands |
+| Time anchoring (planned, not generated) | V-DO-v15-T01..T03 | 3 | TSA token / clock_drift / key decision without anchor; added after the signature layer lands |
 | Canary | V-DO-v15-K01 | 1 | chain-position canary (hash mode, continues AV-013; the signature canary is carried by V-SIGN-005, not double-counted) |
-| Conclusion layer | V-DO-v15-G01~G14 | 14 | structural attacks fixed 6 + domain examples 8 (government 4 + enterprise 4, extensible) |
-| Jurisdiction compliance | V-COMP-001~021 + F01~F11 | 32 | field conformance 21 (jurisdiction 7 + framework 14) + failure detection 11 (incl. F06/F07 first-layer tamper, F08/F09 risk-condition layer, F10/F11 priority pinning, see §9.1) |
-| **Stateful-operator state verification (planned, not generated)** | **V-TEMPORAL-001~004** | **4** | within/rate cross-decision window-count state behavior (multi-decision sequences, verifying temporal_state snapshot consistent with replay, corresponding to §2.4): T01 rate normal sequence (under-limit→over-limit), T02 within normal sequence, T03 temporal_state snapshot tamper (judged `temporal_state_divergence`), T04 state-replay canary (a regressed verifier skipping replay is caught). Vectors generated-frozen after temporal_state lands in the DO |
+| Conclusion layer | V-DO-v15-G01..G14 | 14 | structural attacks fixed 6 + domain examples 8 (government 4 + enterprise 4, extensible) |
+| Jurisdiction compliance | V-COMP-001..021 + F01..F11 | 32 | field conformance 21 (jurisdiction 7 + framework 14) + failure detection 11 (incl. F06/F07 first-layer tamper, F08/F09 risk-condition layer, F10/F11 priority pinning, see §9.1) |
+| **Stateful-operator state verification (planned, not generated)** | **V-TEMPORAL-001..004** | **4** | within/rate cross-decision window-count state behavior (multi-decision sequences, verifying temporal_state snapshot consistent with replay, corresponding to §2.4): T01 rate normal sequence (under-limit→over-limit), T02 within normal sequence, T03 temporal_state snapshot tamper (judged `temporal_state_divergence`), T04 state-replay canary (a regressed verifier skipping replay is caught). Vectors generated-frozen after temporal_state lands in the DO |
 | **Total** | | **audit layer 78** | hash-layer 78 (D/C/A/K/G/V-COMP frozen). Signature 5 + TSA 3 + V-TEMPORAL 4 are planned (not generated, not counted) |
 
 > **Naming clarification (avoiding confusion with SPEC §45 V-SCENE semantics)**: SPEC §45's V-SCENE specifically means the **seven lifecycle-stage** business-scenario verification (identity/position/training/operation/audit/trust/retirement), numbered `V-SCENE-NNN`. The within/rate stateful-operator window-count verification is a **different verification object** (operator-state correctness, not a business-scenario loop), so this specification carries it under an **independent sequence V-TEMPORAL**, not occupying V-SCENE numbers — corresponding to the "independent state-verification vectors" branch of SPEC §44 line 2462 "into V-SCENE (multi-decision sequence) **or independent state-verification vectors**".
@@ -238,7 +238,7 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 
 ### 9.1 V-COMP Jurisdiction-Compliance Vector Full List (32)
 
-> **Numbering note**: the jurisdiction group was originally five vectors 001~005 (CN/EU/US/SG/multi-jurisdiction union); when BR/IN were added, **020/021 were appended without renumbering the existing ones** (V-COMP numbers are `[FREEZE-3]` naming-level frozen: not reused, not reordered, meaning unchanged). Hence the jurisdiction group is numbered 001~005 + 020~021, a non-contiguous range — a normal result of freeze governance.
+> **Numbering note**: the jurisdiction group was originally five vectors 001..005 (CN/EU/US/SG/multi-jurisdiction union); when BR/IN were added, **020/021 were appended without renumbering the existing ones** (V-COMP numbers are `[FREEZE-3]` naming-level frozen: not reused, not reordered, meaning unchanged). Hence the jurisdiction group is numbered 001..005 + 020..021, a non-contiguous range — a normal result of freeze governance.
 
 **Group 1: jurisdiction activation-field completeness (7)**
 
@@ -252,7 +252,7 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 | V-COMP-020 | BR · LGPD | model_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context (Art.20 review right → autonomy_level; Art.20 §1 inform standards & procedures → model_id; Art.18 erasure + PII separation → sanitized_context. LGPD does not explicitly require human intervention, so human_oversight is not force-activated) |
 | V-COMP-021 | IN · DPDP | data_modification_expected / context_snapshot_hash / sanitized_context (§12(1)(d) erasure right → sanitized_context; §12(1)(a-c) correction/completion/update → data_modification_expected; §12(2) downstream cascade notification needs traceable data flow → context_snapshot_hash. DPDP has no dedicated automated-decision clause, so autonomy_level / model_id are not activated) |
 
-> Note: the `signature` above is a signature-layer field (second layer of the three-layer evidence system, §10.3 V-SIGN unfrozen); the hash-layer vectors (V-DO-v15 78) do not yet contain a signature **value**, to be added into V-COMP-001~003 field-existence checks after the signature layer lands. The BR/IN two vectors contain no signature — LGPD/DPDP do not require non-repudiation signature; signature mandates come from HIPAA/PCI DSS and `risk_level=critical` (§5.2).
+> Note: the `signature` above is a signature-layer field (second layer of the three-layer evidence system, §10.3 V-SIGN unfrozen); the hash-layer vectors (V-DO-v15 78) do not yet contain a signature **value**, to be added into V-COMP-001..003 field-existence checks after the signature layer lands. The BR/IN two vectors contain no signature — LGPD/DPDP do not require non-repudiation signature; signature mandates come from HIPAA/PCI DSS and `risk_level=critical` (§5.2).
 >
 > **The verifiable boundary of critical (honest framing)**: the hash layer can only verify "existence" (the two negative examples F08/F09) — because a **compliant** critical DO is by definition signature-mode, and its positive example must contain a real verifiable signature, which belongs to the signature layer (carried by V-SIGN-001, §10.3). This vector set does **not** include fake positives with placeholder signatures, to avoid misleading the signature-layer runner.
 
@@ -509,7 +509,7 @@ Evidence Bundle: DO chain (with signatures) + rule-set snapshot + knowledge snap
 - **v1.5 increments over v1.3**: on the verified hash pipeline (JCS flat + single deletion point) basis, extend the field set (canonical_tree, knowledge-reference pointers, attachment pointers, human_oversight objectification, conclusion-layer outcome), complete the signature layer (ECDSA P-256, unfrozen) and the audit-layer vector set (78 + 8 to be added with the signature layer);
 - **preimage_version constant**: v1.5 hash mode = `"erdl-do-v1.5-hash-flat"` (domain separator, §1.1); v1.3 historical vectors retain their own version identifier;
 - **Version discrimination** (verifier Step 0): DO contains canonical_tree or v1.5 fields → v1.5 flat hash; otherwise → v1.3 legacy path (for historical-archive verification only);
-- **Historical compatibility**: the v1.3 nested-algorithm-verified frozen AV-001~013 regression suite continues as the historical-archive verification baseline; production chains do not mix versions.
+- **Historical compatibility**: the v1.3 nested-algorithm-verified frozen AV-001..013 regression suite continues as the historical-archive verification baseline; production chains do not mix versions.
 
 ---
 

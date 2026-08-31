@@ -17,7 +17,7 @@
       "verified_date": "2026-07-30",
       "verified_by": "Erik Newton (Concordia)",
       "result": "13/13 AV byte-perfect match",
-      "av_result": "AV-001~AV-012 MATCH + AV-013 EXPECTED_MISMATCH detected",
+      "av_result": "AV-001..AV-012 MATCH + AV-013 EXPECTED_MISMATCH detected",
       "commit": "d602844"
     }
   ]

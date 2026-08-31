@@ -3,9 +3,9 @@
  * generate-vectors.cjs — ERDL Decision Object v1.3 Cross-Implementation Test Vectors
  *
  * Generates: decision-object-vectors-v1.3.json (101 vectors)
- *   - 63 static Decision Object vectors (DO-001 ~ DO-063)
+ *   - 63 static Decision Object vectors (DO-001..DO-063)
  *   - 26 dynamic vectors (Temporal 10 / Seeded 8 / Stateful 8)
- *   - 12 audit hash vectors (AV-001 ~ AV-012)
+ *   - 12 audit hash vectors (AV-001..AV-012)
  *   - 2 reserved vectors (DO-064, AV-013 → DELEGATE, v1.3)
  *
  * Authority: SPEC v1.1 §3.4, Whitepaper Draft 3 §13

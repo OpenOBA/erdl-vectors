@@ -3,9 +3,9 @@
  *
  * Covers all "self-consistent DOs" (those passing verifyDO) among the 78 V-DO-v15 vectors:
  *   - MATCH positives (D / C01 / G domain / V-COMP positives)
- *   - semantic BREACH single DOs (A02/A07~A10/F01/F03~F05/F08~F11, hash self-consistent + semantic violation)
+ *   - semantic BREACH single DOs (A02/A07..A10/F01/F03..F05/F08..F11, hash self-consistent + semantic violation)
  *   - base_do (base side of A hash-type / G structure-type / F02/F06/F07)
- *   - chain members (hash self-consistent members of C01 normal + C03~C08 structural attacks)
+ *   - chain members (hash self-consistent members of C01 normal + C03..C08 structural attacks)
  *
  * The canary K01 (hash intentionally "wrong"), the C02 tampered member, and each tampered_do (already mismatched) are excluded.
  */

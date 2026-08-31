@@ -381,8 +381,8 @@ function buildNormalChain(answerPrefix) {
   return seq;
 }
 
-// C02~C08: apply various attacks to the normal chain, producing a "tampered chain".
-// Semantic attacks (C03~C08) recompute the hash after tamper to keep it self-consistent, so the verifier
+// C02..C08: apply various attacks to the normal chain, producing a "tampered chain".
+// Semantic attacks (C03..C08) recompute the hash after tamper to keep it self-consistent, so the verifier
 // detects the specific breach code via its semantic detectors (not hash mismatch).
 function buildTamperedChain(attackType) {
   const seq = buildNormalChain(null);
@@ -704,7 +704,7 @@ function main() {
     };
   });
 
-  // F01~F11 failure detection (RFC-002 §9.1 group 3)
+  // F01..F11 failure detection (RFC-002 §9.1 group 3)
   // semantic (F01/F03/F04/F05): hash self-consistent + semantic detector reports the specific breach
   // hash (F02/F06/F07): base self-consistent + tampered (not recomputed) → hash_mismatch
   function buildFBase(answerId, opts) {
