@@ -69,7 +69,9 @@ function jcsCanonicalize(value) {
 
 ---
 
-## 3. 七步验证法（Step 0–6）
+## 3. 五步验证法（Step 0–6 共 7 步）
+
+> 「五步」为历史沿用名：v1.3 验证法为 Step 1–5 五步；v1.5 新增 Step 0（版本选路）与 Step 6（答案双检），共 7 步。
 
 对每条 DO 依次执行：
 
