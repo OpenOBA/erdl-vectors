@@ -36,7 +36,7 @@
  *
  *   oracle-key mirrors the answer-file keying: <id> / <id>-base / <id>-tampered / <id>[i].
  *   Version-gated DOs (e.g. V-DO-v15-C07[1], unsupported preimage_version) MUST NOT have a key —
- *   the reference terminates early there (RUNNER_CONTRACT R1 / §4 版本门排除).
+ *   the reference terminates early there (RUNNER_CONTRACT R1 / §4 version-gate exclusion).
  *
  * What gets verified (hash layer + canary):
  *   1. canonical_hex byte-identity for every applicable DO (78 vectors → 107 DOs);
@@ -63,7 +63,7 @@ const PREIMAGE_VERSION = 'erdl-do-v1.5-hash-flat';
 
 /**
  * Recompute the reference canonical_hex for every applicable DO, mirroring the
- * answer-file keying + version gate (RUNNER_CONTRACT §4 版本门排除).
+ * answer-file keying + version gate (RUNNER_CONTRACT §4 version-gate exclusion).
  */
 function buildReferenceMap(vectors) {
   const map = {};
