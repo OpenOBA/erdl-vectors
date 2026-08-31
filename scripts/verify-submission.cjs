@@ -33,7 +33,7 @@
  * Usage:
  *   node scripts/verify-submission.cjs --submission submissions/<runner>-output.json [--vectors <path>]
  *
- * @author Tang Haoran · OpenOBA AI Executive
+ * @author Tang Qixin
  * @since 2026-08-31
  * @license MIT
  */

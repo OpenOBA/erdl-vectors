@@ -9,7 +9,7 @@
  *   audit.hash = "sha256:" + HEX(SHA-256(JCS(all DO fields − audit.hash)))
  *   preimage_version = "erdl-do-v1.5-hash-flat" enters the preimage
  *
- * @author Tang Haoran · OpenOBA AI Executive
+ * @author Tang Qixin
  * @since 2026-08-22
  * @license MIT
  */

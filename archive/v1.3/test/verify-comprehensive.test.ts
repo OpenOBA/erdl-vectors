@@ -3,8 +3,8 @@
  *
  * 维度：JCS RFC 8785 × audit hash 5-step × 边界 × 恶意输入 × 跨实现一致性
  *
- * Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
- * @author 唐浩然 (Tang Haoran) · OpenOBA AI 执行官
+ * Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
+ * @author 唐启鑫 (Tang Qixin)
  * @since 2026-07-28
  */
 

@@ -1,6 +1,6 @@
 # Runner's Guide — Implementing an ERDL Decision Object Verifier
 
-> Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
 
 > **目标读者**: 想在自己的 ERDL 规则引擎中实现 Decision Object v1.3 支持的开发者  
 > **前提**: 理解 JSON、SHA-256、RFC 8785 (JCS)  

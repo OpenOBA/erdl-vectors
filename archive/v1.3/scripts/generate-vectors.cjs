@@ -10,8 +10,8 @@
  *
  * Authority: SPEC v1.1 §3.4, Whitepaper Draft 3 §13
  * Strategy: From scratch — no data inheritance from v1.0/v1.1
- * Copyright © 2026 唐启鑫 (Tang Qixin). All rights reserved.
- * Author: Tang Haoran — OpenOBA AI Executive
+ * Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
+ * Author: Tang Qixin
  * Date: 2026-07-28
  */
 
