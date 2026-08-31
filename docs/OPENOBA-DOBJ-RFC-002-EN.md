@@ -12,6 +12,8 @@
 > **Higher-level spec**: ERDL SPEC v2.0
 > **Predecessor**: ERDL-RFC-001 (v1.3, the hash-pipeline foundation)
 >
+> **Inherited from RFC-001 (v1.3, archived)**: this document is a v1.5 increment; the following content remains authoritative in RFC-001 and is not repeated here — design philosophy (universal fact container), ecosystem compatibility (MCP/A2A/OpenTelemetry/OCSF/IETF AAT), privacy & data minimization (GDPR/LGPD/DPDP), regulatory versioning & upgrade paths, long-term maintenance & field governance (append-only), and threat model.
+>
 > **Revision history**: after multiple revisions, established the "flat hash + expression-tree field" scheme, and completed the jurisdiction vectors and the unified adjudication of stateful operators (within/rate). 2026-08-31: chain scale-governance pointer (§8); full-line count-caliber unification (audit layer 78 / Core 301).
 >
 > **Keyword interpretation**: the keywords "MUST", "MUST NOT", "SHOULD", "MAY" in this document follow the semantics of RFC 2119 and RFC 8174.
