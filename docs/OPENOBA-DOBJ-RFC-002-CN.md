@@ -211,6 +211,8 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 > - **未验证（Unverified）**：现行 v1.5 已生成的 78 条哈希层向量均尚未经独立第三方 Runner 验证，仅参考实现通过。
 >
 > 记录原则遵循「**Measurements, not endorsements**」——只记录测量事实（谁、哪天、通过多少条），不做背书。
+>
+> **自动记录机制**：参考 runner 的验证结果由 CI 自动落盘为 `conformance/CONFORMANCE.md`（记录谁、哪天、通过多少条 + Check 1/2 + K01 判别 + R1–R6 对照结论），由 `scripts/generate-conformance.cjs` 生成（`npm run conformance`），CI 有新鲜度门禁（stale 即红）——实现「测量事实自动记录，无需手工背书」。
 
 | 类别 | 编号段 | 数量 | 内容 |
 |------|------|:---:|------|
