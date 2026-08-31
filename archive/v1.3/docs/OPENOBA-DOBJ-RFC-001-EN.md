@@ -1,4 +1,4 @@
-> ⚠️ **ARCHIVED (2026-08-18)**: This RFC has been superseded by **OPENOBA-DOBJ-RFC-002** (Decision Object v1.5) and is no longer the current standard. Retained in archive/ as a historical record: v1.3 whole-DO preimage mode + §3.1 generic serialization constraints (inherited by RFC-002 §1.3) + §13.3 nested five-step verification (historical-archive DO verification only). The v1.3 frozen vectors (AV-001~013) are retained as historical archive + JCS canonicalization regression suite.
+> ⚠️ **ARCHIVED (2026-08-18)**: This RFC has been superseded by **OPENOBA-DOBJ-RFC-002** (Decision Object v1.5) and is no longer the current standard. Retained in archive/ as a historical record: v1.3 whole-DO preimage mode + §3.1 generic serialization constraints (inherited by RFC-002 §1.3) + §13.3 nested five-step verification (historical-archive DO verification only). The v1.3 frozen vectors (AV-001..013) are retained as historical archive + JCS canonicalization regression suite.
 
 # RFC 001 — ERDL Decision Object v1.3 · Enterprise AI Agent Audit Decision Record Standard
 
@@ -266,7 +266,7 @@ IETF draft-sharif-agent-audit-trail-00 uses exactly the same cryptographic primi
 | 19 | `data_modification_expected` | boolean | HIPAA / PCI DSS / CAICT compliance |
 | 20 | `context_snapshot_hash` | string | PII-containing scenarios / cross-Agent verification |
 | 21 | `sanitized_context` | string | PII-containing scenarios / GDPR compliance |
-| 22 | `confidence_score` | integer | NIST AI RMF compliance (0~100, integer, representing percentage; e.g., 95 means 95%) |
+| 22 | `confidence_score` | integer | NIST AI RMF compliance (0..100, integer, representing percentage; e.g., 95 means 95%) |
 | 23 | `signature` | string (Base64url) | HIPAA / PCI DSS (critical decisions). ECDSA P-256 signature covering all DO content except audit/signature/signing_key_id |
 | 24 | `signing_key_id` | string | Companion to `signature` field, identifies the public key version used for signature verification. Auditors use this ID to retrieve the corresponding public key from KMS. Does not participate in JCS serialization, does not participate in signature preimage (the signature preimage is identical to the JCS preimage — both use the exact same field set, excluding audit.hash, signature, and signing_key_id). Its role is purely key metadata; changing key_id does not affect the signature value |
 
@@ -339,7 +339,7 @@ Self-describing structure of each extension entry:
 | `evaluation.matched_rules[].ring` | integer | Execution ring level (0-3) |
 | `evaluation.total_evaluated` | integer | Total number of rules evaluated |
 | `evaluation.total_matched` | integer | Total number of rules matched |
-| `evaluation.llm_raw_confidence` | integer | Raw LLM-provided confidence (integer, 0~100, representing percentage; e.g., 95 means 95%) |
+| `evaluation.llm_raw_confidence` | integer | Raw LLM-provided confidence (integer, 0..100, representing percentage; e.g., 95 means 95%) |
 
 > ⚠️ **Distinction from top-level `confidence_score`**: `evaluation.llm_raw_confidence` is the raw confidence value returned by the LLM during this specific evaluation (may vary per evaluation) — this is part of the rule engine execution record. The top-level JURISDICTION `confidence_score` is a configurable confidence baseline required by NIST AI RMF (activatable/configurable in JURISDICTION) — this is a compliance declaration. The two are independently populated and do not substitute for each other.
 
@@ -1174,7 +1174,7 @@ Neutrality is tested, not declared.
 |----------|:-----:|-------------|
 | Static Decision Vectors | 63 | 13 decision types + 13 operator full coverage |
 | Dynamic Decision Vectors | 26 | Temporal(10) + Seeded(8) + Stateful(8) |
-| Audit Hash Vectors | 12 | AV-001~AV-007 + AV-009~AV-013 (incl. AV-013 chain integrity canary; AV-008 superseded by AV-013) |
+| Audit Hash Vectors | 12 | AV-001..AV-007 + AV-009..AV-013 (incl. AV-013 chain integrity canary; AV-008 superseded by AV-013) |
 | **Total** | **101** | |
 
 **Note**: v1.3.1 completely removes `canonical_hex` (the hex-encoding of JCS direct output) from the vector file. AV vectors now carry `diag_hash` (`audit.hash` first 14 characters, i.e., `"sha256:"` + 8 hex digits) as a debug anchor — SHA-256 is a one-way function; `diag_hash` cannot invert to recover JCS output and cannot be used to bypass JCS implementation. Full `canonical_hex` answers remain in the separate answers file `decision-object-answers-v1.3.json` for development diagnostics only. Conformance runners MUST NOT read the answers file.

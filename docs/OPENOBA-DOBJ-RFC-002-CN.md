@@ -216,15 +216,15 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 | 类别 | 编号段 | 数量 | 内容 |
 |------|------|:---:|------|
-| 决策类型覆盖 | V-DO-v15-D01~D13 | 13 | 13 种决策类型（ALLOW/DENY/CORRECT/NOTIFY/REQUEST_HUMAN/ESCALATE/DELEGATE/DEFER/EMERGENCY_HALT/ROLLBACK/QUARANTINE/WORKFLOW/GUIDE）× 扁平哈希（含 canonical_tree 字段） |
-| 链攻击检测 | V-DO-v15-C01~C08 | 8 | 正常链基线 + 7 攻击（单条篡改/删记录/指针悬空/时钟回退/整链重建/版本降级/混链，详见 §9.2） |
-| 锚定攻击检测 | V-DO-v15-A01~A10 | 10 | 知识篡改/引用不可解析/分片不符/附件篡改/意图篡改/记忆键篡改/树快照伪造/树篡改 2 条（节点交换序/字面量精度）/B 类文本篡改（详见 §9.3） |
-| 签名链（规划，未生成） | V-SIGN-001~005 | 5 | 合法验签/篡改验签失败/链回溯/伪造签名/签名金丝雀，§10.3；随签名层实现后补入 |
-| 时间锚定（规划，未生成） | V-DO-v15-T01~T03 | 3 | TSA 令牌/clock_drift/关键决策无锚；随签名层实现后补入 |
+| 决策类型覆盖 | V-DO-v15-D01..D13 | 13 | 13 种决策类型（ALLOW/DENY/CORRECT/NOTIFY/REQUEST_HUMAN/ESCALATE/DELEGATE/DEFER/EMERGENCY_HALT/ROLLBACK/QUARANTINE/WORKFLOW/GUIDE）× 扁平哈希（含 canonical_tree 字段） |
+| 链攻击检测 | V-DO-v15-C01..C08 | 8 | 正常链基线 + 7 攻击（单条篡改/删记录/指针悬空/时钟回退/整链重建/版本降级/混链，详见 §9.2） |
+| 锚定攻击检测 | V-DO-v15-A01..A10 | 10 | 知识篡改/引用不可解析/分片不符/附件篡改/意图篡改/记忆键篡改/树快照伪造/树篡改 2 条（节点交换序/字面量精度）/B 类文本篡改（详见 §9.3） |
+| 签名链（规划，未生成） | V-SIGN-001..005 | 5 | 合法验签/篡改验签失败/链回溯/伪造签名/签名金丝雀，§10.3；随签名层实现后补入 |
+| 时间锚定（规划，未生成） | V-DO-v15-T01..T03 | 3 | TSA 令牌/clock_drift/关键决策无锚；随签名层实现后补入 |
 | 金丝雀 | V-DO-v15-K01 | 1 | 链位置金丝雀（哈希模式，延续 AV-013；签名金丝雀由 V-SIGN-005 承载，不重复计数） |
-| 结论层 | V-DO-v15-G01~G14 | 14 | 结构攻击恒定 6 + 领域示例 8（政务 4 + 企业 4，可增） |
-| 法域合规 | V-COMP-001~021 + F01~F11 | 32 | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含 F06/F07 第一层篡改、F08/F09 风险条件层、F10/F11 优先级铉定，详见 §9.1） |
-| **有状态算子状态验证（规划，未生成）** | **V-TEMPORAL-001~004** | **4** | within/rate 跨决策窗口计数状态行为（多决策序列，验证 temporal_state 快照与重放一致，对应 §2.4）：T01 rate 正常序列（未超限→超限）、T02 within 正常序列、T03 temporal_state 快照篡改（判 `temporal_state_divergence`）、T04 状态重放金丝雀（跳过重放的 regressed 验证器被捕）。向量随 temporal_state 进 DO 落地后生成冻结 |
+| 结论层 | V-DO-v15-G01..G14 | 14 | 结构攻击恒定 6 + 领域示例 8（政务 4 + 企业 4，可增） |
+| 法域合规 | V-COMP-001..021 + F01..F11 | 32 | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含 F06/F07 第一层篡改、F08/F09 风险条件层、F10/F11 优先级铉定，详见 §9.1） |
+| **有状态算子状态验证（规划，未生成）** | **V-TEMPORAL-001..004** | **4** | within/rate 跨决策窗口计数状态行为（多决策序列，验证 temporal_state 快照与重放一致，对应 §2.4）：T01 rate 正常序列（未超限→超限）、T02 within 正常序列、T03 temporal_state 快照篡改（判 `temporal_state_divergence`）、T04 状态重放金丝雀（跳过重放的 regressed 验证器被捕）。向量随 temporal_state 进 DO 落地后生成冻结 |
 | **合计** | | **审计层 78** | 哈希层 78 条（D/C/A/K/G/V-COMP 已冻结）。签名 5 + TSA 3 + V-TEMPORAL 4 为规划项（未生成，不计数） |
 
 > **命名澄清（避免与 SPEC §45 V-SCENE 语义混同）**：SPEC §45 的 V-SCENE 专指**生命周期七阶段**的业务场景验证（身份/岗位/培训/运营/审计/信任/退役），编号 `V-SCENE-NNN`。within/rate 的有状态算子窗口计数验证是**不同的验证对象**（算子状态正确性，非业务场景闭环），故本规范以**独立序列 V-TEMPORAL** 承载，不占用 V-SCENE 编号——对应 SPEC §44 第 2462 行「纳入 V-SCENE（多决策序列）**或独立状态验证向量**」中的「独立状态验证向量」分支。
@@ -235,7 +235,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 ### 9.1 V-COMP 法域合规向量完整清单（32 条）
 
-> **编号说明**：辖区组原为 001~005 五条（CN/EU/US/SG/多法域并集），补 BR/IN 时**追加 020/021 而不重排既有编号**（V-COMP 编号属 `[FREEZE-3]` 命名级冻结：不复用、不重排、不改含义）。故辖区组编号为 001~005 + 020~021，非连续段，属冻结治理的正常结果。
+> **编号说明**：辖区组原为 001..005 五条（CN/EU/US/SG/多法域并集），补 BR/IN 时**追加 020/021 而不重排既有编号**（V-COMP 编号属 `[FREEZE-3]` 命名级冻结：不复用、不重排、不改含义）。故辖区组编号为 001..005 + 020..021，非连续段，属冻结治理的正常结果。
 
 **第一组：辖区激活字段完整性（7 条）**
 
@@ -249,7 +249,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 | V-COMP-020 | BR · LGPD | model_id / data_modification_expected / autonomy_level / context_snapshot_hash / sanitized_context（Art.20 复核权 → autonomy_level；Art.20 §1 标准与程序可告知 → model_id；Art.18 删除权 + PII 分离 → sanitized_context。LGPD 不明文要求人工介入，故不激活 human_oversight 强制） |
 | V-COMP-021 | IN · DPDP | data_modification_expected / context_snapshot_hash / sanitized_context（§12(1)(d) 擦除权 → sanitized_context；§12(1)(a-c) 更正/补全/更新 → data_modification_expected；§12(2) 下游级联通知需数据流可溯 → context_snapshot_hash。DPDP 未设自动化决策专条，故不激活 autonomy_level / model_id） |
 
-> 注：上表 `signature` 为签名层字段（三层证据体系第二层，§10.3 V-SIGN 未冻结）；哈希层向量（V-DO-v15 78 条）暂不含 signature **值**，随签名层实现后补入 V-COMP-001~003 的字段存在性检查。BR/IN 两条不含 signature —— LGPD/DPDP 均未要求不可否认签名，签名强制来自 HIPAA/PCI DSS 与 `risk_level=critical`（§5.2）。
+> 注：上表 `signature` 为签名层字段（三层证据体系第二层，§10.3 V-SIGN 未冻结）；哈希层向量（V-DO-v15 78 条）暂不含 signature **值**，随签名层实现后补入 V-COMP-001..003 的字段存在性检查。BR/IN 两条不含 signature —— LGPD/DPDP 均未要求不可否认签名，签名强制来自 HIPAA/PCI DSS 与 `risk_level=critical`（§5.2）。
 >
 > **critical 的可验证边界（诚实口径）**：哈希层只能验「存在性」（F08/F09 两条负例）——因为一条**合规的** critical DO 按定义就是签名模式，其正例必须含真实可验签名，属签名层职责（V-SIGN-001 承载，§10.3）。本向量集**不**放带占位签名的伪正例，以免误导签名层 runner。
 
@@ -505,7 +505,7 @@ signature(n) = ECDSA_P256_Sign( private_key,
 - **v1.5 相对 v1.3 的增量**：在已验证哈希管线（JCS 扁平 + 唯一删除点）基础上扩展字段集（canonical_tree、知识引用指针、附件指针、human_oversight 对象化、结论层 outcome），补齐签名层（ECDSA P-256，未冻结）与审计层向量集（78 条 + 8 条随签名层补入）；
 - **preimage_version 常量**：v1.5 哈希模式 = `"erdl-do-v1.5-hash-flat"`（域分隔符，§1.1）；v1.3 历史向量保留其自有版本标识；
 - **版本判别**（验证器 Step 0）：DO 含 canonical_tree 或 v1.5 字段 → v1.5 扁平哈希；否则 → v1.3 历史路径（仅供历史档案验证）；
-- **历史兼容**：v1.3 嵌套算法验证冻结的 AV-001~013 回归套件继续作为历史档案验证基准；生产链不混合版本。
+- **历史兼容**：v1.3 嵌套算法验证冻结的 AV-001..013 回归套件继续作为历史档案验证基准；生产链不混合版本。
 
 ---
 

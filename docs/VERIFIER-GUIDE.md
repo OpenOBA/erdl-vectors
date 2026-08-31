@@ -152,7 +152,7 @@ hash 自洽 ≠ 无攻击。语义类向量篡改后**重算 hash 保持自洽**
       "decision_object": { ... },
       "expected": { "type": "MATCH" } },
 
-    // ② chain：DO 链（正常链 C01 + 攻击链 C02~C08）
+    // ② chain：DO 链（正常链 C01 + 攻击链 C02..C08）
     { "id": "V-DO-v15-C03", "category": "C",
       "chain": [ {...}, {...} ],
       "expected": { "type": "BREACH", "breach": "chain_seq_gap" } },

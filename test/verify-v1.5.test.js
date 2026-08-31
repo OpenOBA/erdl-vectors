@@ -97,7 +97,7 @@ describe('five-step verification (Step 0–5)', () => {
     expect(detectChainBreach(c01.chain)).toBeNull();
   });
 
-  it('C02~C08 attack chains detect a specific breach code (semantic detection, not hash-mismatch fallback)', () => {
+  it('C02..C08 attack chains detect a specific breach code (semantic detection, not hash-mismatch fallback)', () => {
     const attacks = vectors.vectors.filter((v) => v.chain && v.id !== 'V-DO-v15-C01');
     expect(attacks.length).toBe(7);
     attacks.forEach((v) => {

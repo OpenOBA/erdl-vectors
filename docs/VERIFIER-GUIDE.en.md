@@ -152,7 +152,7 @@ Check in order; return on hit:
       "decision_object": { ... },
       "expected": { "type": "MATCH" } },
 
-    // ② chain: DO chain (normal chain C01 + attack chains C02~C08)
+    // ② chain: DO chain (normal chain C01 + attack chains C02..C08)
     { "id": "V-DO-v15-C03", "category": "C",
       "chain": [ {...}, {...} ],
       "expected": { "type": "BREACH", "breach": "chain_seq_gap" } },

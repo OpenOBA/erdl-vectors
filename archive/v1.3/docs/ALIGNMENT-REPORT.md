@@ -74,7 +74,7 @@
 13. §4.1 Header — Changed "CORE Fields (15" → "CORE Fields (14"
 14. §4.2 Header — Changed "JURISDICTION Fields (9" → "JURISDICTION Fields (10"
 15. §4.2 Field Numbering — Renumbered #16-#24 → #15-#24
-16. §4.2 #22 confidence_score — Changed from "float (string)" to "integer (0~100)"
+16. §4.2 #22 confidence_score — Changed from "float (string)" to "integer (0..100)"
 17. §4.2 #23 signature — Simplified description
 18. §4.2 #24 signing_key_id — Added new field with signature preimage exclusion clarification
 19. §4.2 Numbering Rule — Added comment: "CORE #1-#14, JURISDICTION #15-#24, EXTENSIONS unnumbered"
@@ -123,7 +123,7 @@ Confirmed deleted — English RFC 001 does not contain Appendix E (matches Chine
 - JURISDICTION field count: 9→10 (all occurrences)
 - Baseline deployment fields: 15→14
 - Field numbering: #16-#24→#15-#24
-- confidence_score type: float(string)→integer(0~100)
+- confidence_score type: float(string)→integer(0..100)
 - JCS formula: 4 locations unified to include previous_hash + commitment
 - Regulatory framework count: 12→14 (all references)
 

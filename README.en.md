@@ -78,15 +78,15 @@ Core total **301** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 223.
 
 | Category | Number range | Count | Content |
 |------|------|:---:|------|
-| Decision-type coverage | V-DO-v15-D01~D13 | 13 | 13 decision types × flat hash (with the canonical_tree field) |
-| Chain-attack detection | V-DO-v15-C01~C08 | 8 | Normal-chain baseline + 7 attacks (tamper / record deletion / dangling pointer / clock regression / whole-chain rebuild / version downgrade / mixed chain) |
-| Anchoring-attack detection | V-DO-v15-A01~A10 | 10 | Knowledge / reference / fragment / attachment / intent / memory / tree snapshot / tree tamper / type-B text |
+| Decision-type coverage | V-DO-v15-D01..D13 | 13 | 13 decision types × flat hash (with the canonical_tree field) |
+| Chain-attack detection | V-DO-v15-C01..C08 | 8 | Normal-chain baseline + 7 attacks (tamper / record deletion / dangling pointer / clock regression / whole-chain rebuild / version downgrade / mixed chain) |
+| Anchoring-attack detection | V-DO-v15-A01..A10 | 10 | Knowledge / reference / fragment / attachment / intent / memory / tree snapshot / tree tamper / type-B text |
 | Canary | V-DO-v15-K01 | 1 | Chain-position canary (continues the AV-013 pattern) |
-| Conclusion layer | V-DO-v15-G01~G14 | 14 | Structural attacks fixed 6 + domain examples 8 (government 4 + enterprise 4) |
-| Jurisdiction compliance | V-COMP-001~021 + F01~F11 | 32 | Field conformance 21 (jurisdiction 7 + framework 14) + failure detection 11 (including first-layer tamper / risk-condition layer / priority pinning) |
+| Conclusion layer | V-DO-v15-G01..G14 | 14 | Structural attacks fixed 6 + domain examples 8 (government 4 + enterprise 4) |
+| Jurisdiction compliance | V-COMP-001..021 + F01..F11 | 32 | Field conformance 21 (jurisdiction 7 + framework 14) + failure detection 11 (including first-layer tamper / risk-condition layer / priority pinning) |
 | **Hash-layer total** | | **78** | D / C / A / K / G / V-COMP |
 
-Planned, not generated, not counted: time anchoring V-DO-v15-T01~T03 (3 vectors), signature chain V-SIGN-001~005 (5 vectors), to be added after the signature layer is implemented.
+Planned, not generated, not counted: time anchoring V-DO-v15-T01..T03 (3 vectors), signature chain V-SIGN-001..005 (5 vectors), to be added after the signature layer is implemented.
 
 ### V-ENGINE expression layer (223 vectors)
 

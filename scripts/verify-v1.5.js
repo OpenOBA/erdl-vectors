@@ -21,7 +21,7 @@
  *
  * Vector shapes:
  *   - decision_object: standalone DO (MATCH positive / semantic BREACH / canary)
- *   - chain: DO chain (C01 normal chain + C02~C08 attack chains, asserting a specific breach code)
+ *   - chain: DO chain (C01 normal chain + C02..C08 attack chains, asserting a specific breach code)
  *   - base_do + tampered_do: tamper pair (base self-consistent, tampered mismatches → hash_mismatch)
  *
  * Usage:
@@ -413,7 +413,7 @@ function main() {
       const baseR = verifyDO(v.base_do);
       const tamR = verifyDO(v.tampered_do);
       // tamper pair: base self-consistent + tampered mismatch (detected by flat hash)
-      // note: semantic-layer detection for A02(content_unresolvable)/A07~A10(tree_snapshot_divergence)
+      // note: semantic-layer detection for A02(content_unresolvable)/A07..A10(tree_snapshot_divergence)
       //     depends on external systems (knowledge-base resolution / rule recompilation); this hash-layer verifier falls back to flat-hash mismatch,
       //     the specific breach codes await the semantic verifier (same as the S3 signature layer).
       if (baseR.passed && !tamR.passed) { pass++; breakdown[cat].pass++; }

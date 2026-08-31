@@ -362,7 +362,7 @@ describe('评估结果 (Evaluation)', () => {
 // 动态向量结构
 // ═══════════════════════════════════════════════
 describe('动态向量', () => {
-  it('temporal: 10 个向量, id T-001 ~ T-010', () => {
+  it('temporal: 10 个向量, id T-001..T-010', () => {
     const tv = data.dynamic_vectors.temporal
     expect(tv).toHaveLength(10)
     for (let i = 1; i <= 10; i++) {
@@ -394,7 +394,7 @@ describe('动态向量', () => {
     expect(t9.description).toContain('2038')
   })
 
-  it('seeded: 8 个向量, id S-001 ~ S-008', () => {
+  it('seeded: 8 个向量, id S-001..S-008', () => {
     const sv = data.dynamic_vectors.seeded
     expect(sv).toHaveLength(8)
     for (let i = 1; i <= 8; i++) {
@@ -408,7 +408,7 @@ describe('动态向量', () => {
     expect(new Set(seeds).size).toBe(8)
   })
 
-  it('stateful: 8 个向量, id ST-001 ~ ST-008', () => {
+  it('stateful: 8 个向量, id ST-001..ST-008', () => {
     const sv = data.dynamic_vectors.stateful
     expect(sv).toHaveLength(8)
     for (let i = 1; i <= 8; i++) {
