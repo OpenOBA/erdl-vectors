@@ -52,14 +52,12 @@ The simplest way to generate this file: run your own JCS+SHA-256 over every DO, 
 
 ## What Gets Verified
 
-A conforming runner (RUNNER_CONTRACT.md R1–R6) MUST:
-
-| Check | Pass criteria |
-|-------|--------------|
-| **Check 1** | recomputed JCS+SHA-256 hash matches each artifact's own `audit.hash` (78/78) |
-| **Check 2** | submitted `canonical_hex` matches the reference recomputation byte-for-byte (107/107) |
-| **K01 canary** | Check 1 MISMATCH + Check 2 MATCH (discrimination confirmed) |
-| **R3 breach codes** | single-DO P1→P6 + chain breach codes correctly surfaced |
+| Check | Verified by | Pass criteria |
+|-------|-------------|--------------|
+| **Check 1** | the runner (self-check) | recomputed JCS+SHA-256 hash matches each artifact's own `audit.hash` (78/78) |
+| **Check 2** | CI (cross-verify) | your submitted `canonical_hex` matches the reference recomputation byte-for-byte (107/107) |
+| **K01 canary** | runner + CI | Check 1 MISMATCH (runner) + Check 2 MATCH (CI) — discrimination confirmed |
+| **R3 breach codes** | the runner (self-check) | single-DO P1→P6 + chain breach codes correctly surfaced |
 
 ## How to Submit
 
