@@ -1,6 +1,8 @@
 # Changelog — ERDL Decision Object Test Vectors
 
-> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · MIT License
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · Apache-2.0 License
+
+> **License change (2026-09-01)**: MIT → Apache-2.0 (explicit patent grant).
 
 ## v1.5.0（现行）
 
