@@ -1,6 +1,6 @@
 # RFC 002 — ERDL Decision Object v1.5 · 扁平哈希链与表达式树字段规范
 
-> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.)
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · Apache-2.0 License
 
 > **RFC 编号**：ERDL-DOBJ-RFC-002
 >
