@@ -51,7 +51,7 @@
  *
  * @author Tang Qixin
  * @since 2026-08-31
- * @license MIT
+ * @license Apache-2.0
  */
 'use strict';
 

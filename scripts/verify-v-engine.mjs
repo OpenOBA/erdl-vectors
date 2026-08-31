@@ -31,7 +31,7 @@
  *       eliminating the neutrality risk of "expected values first produced only by a single implementation (vendor)" (§48.2 MUST).
  *
  * Run: node scripts/verify-v-engine.mjs
- * @license MIT
+ * @license Apache-2.0
  */
 
 import { readFileSync } from 'fs'
