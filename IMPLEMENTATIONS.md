@@ -30,22 +30,18 @@ v1.3 时代的第三方验证记录（13 AV 向量），归档保留、不复用
 
 | Implementor | Method | Vectors | Date | Artifact |
 |------------|--------|:-------:|------|---------|
-| **Concordia (Erik Newton)** | Python, spec-only, self-built JCS | 13/13 AV | 2026-07-30 | [submissions/](submissions/) |
-| **OpenOBA (Clean-Room CI)** | Node.js, self-built JCS, SDK uninstalled | 63/63 DO + 12/12 AV | 2026-08-05 | [conformance/CONFORMANCE.md](conformance/CONFORMANCE.md) |
+| **Concordia (Erik Newton)** | Python, spec-only, self-built JCS | 13/13 AV | 2026-07-30 | [archive/v1.3/submissions/](archive/v1.3/submissions/) |
+| **OpenOBA (Clean-Room CI)** | Node.js, self-built JCS, SDK uninstalled | 63/63 DO + 12/12 AV | 2026-08-05 | [archive/v1.3/conformance/CONFORMANCE.md](archive/v1.3/conformance/CONFORMANCE.md) |
 
 > 注：Erik Newton（Concordia）是首个、也是迄今**唯一第三方 Runner**，于 2026-07-30 用 Python 纯规范实现（自建 JCS）逐字节验证 v1.3 全部 13 条 AV 向量。v1.5（V-DO-v15 78 条）**尚无第三方验证**，待重新约 Runner。
 
 ## Submission Process
 
-1. 阅读 [RUNNER_CONTRACT.md](../RUNNER_CONTRACT.md)（规范性契约 R1–R6，conforming 权威定义）+ [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md)（实现指南），权威细节见 RFC-002（`docs/OPENOBA-DOBJ-RFC-002-CN.md`）
+1. 阅读 [RUNNER_CONTRACT.md](RUNNER_CONTRACT.md)（规范性契约 R1–R6，conforming 权威定义）+ [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md)（实现指南），权威细节见 RFC-002（`docs/OPENOBA-DOBJ-RFC-002-CN.md`）
 2. 从规范文本独立实现 JCS (RFC 8785) + SHA-256 — **禁止依赖 ERDL SDK / json-canonicalize**
 3. 对 `decision-object-vectors-v1.5.json` 逐条运行验证
 4. 结果逐字节比对（MATCH 型向量 hash 自洽；金丝雀 K01 正确实现 MUST MISMATCH）
-5. 提交 PR 到 `submissions/` 目录，包含：
-   - Runner 源码（链接或内附）
-   - 逐向量 pass/fail 输出
-   - 方法描述（语言 / JCS 库或自建 / SHA-256 库）
-   - 验证日期
+5. 提交 PR 到 `submissions/` 目录（提交格式与要求见 [submissions/README.md](submissions/README.md)）
 
 ### Principles
 

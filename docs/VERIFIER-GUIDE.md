@@ -206,12 +206,13 @@ Runner 的验证器若在金丝雀上返回 MATCH，说明它「跳过独立重�
 
 ## 8. 提交（Submission）
 
-见 [IMPLEMENTATIONS.md](../IMPLEMENTATIONS.md)「Submission Process」：
+见 [IMPLEMENTATIONS.md](../IMPLEMENTATIONS.md)「Submission Process」与 [submissions/README.md](../submissions/README.md)（提交格式）：
 
 1. 独立实现 JCS（RFC 8785）+ SHA-256，**禁依赖 ERDL SDK / json-canonicalize**；
 2. 对 `decision-object-vectors-v1.5.json` 逐条验证，逐字节比对；
 3. 金丝雀 K01 正确实现 MUST MISMATCH；
-4. PR 到 `submissions/`，含源码、逐向量输出、方法描述、验证日期。
+4. PR 到 `submissions/`（格式见 [submissions/README.md](../submissions/README.md)：记录 runner/method/date/Check 1+2 通过数/金丝雀判别/breach 码）。
+5. CI 自动验证并生成 `conformance/CONFORMANCE.md`（自动记录「谁、哪天、通过多少条」）。
 
 **在线验证工具**：无需安装即可验证单条 DO 的 hash，见 `web/verify.html`（浏览器端 self-built JCS + Web Crypto SHA-256）。
 
