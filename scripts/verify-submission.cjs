@@ -67,25 +67,10 @@ function buildReferenceMap(vectors) {
   return map;
 }
 
-function main() {
-  const args = process.argv.slice(2);
-  let submissionPath = null;
-  let vectorsPath = null;
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--submission' && i + 1 < args.length) { submissionPath = args[i + 1]; i++; }
-    else if (args[i] === '--vectors' && i + 1 < args.length) { vectorsPath = args[i + 1]; i++; }
-  }
-  vectorsPath = vectorsPath || path.join(__dirname, '..', 'decision-object-vectors-v1.5.json');
-  if (!submissionPath) {
-    console.error('usage: node scripts/verify-submission.cjs --submission <path> [--vectors <path>]');
-    process.exit(2);
-  }
-  if (!fs.existsSync(submissionPath)) { console.error('ERROR: submission not found: ' + submissionPath); process.exit(1); }
-
-  const data = JSON.parse(fs.readFileSync(vectorsPath, 'utf8'));
-  const sub = JSON.parse(fs.readFileSync(submissionPath, 'utf8'));
-  const refMap = buildReferenceMap(data.vectors);
-
+/**
+ * Cross-verify a submission against the reference map. Returns a structured result.
+ */
+function crossVerify(sub, refMap) {
   const subHex = sub.canonical_hex || {};
   let match = 0, mismatch = 0, missing = 0;
   const errors = [];
@@ -106,6 +91,31 @@ function main() {
   const total = Object.keys(refMap).length;
   const failed = mismatch + missing + deadKeys.length + (k01Ok ? 0 : 1);
 
+  return { match, mismatch, missing, deadKeys, k01Ok, total, failed, errors };
+}
+
+function main() {
+  const args = process.argv.slice(2);
+  let submissionPath = null;
+  let vectorsPath = null;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--submission' && i + 1 < args.length) { submissionPath = args[i + 1]; i++; }
+    else if (args[i] === '--vectors' && i + 1 < args.length) { vectorsPath = args[i + 1]; i++; }
+  }
+  vectorsPath = vectorsPath || path.join(__dirname, '..', 'decision-object-vectors-v1.5.json');
+  if (!submissionPath) {
+    console.error('usage: node scripts/verify-submission.cjs --submission <path> [--vectors <path>]');
+    process.exit(2);
+  }
+  if (!fs.existsSync(submissionPath)) { console.error('ERROR: submission not found: ' + submissionPath); process.exit(1); }
+
+  const data = JSON.parse(fs.readFileSync(vectorsPath, 'utf8'));
+  const sub = JSON.parse(fs.readFileSync(submissionPath, 'utf8'));
+  const refMap = buildReferenceMap(data.vectors);
+
+  const result = crossVerify(sub, refMap);
+  const { match, mismatch, missing, deadKeys, k01Ok, total, failed, errors } = result;
+
   console.log('═══════════════════════════════════════════════');
   console.log('  Cross-Implementation Verification (submission)');
   console.log('  runner: ' + (sub.runner || '(unknown)'));
@@ -115,7 +125,7 @@ function main() {
   console.log('  canonical_hex byte-identity: ' + match + '/' + total + ' MATCH'
     + (mismatch ? ' · ' + mismatch + ' MISMATCH' : '')
     + (missing ? ' · ' + missing + ' missing' : ''));
-  console.log('  K01 canary Check 1: ' + (k01Ok ? 'MISMATCH ✓' : 'FAIL (' + k01 + ')'));
+  console.log('  K01 canary Check 1: ' + (k01Ok ? 'MISMATCH ✓' : 'FAIL (' + sub.k01_check1 + ')'));
   console.log('  dead keys: ' + deadKeys.length);
   if (errors.length) {
     console.log('');
@@ -134,4 +144,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { buildReferenceMap };
+module.exports = { buildReferenceMap, crossVerify };

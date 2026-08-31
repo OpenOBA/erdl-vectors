@@ -22,7 +22,11 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 |------------|--------|:-------:|------|---------|
 | **OpenOBA (参考实现)** | Node.js, self-built JCS (RFC 8785) | 78/78 哈希层 + 金丝雀 K01 判别（Check 1 MISMATCH + Check 2 MATCH） | 2026-08-25 | [verify-v1.5.js](scripts/verify-v1.5.js) |
 
-> 第三方 Runner（Concordia / AlgoVoi 等）待排期。提交后填入上表。
+<!-- registry:auto-begin -->
+<!-- (no third-party runners verified yet) -->
+<!-- registry:auto-end -->
+
+> 第三方 Runner 提交见 [submissions/README.md](submissions/README.md)；CI 交叉验证通过后，合并时自动登记于上表。
 
 ### v1.3 历史档案（Decision Object v1.3，AV 编号）
 
