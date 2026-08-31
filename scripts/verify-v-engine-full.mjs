@@ -51,9 +51,13 @@ function verify(v) {
     if (v.tampered_tree) {
       const g1 = renderNode(fromSExpr(v.expr_tree), 'zh');
       const g2 = renderNode(fromSExpr(v.tampered_tree), 'zh');
-      return g1 === v.expected.gloss_zh && g2 === v.expected.tampered_gloss_zh && g1 !== g2;
+      const g1en = renderNode(fromSExpr(v.expr_tree), 'en');
+      const g2en = renderNode(fromSExpr(v.tampered_tree), 'en');
+      return g1 === v.expected.gloss_zh && g2 === v.expected.tampered_gloss_zh && g1 !== g2
+        && g1en === v.expected.gloss_en && g2en === v.expected.tampered_gloss_en && g1en !== g2en;
     }
-    return renderNode(fromSExpr(v.expr_tree), 'zh') === v.expected.gloss_zh;
+    return renderNode(fromSExpr(v.expr_tree), 'zh') === v.expected.gloss_zh
+      && renderNode(fromSExpr(v.expr_tree), 'en') === v.expected.gloss_en;
   }
   if (v.category === 'V-PROJ') {
     if (v.decision_table) {

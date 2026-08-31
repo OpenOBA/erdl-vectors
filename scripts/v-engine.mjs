@@ -515,12 +515,13 @@ export function generateGlossVectors() {
     GLOSS_DEFS.forEach((def, i) => {
         const node = fromSExpr(def.tree);
         const glossZh = renderNode(node, 'zh');
+        const glossEn = renderNode(node, 'en');
         out.push({
             id: `V-GLOSS-${String(i + 1).padStart(3, '0')}`,
             category: 'V-GLOSS',
             node: def.node,
             expr_tree: def.tree,
-            expected: { gloss_zh: glossZh },
+            expected: { gloss_zh: glossZh, gloss_en: glossEn },
         });
     });
     return out;
@@ -536,11 +537,13 @@ export function generateGlossIntegrityVectors() {
     return cases.map((c) => {
         const g1 = renderNode(fromSExpr(c.tree), 'zh');
         const g2 = renderNode(fromSExpr(c.tampered), 'zh');
+        const g1en = renderNode(fromSExpr(c.tree), 'en');
+        const g2en = renderNode(fromSExpr(c.tampered), 'en');
         return {
             id: c.id, category: 'V-GLOSS', node: c.node, scenario: c.scenario,
             expr_tree: c.tree, tampered_tree: c.tampered,
             // store raw material only; divergence recomputed by the verifier (no boolean conclusion stored in the expected value)
-            expected: { gloss_zh: g1, tampered_gloss_zh: g2 },
+            expected: { gloss_zh: g1, gloss_en: g1en, tampered_gloss_zh: g2, tampered_gloss_en: g2en },
         };
     });
 }

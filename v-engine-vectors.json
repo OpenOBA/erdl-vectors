@@ -14992,7 +14992,8 @@
         ]
       },
       "expected": {
-        "gloss_zh": "age 等于 35"
+        "gloss_zh": "age 等于 35",
+        "gloss_en": "age equals 35"
       }
     },
     {
@@ -15020,7 +15021,8 @@
         ]
       },
       "expected": {
-        "gloss_zh": "a 等于 1，b 等于 2"
+        "gloss_zh": "a 等于 1，b 等于 2",
+        "gloss_en": "a equals 1 and b equals 2"
       }
     },
     {
@@ -15048,7 +15050,8 @@
         ]
       },
       "expected": {
-        "gloss_zh": "a 等于 1，或 b 等于 2"
+        "gloss_zh": "a 等于 1，或 b 等于 2",
+        "gloss_en": "a equals 1 or b equals 2"
       }
     },
     {
@@ -15066,7 +15069,8 @@
         }
       },
       "expected": {
-        "gloss_zh": "age 不等于 35"
+        "gloss_zh": "age 不等于 35",
+        "gloss_en": "age does not equal 35"
       }
     },
     {
@@ -15085,7 +15089,8 @@
         ]
       },
       "expected": {
-        "gloss_zh": "cat 在 [\"a\", \"b\"] 中"
+        "gloss_zh": "cat 在 [\"a\", \"b\"] 中",
+        "gloss_en": "cat in [\"a\", \"b\"]"
       }
     },
     {
@@ -15101,7 +15106,8 @@
         ]
       },
       "expected": {
-        "gloss_zh": "cmd 包含 \"rm\""
+        "gloss_zh": "cmd 包含 \"rm\"",
+        "gloss_en": "cmd contains \"rm\""
       }
     },
     {
@@ -15114,7 +15120,8 @@
         }
       },
       "expected": {
-        "gloss_zh": "is_active 为\"是\""
+        "gloss_zh": "is_active 为\"是\"",
+        "gloss_en": "is_active is true"
       }
     },
     {
@@ -15131,7 +15138,8 @@
         ]
       },
       "expected": {
-        "gloss_zh": "age 在闭区间 16 到 60（含两端）"
+        "gloss_zh": "age 在闭区间 16 到 60（含两端）",
+        "gloss_en": "age is in the inclusive range 16 to 60"
       }
     },
     {
@@ -15155,7 +15163,8 @@
         }
       },
       "expected": {
-        "gloss_zh": "items 中所有元素都满足「x 大于 0」"
+        "gloss_zh": "items 中所有元素都满足「x 大于 0」",
+        "gloss_en": "all elements in items satisfy \"x is greater than 0\""
       }
     },
     {
@@ -15173,7 +15182,8 @@
         ]
       },
       "expected": {
-        "gloss_zh": "(a 加 b)"
+        "gloss_zh": "(a 加 b)",
+        "gloss_en": "(a plus b)"
       }
     },
     {
@@ -15190,7 +15200,8 @@
         }
       },
       "expected": {
-        "gloss_zh": "date 加 2年"
+        "gloss_zh": "date 加 2年",
+        "gloss_en": "date plus 2 years"
       }
     },
     {
@@ -15203,7 +15214,8 @@
         }
       },
       "expected": {
-        "gloss_zh": "nums 的总和"
+        "gloss_zh": "nums 的总和",
+        "gloss_en": "sum of nums"
       }
     },
     {
@@ -15229,7 +15241,9 @@
       },
       "expected": {
         "gloss_zh": "age 等于 35",
-        "tampered_gloss_zh": "age 等于 36"
+        "gloss_en": "age equals 35",
+        "tampered_gloss_zh": "age 等于 36",
+        "tampered_gloss_en": "age equals 36"
       }
     },
     {
@@ -15255,7 +15269,9 @@
       },
       "expected": {
         "gloss_zh": "age 等于 35",
-        "tampered_gloss_zh": "age 不等于 35"
+        "gloss_en": "age equals 35",
+        "tampered_gloss_zh": "age 不等于 35",
+        "tampered_gloss_en": "age does not equal 35"
       }
     },
     {
@@ -15297,7 +15313,9 @@
       },
       "expected": {
         "gloss_zh": "a 等于 1，b 等于 2",
-        "tampered_gloss_zh": "a 等于 1"
+        "gloss_en": "a equals 1 and b equals 2",
+        "tampered_gloss_zh": "a 等于 1",
+        "tampered_gloss_en": "a equals 1"
       }
     },
     {
@@ -15329,7 +15347,9 @@
       },
       "expected": {
         "gloss_zh": "cat 在 [\"a\", \"b\"] 中",
-        "tampered_gloss_zh": "cat 在 [\"a\", \"c\"] 中"
+        "gloss_en": "cat in [\"a\", \"b\"]",
+        "tampered_gloss_zh": "cat 在 [\"a\", \"c\"] 中",
+        "tampered_gloss_en": "cat in [\"a\", \"c\"]"
       }
     },
     {
