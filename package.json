@@ -35,6 +35,8 @@
     "verify:vengine": "node scripts/verify-v-engine.mjs",
     "verify:vengine:full": "node scripts/verify-v-engine-full.mjs",
     "verify:vengine:reverse": "node scripts/verify-v-engine-reverse.mjs",
+    "verify:decision": "node scripts/verify-decision.mjs",
+    "verify:producer": "node scripts/verify-producer.mjs",
     "conformance": "node scripts/generate-conformance.cjs",
     "test": "vitest run"
   }
