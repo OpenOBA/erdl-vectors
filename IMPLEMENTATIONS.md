@@ -23,7 +23,7 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 | **OpenOBA (参考实现)** | Node.js, self-built JCS (RFC 8785) | 78/78 哈希层 + 金丝雀 K01 判别（Check 1 MISMATCH + Check 2 MATCH） | 2026-08-31 | [verify-v1.5.js](scripts/verify-v1.5.js) |
 
 <!-- registry:auto-begin -->
-<!-- (no third-party runners verified yet) -->
+| **norviq-go** | Go, spec-only, self-built JCS (RFC 8785) + crypto/sha256, zero dependencies | 107/107 canonical bytes | 2026-09-01 | https://github.com/norviq-dev/erdl-runner-go |
 <!-- registry:auto-end -->
 
 > 第三方 Runner 提交见 [submissions/README.md](submissions/README.md)；CI 交叉验证通过后，合并时自动登记于上表。
