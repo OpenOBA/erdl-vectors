@@ -1,0 +1,70 @@
+{
+  "$schema": "decision-divergence-vectors.schema.json",
+  "description": "decision_divergence 语义重推检查（Tier 2）的验证向量——每个 DO 内部不自洽（决策与规则不一致），conforming verifier MUST 报 decision_divergence。",
+  "maintainer": "OpenOBA",
+  "vectors": [
+    {
+      "id": "V-DIVERGENCE-01",
+      "description": "decision_divergence: ALLOW asserted while citing a DENY rule",
+      "expected": "decision_divergence",
+      "decision_object": {
+        "context": { "operation": "write" },
+        "policies": [
+          {
+            "id": "rule-deny",
+            "name": "deny-write",
+            "when": { "eq": [{ "field": "context.operation" }, "write"] },
+            "then": "DENY",
+            "priority": 100,
+            "ring": 0
+          }
+        ],
+        "result": { "applied_rule": "rule-deny", "decision": "ALLOW", "rules_matched": ["rule-deny"] },
+        "compliance_profile": { "risk_level": "low" },
+        "human_oversight": { "required": false }
+      }
+    },
+    {
+      "id": "V-DIVERGENCE-02",
+      "description": "decision_divergence: DENY asserted while rules derive ALLOW (no human_oversight upgrade)",
+      "expected": "decision_divergence",
+      "decision_object": {
+        "context": { "operation": "read" },
+        "policies": [
+          {
+            "id": "rule-allow",
+            "name": "allow-read",
+            "when": { "eq": [{ "field": "context.operation" }, "read"] },
+            "then": "ALLOW",
+            "priority": 100,
+            "ring": 0
+          }
+        ],
+        "result": { "applied_rule": "rule-allow", "decision": "DENY", "rules_matched": ["rule-allow"] },
+        "compliance_profile": { "risk_level": "low" },
+        "human_oversight": { "required": false }
+      }
+    },
+    {
+      "id": "V-DIVERGENCE-03",
+      "description": "decision_divergence: dangling applied_rule (cited rule id absent from policies)",
+      "expected": "decision_divergence",
+      "decision_object": {
+        "context": { "operation": "read" },
+        "policies": [
+          {
+            "id": "rule-allow",
+            "name": "allow-read",
+            "when": { "eq": [{ "field": "context.operation" }, "read"] },
+            "then": "ALLOW",
+            "priority": 100,
+            "ring": 0
+          }
+        ],
+        "result": { "applied_rule": "rule-nonexistent", "decision": "ALLOW", "rules_matched": ["rule-nonexistent"] },
+        "compliance_profile": { "risk_level": "low" },
+        "human_oversight": { "required": false }
+      }
+    }
+  ]
+}
