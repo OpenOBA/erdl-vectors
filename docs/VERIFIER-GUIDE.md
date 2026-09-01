@@ -106,6 +106,8 @@ hash 自洽 ≠ 无攻击。语义类向量篡改后**重算 hash 保持自洽**
 | P5 | `tree_snapshot_divergence` | `evaluation.matched_rules[].canonical_tree` 与 `policies[].when` 重编译后的 JCS 不一致 |
 | P6 | `content_unresolvable` | `knowledge_references[].entry_id` 不在可解析集（**告警非断裂 → MUST 排最后**，否则告警会掩盖同时存在的真实违规） |
 
+> **可解析集定义（消除歧义）**：可解析集 = 向量的 `expected.resolvable_entry_ids`；当 `expected` 缺失该字段时，视为「**无可解析性信息**」→ **跳过 P6 检查**（而非视为空集、将全部 `knowledge_references` 判为不可解析）。此推理与 §9.1.2 收窄 P1 一致（无信息 ≠ 空集合）。参考实现已在 `scripts/verify-v1.5.js` 中实现此语义。
+
 优先级由 **V-COMP-F10**（P1 压 P2）与 **V-COMP-F11**（P5 压 P6）两条多重违规向量铉定。
 
 **`also_present` 校验（MUST）**：conforming runner 对语义 BREACH 向量 MUST 同时校验三件事——
@@ -132,6 +134,15 @@ hash 自洽 ≠ 无攻击。语义类向量篡改后**重算 hash 保持自洽**
 | `timestamp_anchor_missing` | 决策类型 ∈ {DELEGATE, ESCALATE, REQUEST_HUMAN} 时 `timestamp_proof` 缺失 |
 
 ---
+
+### 4.4 decision_divergence（跨层语义重推）
+
+`decision_divergence` 是**跨层语义重推检查**（用确定性求值器 `@openoba/erdl`，被 V-ENGINE 223 向量钉住；对象是哈希层 DO 的决策字段），非哈希层/字段检查（P1–P6）：
+
+1. 按 RFC-002 §1.5 语义重推决策：①规则求值（ring/priority/override）→ 规则决策；②human_oversight 升级（`risk_level ∈ {high, critical}` 且 `required=true` → REQUEST_HUMAN）；③fallback（`metadata.decision` > 默认 `ALLOW`）；
+2. 断言 `result.decision === 重推结果`；不一致即 `decision_divergence`。
+
+**bound 非 closure**：此检查覆盖「决策-规则一致性」（如 allow 却引用 deny 规则），不覆盖「记录-执行保真度」（RFC-002 附录 A P-05）。脚本：`scripts/verify-decision.mjs`。
 
 ## 5. 向量文件格式
 

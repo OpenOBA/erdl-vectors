@@ -106,6 +106,8 @@ Hash self-consistency ≠ no attack. Semantic-type vectors, after tampering, **r
 | P5 | `tree_snapshot_divergence` | `evaluation.matched_rules[].canonical_tree` inconsistent with the JCS after recompiling `policies[].when` |
 | P6 | `content_unresolvable` | `knowledge_references[].entry_id` not in the resolvable set (**warning, not a break → MUST be last**; otherwise the warning would mask co-occurring real violations) |
 
+> **Resolvable-set definition (disambiguation)**: the resolvable set = the vector's `expected.resolvable_entry_ids`; when `expected` lacks this field, treat it as "**no resolvability information**" → **skip the P6 check** (not as the empty set, which would judge every `knowledge_references` entry unresolvable). This is consistent with §9.1.2's reasoning for narrowing P1 (no information ≠ empty set). The reference implementation already implements this semantic in `scripts/verify-v1.5.js`.
+
 The priority is pinned by the two multi-breach vectors **V-COMP-F10** (P1 suppresses P2) and **V-COMP-F11** (P5 suppresses P6).
 
 **`also_present` verification (MUST)**: for semantic BREACH vectors, a conforming runner MUST simultaneously verify three things —
@@ -132,6 +134,15 @@ Check in order; return on hit:
 | `timestamp_anchor_missing` | `timestamp_proof` missing when decision type ∈ {DELEGATE, ESCALATE, REQUEST_HUMAN} |
 
 ---
+
+### 4.4 decision_divergence (cross-layer semantic re-derivation)
+
+`decision_divergence` is a **cross-layer semantic re-derivation check** (uses the deterministic evaluator `@openoba/erdl`, pinned by the 223 V-ENGINE vectors; its object is the hash-layer DO's decision field), not a hash-layer/field check (P1–P6):
+
+1. Re-derive the decision per RFC-002 §1.5: ① rule evaluation (ring/priority/override) → rule decision; ② human_oversight upgrade (`risk_level ∈ {high, critical}` and `required=true` → REQUEST_HUMAN); ③ fallback (`metadata.decision` > default `ALLOW`);
+2. Assert `result.decision === the re-derived result`; a mismatch is `decision_divergence`.
+
+**Bound, not a closure**: this check covers decision-rule coherence (e.g., ALLOW asserted while citing a DENY rule), not record-emission fidelity (RFC-002 Appendix A P-05). Script: `scripts/verify-decision.mjs`.
 
 ## 5. Vector file format
 

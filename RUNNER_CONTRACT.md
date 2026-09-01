@@ -45,6 +45,8 @@ conforming runner MUST 在下列情况下暴露对应 breach 码（不得静默�
 
 **时间锚定**（随签名层）：`clock_drift_detected` / `timestamp_anchor_missing`。
 
+> **跨层语义重推检查（非 R1–R6 范围）**：`decision_divergence` 是跨层语义重推检查（用 `@openoba/erdl` 求值器，RFC-002 §1.5 语义），非本契约 R1–R6 的哈希层/字段检查。它覆盖「决策-规则一致性」，不覆盖「记录-执行保真度」（RFC-002 附录 A P-05）。脚本：`scripts/verify-decision.mjs`。
+
 ### R4 — 双重验证（Check 1 + Check 2）
 
 conforming runner MUST 同时通过两重门：
