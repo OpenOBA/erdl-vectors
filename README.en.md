@@ -92,6 +92,17 @@ Planned, not generated, not counted: time anchoring V-DO-v15-T01..T03 (3 vectors
 
 Node semantics 136 (34 nodes × 4 scenarios) + evaluation constraints 35 (the E1–E12 vectorizable subset) + Simple compilation 30 (operators) + gloss 16 (render 12 + completeness 4) + projection-facet compilation 6.
 
+### Semantic re-derivation and producer-side conformance (added 2026-09-02, not in Core 301)
+
+On top of Core 301, two new verification objects cover "decision-rule coherence" and "record-emission fidelity" — two dimensions that hash/field checks (V-DO, V-ENGINE) cannot reach:
+
+| Verification object | Series | Count | Content |
+|---------|------|:---:|------|
+| decision_divergence (cross-layer semantic re-derivation) | V-DIVERGENCE | 3 | Re-derive the decision from the DO's stored context+rules per RFC-002 §1.5, assert `result.decision` consistency; catches internal incoherence such as "ALLOW citing a DENY rule" |
+| V-PRODUCER (producer-side conformance) | scenarios | 3 | Run the producer per §1.6 Producer Contract, capture enforcement vs. emitted DO, assert consistency; the only place P-05 fidelity is reachable |
+
+> **Bound, not a closure**: decision_divergence covers decision-rule coherence; V-PRODUCER covers record-emission fidelity (Appendix A P-05) — the former is verifiable from the finished DO, the latter only by running the producer. Scripts: `npm run verify:decision` / `npm run verify:producer`.
+
 ### Extension (grows with industries)
 
 `V-JURIS` / `V-SCENE` / `V-STAKE` / `V-NL` grow with industry knowledge packs; new entries are placed under freeze management; the Core baseline is append-only (only grows, never shrinks) during the baseline-fixing period.
@@ -113,6 +124,8 @@ npm run generate:vengine  # generate the 223 V-ENGINE vectors (@openoba/erdl ref
 npm run verify            # V-DO Five-Step Verification Step 0–6 + semantic breach detection
 npm run verify:vengine    # V-ENGINE expression-layer independent verification (57 semantics-sensitive vectors)
 npm run verify:vengine:full  # V-ENGINE full 223 vectors
+npm run verify:decision  # decision_divergence cross-layer semantic re-derivation (requires @openoba/erdl)
+npm run verify:producer  # V-PRODUCER producer-side conformance
 npm run conformance       # auto-generate conformance/CONFORMANCE.md (Check 1/2 + K01 + R1–R6 conformance report)
 npm test                  # vitest regression suite (including web/Node consistency + adversarial regression gates)
 ```
@@ -146,6 +159,7 @@ Collaborators who contributed to the neutral-verification principle of this spec
 
 - **Christopher Hopley (chopmob-cloud / AlgoVoi)** — independent technical reviewer. In the v1.2 / v1.3 audits he found key issues such as the missing self-reference hash-exclusion rule and cross-engine string-decimal inconsistency, driving the establishment of the flat-hash architecture; his clean-room RFC 8785 JCS + SHA-256 checker reported four technical findings (C1–C4) and three security issues (S1–S3), among which the dual-hash-algorithm downgrade (CWE-757) and the schema_ref SSRF attack surface directly drove security hardening.
 - **Erik Newton (Concordia)** — the first independent Runner implementer, proposer of the principle "neutrality is not claimed, but measured". In A2A Discussion #2031 he established the standardization path of "three independent implementations, one open spec, no single owner"; byte-verified all 13 AV vectors of v1.3 with a Python spec-only implementation (self-built JCS); contributed the chain-integrity canary design, the answer-file separation architecture, and the CI verification architecture of generated-artifact + clean-room + registry.
+- **Santosh Kumar Puppala (norviq-dev)** — raised the record-emission fidelity gap (Appendix A P-05) with a real-world PEP / cache-hit bug example; raised the P6 resolvable-set semantic ambiguity; scoped decision_divergence as a "bound, not a closure".
 - **Rulsynor team** — the reference rule-engine implementation; provided real engineering-constraint input for the Decision Object field design; the baseline for test-vector generation.
 
 ## Archive note

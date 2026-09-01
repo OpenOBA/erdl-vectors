@@ -92,6 +92,17 @@ Core 合计 **301 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 223。
 
 节点语义 136（34 节点 × 4 场景）+ 求值约束 35（E1–E12 可向量化子集）+ Simple 编译 30（运算符）+ gloss 16（渲染 12 + 完整性 4）+ 投影面编译 6。
 
+### 语义重推与生产侧一致性（2026-09-02 新增，非 Core 301）
+
+在 Core 301 之上，新增两类验证对象，覆盖「决策-规则一致性」与「记录-执行保真度」——这是哈希/字段检查（V-DO、V-ENGINE）够不到的两个维度：
+
+| 验证对象 | 系列 | 数量 | 内容 |
+|---------|------|:---:|------|
+| decision_divergence（跨层语义重推） | V-DIVERGENCE | 3 | 按 RFC-002 §1.5 从 DO 存储的 context+rules 重推决策，断言 `result.decision` 一致；catch「allow 引用 deny」等内部不自洽 |
+| V-PRODUCER（producer-side 一致性） | 场景 | 3 | 按 §1.6 Producer Contract 运行 producer，捕获 enforcement vs 发射 DO，断言一致；唯一能触达 P-05 fidelity 的地方 |
+
+> **bound 非 closure**：decision_divergence 覆盖「决策-规则一致性」，V-PRODUCER 覆盖「记录-执行保真度」（附录 A P-05）——前者可从成品 DO 验证，后者只能从 producer 运行验证。脚本：`npm run verify:decision` / `npm run verify:producer`。
+
 ### Extension（随行业增长）
 
 `V-JURIS` / `V-SCENE` / `V-STAKE` / `V-NL` 随行业知识包增长，新增条目纳入冻结管理；Core 基线定基期内只增不减。
@@ -113,6 +124,8 @@ npm run generate:vengine  # 生成 V-ENGINE 223 条向量（@openoba/erdl 参考
 npm run verify            # V-DO 五步验证法 Step 0–6 + 语义 breach 检测
 npm run verify:vengine    # V-ENGINE 表达层独立验证（57 条语义敏感向量）
 npm run verify:vengine:full  # V-ENGINE 全量 223 条
+npm run verify:decision  # decision_divergence 跨层语义重推（需 @openoba/erdl）
+npm run verify:producer  # V-PRODUCER producer-side 一致性
 npm run conformance       # 自动生成 conformance/CONFORMANCE.md（Check 1/2 + K01 + R1–R6 合规报告）
 npm test                  # vitest 回归套件（含 web/Node 一致性 + 对抗性回归守门）
 ```
@@ -146,6 +159,7 @@ npm test                  # vitest 回归套件（含 web/Node 一致性 + 对�
 
 - **Christopher Hopley（chopmob-cloud / AlgoVoi）**——独立技术审阅者。在 v1.2 / v1.3 审计中发现自引用哈希排除规则缺位、字符串小数跨引擎不一致等关键问题，推动扁平哈希架构确立；其洁净室 RFC 8785 JCS + SHA-256 检查器报告了四个技术发现（C1–C4）与三个安全问题（S1–S3），其中双哈希算法降级（CWE-757）与 schema_ref SSRF 攻击面直接推动了安全加固。
 - **Erik Newton（Concordia）**——首个独立 Runner 实现者，「中立性不是宣称的，是测出来的」原则的提出者。在 A2A Discussion #2031 确立「三个独立实现、一个开放规范、没有单一所有者」的标准化路径；以 Python 纯规范实现（自建 JCS）逐字节验证 v1.3 全部 13 条 AV 向量；贡献了链完整性金丝雀设计、答案文件分离架构与 generated-artifact + clean-room + registry 的 CI 验证架构。
+- **Santosh Kumar Puppala（norviq-dev）**——提出 record-emission fidelity 缺口（附录 A P-05）及 PEP/缓存命中路径的真实事故案例；提出 P6 可解析集语义歧义；将 decision_divergence 界定为「bound 非 closure」。
 - **Rulsynor 团队**——参考规则引擎实现，为 Decision Object 字段设计提供真实工程约束输入，是测试向量生成的基准。
 
 ## 归档说明

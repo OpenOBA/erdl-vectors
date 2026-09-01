@@ -45,6 +45,8 @@ A conforming runner MUST expose the corresponding breach code in the following c
 
 **Time anchoring** (with the signature layer): `clock_drift_detected` / `timestamp_anchor_missing`.
 
+> **Cross-layer semantic re-derivation check (outside R1–R6 scope)**: `decision_divergence` is a cross-layer semantic re-derivation check (uses the `@openoba/erdl` evaluator, RFC-002 §1.5 semantics), not a hash-layer/field check under this contract's R1–R6. It covers decision-rule coherence, not record-emission fidelity (RFC-002 Appendix A P-05). Script: `scripts/verify-decision.mjs`.
+
 ### R4 — Dual verification (Check 1 + Check 2)
 
 A conforming runner MUST pass both gates:
