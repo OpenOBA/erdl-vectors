@@ -14,7 +14,7 @@
 >
 > **继承自 RFC-001（v1.3，已归档）**：本文档为 v1.5 增量，以下内容仍以 RFC-001 为权威、本文档不重复——设计哲学（通用事实证据容器）、生态兼容性（MCP/A2A/OpenTelemetry/OCSF/IETF AAT）、隐私与数据最小化（GDPR/LGPD/DPDP）、法规版本化与升级路径、长期维护与字段治理（只增不删 Append-Only）、威胁模型。
 >
-> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。2026-08-31：链规模治理指针（§8），全线计数口径统一（审计层 78 / Core 301）。
+> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。2026-08-31：链规模治理指针（§8），全线计数口径统一（审计层 78 / Core 301）。2026-09-02：新增 §1.4 生产侧不变量、§1.5 决策推导语义、§1.6 Producer Contract；新增 decision_divergence（跨层语义重推）与 V-PRODUCER（producer-side 一致性）两个验证对象；附录 A 新增 P-05 残余风险；P6 可解析集语义澄清。
 >
 > **关键字解释**：本文档中的 "MUST"、"MUST NOT"、"SHOULD"、"MAY" 等关键字遵循 RFC 2119 和 RFC 8174 的语义解释。
 
@@ -65,6 +65,34 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 6. **Omit over Null**：可选字段值为 null/undefined/空数组时，生成端**物理删除键（delete key）**，禁止置空（blank：空串/空对象/占位值）——delete 与 blank 产生不同 JCS 字节；空对象 {} 与空字符串 ""（非 null）保留。**例外**：① 链锚定字段 `audit.previous_hash`/`audit.previous_signature` 首条为 null 时 MUST 保留进 JCS（§10.2#3，创世块跨实现对称性）；② `extensions` 空数组 MUST 保留（RFC-001 §3.3 C3 结论回写，避免与 v1.3 回归向量失配）；
 7. **数组序**：JCS 键序排序仅作用于对象键，MUST NOT 重排数组元素——数组序是语义事实（expr_tree 按 matched_rules 序、knowledge_references/attachments 按检索/上传序、policies 按加载序、rules_matched 按命中序）；
 8. NaN/Infinity 禁止。
+
+### 1.4 生产侧不变量：DO 与执行同源（构造侧，规范性）
+
+> **DO MUST 派生自产生 enforcement 效果的同一求值对象，不得从它另行重新组装。**
+
+决策执行路径与记录发射路径必须同源：`result.decision`、`evaluation.matched_rules`、`audit.hash` 必须由那次**实际门控执行**（enforcement）的求值结果直接产生，而非由与执行并行的另一条路径（如缓存命中路径、异步旁路）另行组装。
+
+此不变量**无法从成品工件验证**——验证器只能看到 DO，看不到产生它的执行过程；因此它属于**构造侧规范约束**，而非验证侧向量对象（见附录 A 的 P-05「记录-执行保真度」）。违反它的典型后果：执行正确拒绝、记录却写为 allow——DO 内部 hash 完美、自洽，却是假的（结构性缓解的现成先例见 OWASP AST09「Bilateral Receipt Pattern」：admission + execution 双收据、attempt_id 链接、policy_version 决策时绑定）。
+
+### 1.5 决策推导语义（构造侧，规范性）
+
+`result.decision` 的推导规则（为 `decision_divergence` 检查提供规范基础）：
+
+1. **规则求值**：按 ERDL SPEC §7 语义（ring 0→3、priority 升序=优先级高、first-match + override）求值全部 `policies[].when`，得到规则决策；
+2. **human_oversight 升级**：若 `compliance_profile.risk_level ∈ {high, critical}` 且 `human_oversight.required === true`，则 `result.decision MUST = REQUEST_HUMAN`（高危决策须人工裁决，覆盖规则决策）；
+3. **fallback**：无规则命中时，`metadata.decision`（若存在）> 默认 `ALLOW`。
+
+> 此语义是 `decision_divergence` 检查（VERIFIER-GUIDE §4.4）的规范依据：验证器重推上述三步，断言 `result.decision === 重推结果`。不一致即 `decision_divergence`（内部不自洽：如 allow 却引用 deny 规则）。注意这是「bound 非 closure」——它只覆盖「决策-规则一致性」，不覆盖「记录-执行保真度」（附录 A P-05）。
+
+### 1.6 生产侧一致性契约（Producer Contract，构造侧，规范性）
+
+`decision_divergence`（VERIFIER-GUIDE §4.4）从**成品 DO** 重推决策，只能覆盖「记录内部自洽性」。要触达「记录-执行保真度」（附录 A P-05），必须做 **producer-side 一致性验证**——这是唯一能从工件之外观察「生产者实际行为」与「生产者发射的 DO」是否一致的手段：
+
+> **Producer Contract**：一个 conforming producer MUST 暴露 `enforce(scenario) → { enforcement, do }`，其中 `enforcement` 是实际门控决策（allow/block/...），`do` 是发射的 DO；且 MUST 满足 `do.result.decision === enforcement.decision`（DO 必须反映实际执行，而非另行组装）。
+
+验证方法：喂场景 → 运行 producer → 同时捕获 `enforcement` 与 `do` → 断言二者一致。这是与 V-DO（字节）、V-ENGINE（表达式语义）都不同的第三类验证对象（V-PRODUCER），且是唯一能触达 P-05 的地方——「任何读取成品 DO 的 runner 都够不到它，无论多好」。
+
+参考实现：`scripts/verify-producer.mjs`（单路径 producer 全一致；内置一个「双路径」缺陷 producer 演示 harness 能捕获 enforcement/DO 分叉）。
 
 ## 2. 表达式树字段：canonical_tree 进 DO
 
@@ -226,6 +254,8 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 | 法域合规 | V-COMP-001..021 + F01..F11 | 32 | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含 F06/F07 第一层篡改、F08/F09 风险条件层、F10/F11 优先级铉定，详见 §9.1） |
 | **有状态算子状态验证（规划，未生成）** | **V-TEMPORAL-001..004** | **4** | within/rate 跨决策窗口计数状态行为（多决策序列，验证 temporal_state 快照与重放一致，对应 §2.4）：T01 rate 正常序列（未超限→超限）、T02 within 正常序列、T03 temporal_state 快照篡改（判 `temporal_state_divergence`）、T04 状态重放金丝雀（跳过重放的 regressed 验证器被捕）。向量随 temporal_state 进 DO 落地后生成冻结 |
 | **合计** | | **审计层 78** | 哈希层 78 条（D/C/A/K/G/V-COMP 已冻结）。签名 5 + TSA 3 + V-TEMPORAL 4 为规划项（未生成，不计数） |
+
+> **2026-09-02 新增验证对象（非 Core 301）**：`decision_divergence`（跨层语义重推，V-DIVERGENCE 3 条，按 §1.5 从 DO 存储的 context+rules 重推决策，见 VERIFIER-GUIDE §4.4）+ `V-PRODUCER`（producer-side 一致性，按 §1.6 Producer Contract 运行 producer、捕获 enforcement vs 发射 DO，唯一能触达 P-05 的地方）。
 
 > **命名澄清（避免与 SPEC §45 V-SCENE 语义混同）**：SPEC §45 的 V-SCENE 专指**生命周期七阶段**的业务场景验证（身份/岗位/培训/运营/审计/信任/退役），编号 `V-SCENE-NNN`。within/rate 的有状态算子窗口计数验证是**不同的验证对象**（算子状态正确性，非业务场景闭环），故本规范以**独立序列 V-TEMPORAL** 承载，不占用 V-SCENE 编号——对应 SPEC §44 第 2462 行「纳入 V-SCENE（多决策序列）**或独立状态验证向量**」中的「独立状态验证向量」分支。
 >
@@ -517,6 +547,7 @@ signature(n) = ECDSA_P256_Sign( private_key,
 | P-02 | 冷存储灭失 | 证据包周期性预打包 SHOULD；冷存储契约覆盖灭失检测 |
 | P-03 | 对抗性删除与合规删除不可区分 | retention 治理（冷存储契约 retention_until + 删除日志）为制度性区分机制 |
 | P-04 | 版本不可变性为外部假设 | 部署侧约束：被引用版本保留至留存期满 |
+| P-05 | record-emission fidelity（记录-执行保真度）：DO 可能不描述实际被执行的决策——producer 的决策路径与记录发射路径分叉（如缓存命中路径写入不同 verdict），记录可 hash 完美、内部自洽，却是假的 | 结构性缓解：生产侧不变量（§1.4，DO MUST 与执行同源）+ producer-side 一致性验证（V-PRODUCER）；先例：OWASP AST09「Bilateral Receipt Pattern」 |
 
 ---
 
@@ -526,6 +557,7 @@ signature(n) = ECDSA_P256_Sign( private_key,
 
 - **Christopher Hopley（chopmob-cloud / AlgoVoi）**：独立技术审阅者。RFC-001 审查中发现自引用哈希排除规则缺位、字符串小数跨引擎不一致、分层完整性缺口，推动扁平哈希架构确立；v1.3 审计中以洁净室 RFC 8785 JCS 检查器报告 4 个技术发现（C1–C4）+ 3 个安全问题（S1–S3），推动安全加固。
 - **Erik Newton（Concordia）**：首个独立 Runner 实现者，「中立性不是宣称的，是测出来的」原则提出者；以独立 Python 规范化器逐字节验证审计向量（12 逐字节一致 + AV-013 金丝雀正确失败），发现 E1–E3 关键问题，推动 audit 结构修复、AV-013 金丝雀、答案文件分离架构。
+- **Santosh Kumar Puppala（norviq-dev）**：提出 record-emission fidelity 缺口（附录 A P-05）及 PEP/缓存命中路径的真实事故案例；提出 P6 可解析集语义歧义；将 decision_divergence 界定为「bound 非 closure」——三者驱动 §1.4/§1.5/§1.6、P-05 残余风险与 P6 澄清。
 - **OpenOBA 参考实现团队**：ERDL 规则引擎参考实现，测试向量生成与验证的基准。
 
 独立验证的意义在于「不信任被测方」：用与被测实现不同的技术栈独立重算，消除「必须信任厂商」的风险。他们的贡献，我们如实记录并感谢。
