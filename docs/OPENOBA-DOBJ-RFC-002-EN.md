@@ -14,7 +14,7 @@
 >
 > **Inherited from RFC-001 (v1.3, archived)**: this document is a v1.5 increment; the following content remains authoritative in RFC-001 and is not repeated here — design philosophy (universal fact container), ecosystem compatibility (MCP/A2A/OpenTelemetry/OCSF/IETF AAT), privacy & data minimization (GDPR/LGPD/DPDP), regulatory versioning & upgrade paths, long-term maintenance & field governance (append-only), and threat model.
 >
-> **Revision history**: after multiple revisions, established the "flat hash + expression-tree field" scheme, and completed the jurisdiction vectors and the unified adjudication of stateful operators (within/rate). 2026-08-31: chain scale-governance pointer (§8); full-line count-caliber unification (audit layer 78 / Core 301).
+> **Revision history**: after multiple revisions, established the "flat hash + expression-tree field" scheme, and completed the jurisdiction vectors and the unified adjudication of stateful operators (within/rate). 2026-08-31: chain scale-governance pointer (§8); full-line count-caliber unification (audit layer 78 / Core 301). 2026-09-02: added §1.4 production-side invariant, §1.5 decision-derivation semantics, §1.6 Producer Contract; added two verification objects — decision_divergence (cross-layer semantic re-derivation) and V-PRODUCER (producer-side conformance); added P-05 residual risk to Appendix A; P6 resolvable-set semantic clarification.
 >
 > **Keyword interpretation**: the keywords "MUST", "MUST NOT", "SHOULD", "MAY" in this document follow the semantics of RFC 2119 and RFC 8174.
 
@@ -66,6 +66,34 @@ The pipeline is fully isomorphic (the five-step verification is unchanged); the 
 7. **Array order**: JCS key-order sorting applies only to object keys; it MUST NOT reorder array elements — array order is a semantic fact (expr_tree follows matched_rules order, knowledge_references/attachments follow retrieval/upload order, policies follow load order, rules_matched follows hit order);
 8. NaN/Infinity forbidden.
 
+
+### 1.4 Production-Side Invariant: the DO is co-derived with enforcement (construction-side, normative)
+
+> **The DO MUST be derived from the same evaluation object that produced the enforcement effect, not re-assembled from it.**
+
+The decision path and the record-emission path must share a single source: `result.decision`, `evaluation.matched_rules`, and `audit.hash` MUST be produced directly from the evaluation result of the **actual gating execution (enforcement)**, not assembled by a parallel path (e.g., a cache-hit path, or an async bypass) alongside it.
+
+This invariant is **unverifiable from a finished artifact** — a verifier sees only the DO, never the execution that produced it; hence it belongs to the **construction-side normative constraint**, not the verification-side vector object (see Appendix A P-05 "record-emission fidelity"). A typical violation: enforcement correctly refuses, yet the record writes allow — the DO is hash-perfect and internally coherent, but false (the existing precedent for this structural mitigation is the OWASP AST09 "Bilateral Receipt Pattern": admission + execution dual receipts, linked by attempt_id, policy_version bound at decision time).
+
+### 1.5 Decision-Derivation Semantics (construction-side, normative)
+
+The derivation of `result.decision` (the normative basis for the `decision_divergence` check):
+
+1. **Rule evaluation**: evaluate all `policies[].when` per ERDL SPEC §7 semantics (ring 0→3, priority ascending = higher priority, first-match + override), yielding the rule decision;
+2. **human_oversight upgrade**: if `compliance_profile.risk_level ∈ {high, critical}` and `human_oversight.required === true`, then `result.decision MUST = REQUEST_HUMAN` (high-risk decisions require human adjudication, overriding the rule decision);
+3. **fallback**: when no rule matches, `metadata.decision` (if present) > default `ALLOW`.
+
+> These semantics are the normative basis for the `decision_divergence` check (VERIFIER-GUIDE §4.4): the verifier re-derives the three steps above and asserts `result.decision === the re-derived result`. A mismatch is `decision_divergence` (internally incoherent: e.g., ALLOW asserted while citing a DENY rule). Note this is a "bound, not a closure" — it covers only decision-rule coherence, not record-emission fidelity (Appendix A P-05).
+
+### 1.6 Producer Contract (construction-side, normative)
+
+`decision_divergence` (VERIFIER-GUIDE §4.4) re-derives the decision from the **finished DO**, so it can only cover internal record self-consistency. To reach "record-emission fidelity" (Appendix A P-05), producer-side conformance verification is required — it is the only means, outside the artifact, to observe whether "what the producer actually did" matches "the DO the producer emitted":
+
+> **Producer Contract**: a conforming producer MUST expose `enforce(scenario) → { enforcement, do }`, where `enforcement` is the actual gating decision (allow/block/...), and `do` is the emitted DO; and it MUST satisfy `do.result.decision === enforcement.decision` (the DO must reflect the actual enforcement, not be re-assembled alongside it).
+
+Verification method: feed a scenario → run the producer → capture both `enforcement` and `do` → assert they agree. This is a third verification object (V-PRODUCER), distinct from V-DO (bytes) and V-ENGINE (expression semantics), and the only place where P-05 is reachable — "no runner reading a finished DO can get at it, however good the runner is."
+
+Reference: `scripts/verify-producer.mjs` (a single-path producer is fully consistent; a built-in two-path defective producer demonstrates the harness catches enforcement/DO divergence).
 
 ## 2. Expression-Tree Field: canonical_tree Enters the DO
 
@@ -228,6 +256,8 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 | Jurisdiction compliance | V-COMP-001..021 + F01..F11 | 32 | field conformance 21 (jurisdiction 7 + framework 14) + failure detection 11 (incl. F06/F07 first-layer tamper, F08/F09 risk-condition layer, F10/F11 priority pinning, see §9.1) |
 | **Stateful-operator state verification (planned, not generated)** | **V-TEMPORAL-001..004** | **4** | within/rate cross-decision window-count state behavior (multi-decision sequences, verifying temporal_state snapshot consistent with replay, corresponding to §2.4): T01 rate normal sequence (under-limit→over-limit), T02 within normal sequence, T03 temporal_state snapshot tamper (judged `temporal_state_divergence`), T04 state-replay canary (a regressed verifier skipping replay is caught). Vectors generated-frozen after temporal_state lands in the DO |
 | **Total** | | **audit layer 78** | hash-layer 78 (D/C/A/K/G/V-COMP frozen). Signature 5 + TSA 3 + V-TEMPORAL 4 are planned (not generated, not counted) |
+
+> **Verification objects added 2026-09-02 (not in Core 301)**: `decision_divergence` (cross-layer semantic re-derivation, V-DIVERGENCE 3 vectors, re-derives the decision from the DO's stored context+rules per §1.5, see VERIFIER-GUIDE §4.4) + `V-PRODUCER` (producer-side conformance, runs the producer per §1.6 Producer Contract, capturing enforcement vs. emitted DO — the only place P-05 is reachable).
 
 > **Naming clarification (avoiding confusion with SPEC §45 V-SCENE semantics)**: SPEC §45's V-SCENE specifically means the **seven lifecycle-stage** business-scenario verification (identity/position/training/operation/audit/trust/retirement), numbered `V-SCENE-NNN`. The within/rate stateful-operator window-count verification is a **different verification object** (operator-state correctness, not a business-scenario loop), so this specification carries it under an **independent sequence V-TEMPORAL**, not occupying V-SCENE numbers — corresponding to the "independent state-verification vectors" branch of SPEC §44 line 2462 "into V-SCENE (multi-decision sequence) **or independent state-verification vectors**".
 >
@@ -521,6 +551,7 @@ Evidence Bundle: DO chain (with signatures) + rule-set snapshot + knowledge snap
 | P-02 | cold-storage loss | periodic evidence-bundle pre-packaging SHOULD; the cold-storage contract covers loss detection |
 | P-03 | adversarial deletion indistinguishable from compliant deletion | retention governance (cold-storage contract retention_until + deletion log) as the institutional distinguishing mechanism |
 | P-04 | version immutability is an external assumption | deployment-side constraint: referenced versions retained until the retention period expires |
+| P-05 | record-emission fidelity: the DO may not describe the decision actually enforced — the producer's decision path and record-emission path diverge (e.g., a cache-hit path writes a different verdict); the record can be hash-perfect and internally coherent, yet false | Structural mitigation: production-side invariant (§1.4, the DO MUST be co-derived with enforcement) + producer-side conformance verification (V-PRODUCER); precedent: OWASP AST09 "Bilateral Receipt Pattern" |
 
 ---
 
@@ -530,6 +561,7 @@ This specification's upgrade and update benefited from the help of the following
 
 - **Christopher Hopley (chopmob-cloud / AlgoVoi)**: independent technical reviewer. In RFC-001 review, found the missing self-reference hash-exclusion rule, cross-engine string-decimal inconsistency, and layered-integrity gap, driving the establishment of the flat-hash architecture; in the v1.3 audit, reported 4 technical findings (C1–C4) + 3 security issues (S1–S3) with a clean-room RFC 8785 JCS checker, driving security hardening.
 - **Erik Newton (Concordia)**: the first independent Runner implementer, proposer of the principle "neutrality is measured, not claimed"; byte-verified the audit vectors with an independent Python canonicalizer (12 byte-identical + AV-013 canary correctly failing), found the E1–E3 key issues, driving the audit-structure fix, the AV-013 canary, and the answer-file separation architecture.
+- **Santosh Kumar Puppala (norviq-dev)**: raised the record-emission fidelity gap (Appendix A P-05) with a real-world PEP / cache-hit bug example; raised the P6 resolvable-set semantic ambiguity; scoped decision_divergence as a "bound, not a closure" — the three driving §1.4/§1.5/§1.6, the P-05 residual, and the P6 clarification.
 - **OpenOBA reference implementation team**: the ERDL rule-engine reference implementation, the baseline for test-vector generation and verification.
 
 The meaning of independent verification is "do not trust the tested party": independently recompute with a different tech stack from the implementation under test, eliminating the risk of "having to trust the vendor". We record and thank their contributions faithfully.
