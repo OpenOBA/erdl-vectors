@@ -37,10 +37,10 @@ jobs:
 
       - name: Auto-commit registry update
         run: |
-          if ! git diff --exit-code IMPLEMENTATIONS.md; then
+          if ! git diff --exit-code IMPLEMENTATIONS.md IMPLEMENTATIONS.en.md; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add IMPLEMENTATIONS.md
+            git add IMPLEMENTATIONS.md IMPLEMENTATIONS.en.md
             git commit -m "chore: auto-record verified runner(s) to registry"
             git push
             echo "PASS: registry auto-recorded"
