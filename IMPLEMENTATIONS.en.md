@@ -20,7 +20,7 @@ Inclusion in this table does not imply endorsement by OpenOBA — it records onl
 | **OpenOBA (reference implementation)** | Node.js, self-built JCS (RFC 8785) | 78/78 hash layer + canary K01 discrimination (Check 1 MISMATCH + Check 2 MATCH) | 2026-08-31 | [verify-v1.5.js](scripts/verify-v1.5.js) |
 
 <!-- registry:auto-begin -->
-<!-- (no third-party runners verified yet) -->
+| **norviq-go** | Go, spec-only, self-built JCS (RFC 8785) + crypto/sha256, zero dependencies | 107/107 canonical bytes | 2026-09-01 | https://github.com/norviq-dev/erdl-runner-go |
 <!-- registry:auto-end -->
 
 > For third-party Runner submissions see [submissions/README.md](submissions/README.md); after CI cross-verification passes, automatically registered in the table above on merge.
