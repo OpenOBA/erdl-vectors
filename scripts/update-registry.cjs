@@ -39,7 +39,10 @@ const { buildReferenceMap, crossVerify } = require('./verify-submission.cjs');
 
 const VECTORS = path.join(__dirname, '..', 'decision-object-vectors-v1.5.json');
 const SUBMISSIONS_DIR = path.join(__dirname, '..', 'submissions');
-const IMPL = path.join(__dirname, '..', 'IMPLEMENTATIONS.md');
+const IMPL_FILES = [
+  path.join(__dirname, '..', 'IMPLEMENTATIONS.md'),
+  path.join(__dirname, '..', 'IMPLEMENTATIONS.en.md'),
+];
 
 const BEGIN = '<!-- registry:auto-begin -->';
 const END = '<!-- registry:auto-end -->';
@@ -66,20 +69,21 @@ function main() {
     );
   }
 
-  let content = fs.readFileSync(IMPL, 'utf8');
-  const start = content.indexOf(BEGIN);
-  const end = content.indexOf(END);
-  if (start === -1 || end === -1) {
-    console.error('ERROR: IMPLEMENTATIONS.md is missing registry markers (' + BEGIN + ' / ' + END + ')');
-    process.exit(1);
-  }
-
   const body = rows.length
     ? '\n' + rows.join('\n') + '\n'
     : '\n<!-- (no third-party runners verified yet) -->\n';
-  const newContent = content.slice(0, start + BEGIN.length) + body + content.slice(end);
 
-  fs.writeFileSync(IMPL, newContent, 'utf8');
+  for (const file of IMPL_FILES) {
+    const content = fs.readFileSync(file, 'utf8');
+    const start = content.indexOf(BEGIN);
+    const end = content.indexOf(END);
+    if (start === -1 || end === -1) {
+      console.error('ERROR: ' + path.basename(file) + ' is missing registry markers (' + BEGIN + ' / ' + END + ')');
+      process.exit(1);
+    }
+    const newContent = content.slice(0, start + BEGIN.length) + body + content.slice(end);
+    fs.writeFileSync(file, newContent, 'utf8');
+  }
   console.log('Registry regenerated: ' + rows.length + ' verified runner(s)'
     + (skipped.length ? ' · skipped ' + skipped.length + ' (unverified)' : ''));
   for (const s of skipped) console.log('  skipped: ' + s);
