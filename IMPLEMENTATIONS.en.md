@@ -42,7 +42,7 @@ Third-party verification records from the v1.3 era (13 AV vectors); kept in arch
 | **Concordia (Erik Newton)** | Python, spec-only, self-built JCS | 13/13 AV | 2026-07-30 | [archive/v1.3/submissions/](archive/v1.3/submissions/) |
 | **OpenOBA (Clean-Room CI)** | Node.js, self-built JCS, SDK uninstalled | 63/63 DO + 12/12 AV | 2026-08-05 | [archive/v1.3/conformance/CONFORMANCE.md](archive/v1.3/conformance/CONFORMANCE.md) |
 
-> Note: Erik Newton (Concordia) is the first and, to date, the **only third-party Runner**; on 2026-07-30 he byte-verified all 13 AV vectors of v1.3 with a Python spec-only implementation (self-built JCS). v1.5 (V-DO-v15, 78 vectors) **has no third-party verification yet**; awaiting new runners.
+> Note: Erik Newton (Concordia) is the **first third-party Runner**; on 2026-07-30 he byte-verified all 13 AV vectors of v1.3 with a Python spec-only implementation (self-built JCS). v1.5 (V-DO-v15, 78 vectors) is now byte-verified by two third-party runners — norviq-go (Go, 2026-09-01) and concordia-python (Python, 2026-09-02), each at 107/107 canonical bytes — see the table above.
 
 ## Submission Process
 

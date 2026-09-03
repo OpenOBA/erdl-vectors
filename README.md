@@ -40,7 +40,7 @@ Decision Object 是 ERDL 规则引擎一次决策的审计记录——基于 [ER
 4. 金丝雀 K01 必须正确判别：Check 1 MISMATCH + Check 2 MATCH（见下文验证原则）;
 5. 提交 `canonical_hex` + `k01_check1`（见 [submissions/README.md](submissions/README.md)），CI 交叉验证，合并后自动登记进 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表。
 
-逐字节重算一致，即证明这份标准在你的实现下成立。当前 v1.5 的 78 条仅由参考实现通过，尚无第三方验证——注册表是空的，等一个名字。
+逐字节重算一致，即证明这份标准在你的实现下成立。v1.5 的 78 条哈希层向量现已有两个独立第三方 Runner 逐字节验证（Go / norviq-go，2026-09-01；Python / concordia-python，2026-09-02），各 107/107 canonical bytes——见 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表。
 
 ## A2A 发展语境
 

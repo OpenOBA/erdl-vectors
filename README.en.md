@@ -40,7 +40,7 @@ The 78 audit-layer vectors are a neutral benchmark: they presuppose no language,
 4. The canary K01 must be correctly discriminated: Check 1 MISMATCH + Check 2 MATCH (see the verification principles below);
 5. Submit `canonical_hex` + `k01_check1` (see [submissions/README.md](submissions/README.md)); CI cross-verifies, and after merge the result is automatically registered in the [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) registry.
 
-Byte-identical recomputation proves that this standard holds under your implementation. The current v1.5 78 vectors are passed only by the reference implementation, with no third-party verification yet — the registry is empty, waiting for a name.
+Byte-identical recomputation proves that this standard holds under your implementation. The v1.5 78 hash-layer vectors are now byte-verified by two independent third-party runners (Go / norviq-go, 2026-09-01; Python / concordia-python, 2026-09-02), each at 107/107 canonical bytes — see the [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) registry.
 
 ## A2A context
 

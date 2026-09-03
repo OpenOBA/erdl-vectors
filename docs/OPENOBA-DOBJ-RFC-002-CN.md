@@ -235,8 +235,8 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 ## 9. 向量体系（v1.5 审计层）
 
 > **验证状态（二元分类）**：本规范向量按「是否经独立第三方 Runner 逐字节验证」分为两类——
-> - **已验证（Verified）**：仅历史 v1.3 的 13 条 AV 向量（Erik Newton / Concordia，2026-07-30，Python 自建 JCS 逐字节通过）。
-> - **未验证（Unverified）**：现行 v1.5 已生成的 78 条哈希层向量均尚未经独立第三方 Runner 验证，仅参考实现通过。
+> - **已验证（Verified）**：现行 v1.5 已生成的 78 条哈希层向量，由两个独立第三方 Runner 逐字节验证——norviq-go（Go，2026-09-01）、concordia-python（Python，Erik Newton，2026-09-02），各 107/107 canonical bytes；历史 v1.3 的 13 条 AV 向量（Erik Newton / Concordia，2026-07-30，Python 自建 JCS 逐字节通过）。
+> - **未验证（Unverified）**：尚未生成的向量层（V-SIGN 签名链、V-TEMPORAL 时间锚定，见 §10.3）。
 >
 > 记录原则遵循「**Measurements, not endorsements**」——只记录测量事实（谁、哪天、通过多少条），不做背书。
 >

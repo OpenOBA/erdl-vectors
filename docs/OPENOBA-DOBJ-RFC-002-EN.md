@@ -237,8 +237,8 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 ## 9. Vector System (v1.5 Audit Layer)
 
 > **Verification status (binary classification)**: the vectors in this specification are divided into two classes by "whether independently third-party-Runner byte-verified" —
-> - **Verified**: only the historical v1.3 13 AV vectors (Erik Newton / Concordia, 2026-07-30, self-built Python JCS, byte-identical pass).
-> - **Unverified**: the current v1.5 78 generated hash-layer vectors have not yet been verified by an independent third-party Runner; only the reference implementation passes.
+> - **Verified**: the current v1.5 78 generated hash-layer vectors, byte-verified by two independent third-party runners — norviq-go (Go, 2026-09-01) and concordia-python (Python, Erik Newton, 2026-09-02), each at 107/107 canonical bytes; plus the historical v1.3 13 AV vectors (Erik Newton / Concordia, 2026-07-30, self-built Python JCS, byte-identical pass).
+> - **Unverified**: the not-yet-generated vector layers (V-SIGN signature chain, V-TEMPORAL time anchoring, see §10.3).
 >
 > The recording principle follows "**Measurements, not endorsements**" — record only the measurement facts (who, which day, how many passed), no endorsement.
 >

@@ -45,7 +45,7 @@ v1.3 时代的第三方验证记录（13 AV 向量），归档保留、不复用
 | **Concordia (Erik Newton)** | Python, spec-only, self-built JCS | 13/13 AV | 2026-07-30 | [archive/v1.3/submissions/](archive/v1.3/submissions/) |
 | **OpenOBA (Clean-Room CI)** | Node.js, self-built JCS, SDK uninstalled | 63/63 DO + 12/12 AV | 2026-08-05 | [archive/v1.3/conformance/CONFORMANCE.md](archive/v1.3/conformance/CONFORMANCE.md) |
 
-> 注：Erik Newton（Concordia）是首个、也是迄今**唯一第三方 Runner**，于 2026-07-30 用 Python 纯规范实现（自建 JCS）逐字节验证 v1.3 全部 13 条 AV 向量。v1.5（V-DO-v15 78 条）**尚无第三方验证**，待重新约 Runner。
+> 注：Erik Newton（Concordia）是**首个第三方 Runner**，于 2026-07-30 用 Python 纯规范实现（自建 JCS）逐字节验证 v1.3 全部 13 条 AV 向量。v1.5（V-DO-v15 78 条）现已由 norviq-go（Go，2026-09-01）与 concordia-python（Python，2026-09-02）两个第三方 Runner 逐字节验证，各 107/107 canonical bytes，详见上表。
 
 ## Submission Process
 
