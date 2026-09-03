@@ -23,6 +23,7 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 | **OpenOBA (参考实现)** | Node.js, self-built JCS (RFC 8785) | 78/78 哈希层 + 金丝雀 K01 判别（Check 1 MISMATCH + Check 2 MATCH） | 2026-08-31 | [verify-v1.5.js](scripts/verify-v1.5.js) |
 
 <!-- registry:auto-begin -->
+| **concordia-python** | Python, contract-only, self-built JCS (RFC 8785) + hashlib SHA-256; no ERDL SDK, no third-party canonicalizer, answers file never opened; hash/field/chain layer only, time-anchoring codes not implemented; measured against decision-object-vectors-v1.5.json sha256:d8adf32b7c691bdb3d805fdb0b3f7ac327dc16388cd59a4dfe757d9555e1778c | 107/107 canonical bytes | 2026-09-02 | https://github.com/eriknewton/concordia-protocol/tree/main/conformance/erdl-do-v1.5 |
 | **norviq-go** | Go, spec-only, self-built JCS (RFC 8785) + crypto/sha256, zero dependencies | 107/107 canonical bytes | 2026-09-01 | https://github.com/norviq-dev/erdl-runner-go |
 <!-- registry:auto-end -->
 
