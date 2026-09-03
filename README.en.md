@@ -60,15 +60,15 @@ Core total **301** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 223.
 
 | Verification layer | Category | Coverage object | Count | Status |
 |--------|------|---------|:---:|------|
-| Audit layer | V-DO-v15 | Decision types 13 / chain attacks 8 / anchoring 10 / canary 1 / conclusion 14 / jurisdiction 32 | 78 | Unverified |
-| Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 35 + Simple compilation 30 | 201 | Unverified |
-| Expression layer | V-GLOSS / V-PROJ | gloss 16 (render 12 + completeness 4) + projection facets 6 | 22 | Unverified |
-| **Total** | | **Core** | **301** | **Unverified** |
+| Audit layer | V-DO-v15 | Decision types 13 / chain attacks 8 / anchoring 10 / canary 1 / conclusion 14 / jurisdiction 32 | 78 | ✅ Verified (third-party ×2) |
+| Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 35 + Simple compilation 30 | 201 | Unverified (reference only) |
+| Expression layer | V-GLOSS / V-PROJ | gloss 16 (render 12 + completeness 4) + projection facets 6 | 22 | Unverified (reference only) |
+| **Total** | | **Core** | **301** | **Partial (78/301)** |
 
 **Verification status (binary)**:
 
-- **Verified**: only the historical v1.3 13 AV vectors (Erik Newton / Concordia, 2026-07-30, self-built Python JCS, byte-identical pass), superseded by v1.5;
-- **Unverified**: all 301 vectors of the current v1.5, passed only by the reference implementation, awaiting verification by independent third-party Runners.
+- **Verified**: the audit layer V-DO-v15 78 hash-layer vectors, byte-verified by two independent third-party runners — norviq-go (Go, 2026-09-01) and concordia-python (Python, Erik Newton, 2026-09-02), each at 107/107 canonical bytes; the historical v1.3 13 AV vectors (Erik Newton, 2026-07-30) are superseded by v1.5;
+- **Unverified**: the expression layer 223 vectors (V-ENGINE 201 + V-GLOSS / V-PROJ 22), passed only by the reference implementation, awaiting verification by independent third-party Runners.
 
 **Planned, not generated (not counted)**: signature V-SIGN 5 + time anchoring TSA 3 + state verification V-TEMPORAL 4.
 
