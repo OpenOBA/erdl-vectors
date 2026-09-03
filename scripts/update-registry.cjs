@@ -47,6 +47,18 @@ const IMPL_FILES = [
 const BEGIN = '<!-- registry:auto-begin -->';
 const END = '<!-- registry:auto-end -->';
 
+// The Registry table must be a single contiguous GFM table. Block-level elements
+// (HTML comments, blank lines) are NOT allowed between rows — they split the table
+// and the trailing rows render as plain pipe text. So the auto markers wrap the
+// WHOLE table (header + separator + reference row + third-party rows), never a row
+// boundary.
+const HEADER = '| Implementor | Method | Result | Date | Artifact |';
+const SEPARATOR = '|------------|--------|:-------:|------|---------|';
+const REFERENCE_ROW = {
+  zh: '| **OpenOBA (参考实现)** | Node.js, self-built JCS (RFC 8785) | 78/78 哈希层 + 金丝雀 K01 判别（Check 1 MISMATCH + Check 2 MATCH） | 2026-08-31 | [verify-v1.5.js](scripts/verify-v1.5.js) |',
+  en: '| **OpenOBA (reference implementation)** | Node.js, self-built JCS (RFC 8785) | 78/78 hash layer + canary K01 discrimination (Check 1 MISMATCH + Check 2 MATCH) | 2026-08-31 | [verify-v1.5.js](scripts/verify-v1.5.js) |',
+};
+
 function main() {
   const vectors = JSON.parse(fs.readFileSync(VECTORS, 'utf8'));
   const refMap = buildReferenceMap(vectors.vectors);
@@ -86,10 +98,6 @@ function main() {
       + fullRecords.join('\n') + '\n\n</details>\n'
     : '';
 
-  const body = rows.length
-    ? '\n' + rows.join('\n') + details
-    : '\n<!-- (no third-party runners verified yet) -->\n';
-
   for (const file of IMPL_FILES) {
     const content = fs.readFileSync(file, 'utf8');
     const start = content.indexOf(BEGIN);
@@ -98,6 +106,10 @@ function main() {
       console.error('ERROR: ' + path.basename(file) + ' is missing registry markers (' + BEGIN + ' / ' + END + ')');
       process.exit(1);
     }
+    // Locale-aware reference row; header/separator are identical (English column names).
+    const refRow = /\.en\.md$/.test(file) ? REFERENCE_ROW.en : REFERENCE_ROW.zh;
+    const tableRows = [HEADER, SEPARATOR, refRow].concat(rows);
+    const body = '\n' + tableRows.join('\n') + details;
     const newContent = content.slice(0, start + BEGIN.length) + body + content.slice(end);
     fs.writeFileSync(file, newContent, 'utf8');
   }

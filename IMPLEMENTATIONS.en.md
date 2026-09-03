@@ -15,11 +15,10 @@ Inclusion in this table does not imply endorsement by OpenOBA — it records onl
 
 ## Registry
 
+<!-- registry:auto-begin -->
 | Implementor | Method | Result | Date | Artifact |
 |------------|--------|:-------:|------|---------|
 | **OpenOBA (reference implementation)** | Node.js, self-built JCS (RFC 8785) | 78/78 hash layer + canary K01 discrimination (Check 1 MISMATCH + Check 2 MATCH) | 2026-08-31 | [verify-v1.5.js](scripts/verify-v1.5.js) |
-
-<!-- registry:auto-begin -->
 | **concordia-python** | Python, self-built JCS (RFC 8785) | 107/107 canonical bytes | 2026-09-02 | [concordia-protocol](https://github.com/eriknewton/concordia-protocol/tree/main/conformance/erdl-do-v1.5) |
 | **norviq-go** | Go, self-built JCS (RFC 8785) | 107/107 canonical bytes | 2026-09-01 | [erdl-runner-go](https://github.com/norviq-dev/erdl-runner-go) |
 

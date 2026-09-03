@@ -18,11 +18,10 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 
 ## Registry
 
+<!-- registry:auto-begin -->
 | Implementor | Method | Result | Date | Artifact |
 |------------|--------|:-------:|------|---------|
 | **OpenOBA (参考实现)** | Node.js, self-built JCS (RFC 8785) | 78/78 哈希层 + 金丝雀 K01 判别（Check 1 MISMATCH + Check 2 MATCH） | 2026-08-31 | [verify-v1.5.js](scripts/verify-v1.5.js) |
-
-<!-- registry:auto-begin -->
 | **concordia-python** | Python, self-built JCS (RFC 8785) | 107/107 canonical bytes | 2026-09-02 | [concordia-protocol](https://github.com/eriknewton/concordia-protocol/tree/main/conformance/erdl-do-v1.5) |
 | **norviq-go** | Go, self-built JCS (RFC 8785) | 107/107 canonical bytes | 2026-09-01 | [erdl-runner-go](https://github.com/norviq-dev/erdl-runner-go) |
 
