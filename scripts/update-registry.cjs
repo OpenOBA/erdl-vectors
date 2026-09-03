@@ -52,6 +52,7 @@ function main() {
   const refMap = buildReferenceMap(vectors.vectors);
 
   const rows = [];
+  const fullRecords = [];
   const skipped = [];
   for (const f of fs.readdirSync(SUBMISSIONS_DIR).sort()) {
     if (!f.endsWith('.json')) continue;
@@ -63,14 +64,23 @@ function main() {
     }
     const runner = sub.runner || f.replace(/\.json$/, '');
     const method = sub.method || '—';
+    // Table keeps a short summary (up to the first semicolon); the full method string
+    // (scope + measured vector fingerprint) is preserved in a details block below.
+    const methodShort = method.split(';')[0].trim();
     const artifact = sub.artifact || f;
     rows.push(
-      `| **${runner}** | ${method} | ${result.match}/${result.total} canonical bytes | ${sub.date || '—'} | ${artifact} |`,
+      `| **${runner}** | ${methodShort} | ${result.match}/${result.total} canonical bytes | ${sub.date || '—'} | ${artifact} |`,
     );
+    fullRecords.push(`- **${runner}** — ${method}`);
   }
 
+  const details = fullRecords.length
+    ? '\n\n<details>\n<summary>Full submission records · 完整提交证据（scope 与向量指纹）</summary>\n\n'
+      + fullRecords.join('\n') + '\n\n</details>\n'
+    : '';
+
   const body = rows.length
-    ? '\n' + rows.join('\n') + '\n'
+    ? '\n' + rows.join('\n') + details
     : '\n<!-- (no third-party runners verified yet) -->\n';
 
   for (const file of IMPL_FILES) {
