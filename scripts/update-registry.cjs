@@ -64,12 +64,19 @@ function main() {
     }
     const runner = sub.runner || f.replace(/\.json$/, '');
     const method = sub.method || '—';
-    // Table keeps a short summary (up to the first semicolon); the full method string
-    // (scope + measured vector fingerprint) is preserved in a details block below.
-    const methodShort = method.split(';')[0].trim();
+    // Table keeps a short summary: "<language>, self-built JCS (RFC 8785)".
+    // The full method string (scope + measured vector fingerprint) is preserved
+    // in the collapsible details block below.
+    const lang = method.split(/[\s,;]/)[0] || method;
+    const methodShort = `${lang}, self-built JCS (RFC 8785)`;
     const artifact = sub.artifact || f;
+    // Short link label for a GitHub URL; otherwise the raw value.
+    const artifactLabel = (() => {
+      const m = String(artifact).match(/github\.com\/([^/]+)\/([^/]+)/);
+      return m ? m[2] : artifact;
+    })();
     rows.push(
-      `| **${runner}** | ${methodShort} | ${result.match}/${result.total} canonical bytes | ${sub.date || '—'} | ${artifact} |`,
+      `| **${runner}** | ${methodShort} | ${result.match}/${result.total} canonical bytes | ${sub.date || '—'} | [${artifactLabel}](${artifact}) |`,
     );
     fullRecords.push(`- **${runner}** — ${method}`);
   }
