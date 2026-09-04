@@ -1,6 +1,6 @@
 # ERDL Decision Object · Cross-Implementation Verification Vectors v1.5
 
-> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · Apache-2.0 License
+> Copyright © 2026 Shenzhen Miaojing Technology Co., Ltd. · Vectors & spec CC0-1.0 · Code Apache-2.0 (see LICENSE / LICENSE-CC0)
 
 > **Spec basis**: ERDL-DOBJ-RFC-002 — Decision Object v1.5 flat-hash chain ([`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md))
 > **Vector version**: v1.5.0 · Core vectors 301 (audit layer 78 + expression layer 223)

@@ -1,2 +1,13 @@
 erdl-vectors
 Copyright 2026 Shenzhen Miaojing Technology Co., Ltd.
+
+License split (2026-09-04) — this repository applies a two-tier license:
+
+- CC0 1.0 (public domain dedication) — test vectors (*.json), the
+  specification documents (docs/OPENOBA-DOBJ-RFC-002-*.md), and all other
+  non-code documentation (README, CHANGELOG, conformance reports, submission
+  guides). See LICENSE-CC0.
+- Apache-2.0 — all code (scripts/ and any other software). See LICENSE.
+
+Trademarks are not covered by either grant: ERDL™ and related marks remain
+the property of Shenzhen Miaojing Technology Co., Ltd.

@@ -1,6 +1,6 @@
 # ERDL Decision Object · 跨实现验证向量 v1.5
 
-> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · Apache-2.0 License
+> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · 向量与规范 CC0-1.0 · 代码 Apache-2.0（见 LICENSE / LICENSE-CC0）
 
 > **规范依据**：ERDL-DOBJ-RFC-002 — Decision Object v1.5 扁平哈希链（[`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)）
 > **向量版本**：v1.5.0 · Core 向量 301 条（审计层 78 + 表达层 223）
