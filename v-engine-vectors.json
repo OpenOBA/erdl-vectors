@@ -5,10 +5,10 @@
   "category": "V-ENGINE + V-GLOSS/V-PROJ",
   "generated": "2026-08-22",
   "maintainer": "OpenOBA (https://openoba.com)",
-  "total": 223,
+  "total": 227,
   "breakdown": {
     "node": 136,
-    "constraint": 35,
+    "constraint": 39,
     "simple_compile": 30,
     "gloss": 12,
     "gloss_integrity": 4,
@@ -13912,6 +13912,77 @@
         "warnings": [
           "quantifier_empty"
         ],
+        "errored": false
+      }
+    },
+    {
+      "id": "V-ENGINE-E9-001",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E9",
+      "scenario": "epoch_ms no-timezone datetime = UTC",
+      "expr_tree": {
+        "epoch_ms": "2026-01-01T12:30:45"
+      },
+      "context": {},
+      "expected": {
+        "value": 1767270645000,
+        "value_type": "number",
+        "warnings": [],
+        "errored": false
+      }
+    },
+    {
+      "id": "V-ENGINE-E9-002",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E9",
+      "scenario": "epoch_ms Z suffix",
+      "expr_tree": {
+        "epoch_ms": "2026-01-01T12:30:45Z"
+      },
+      "context": {},
+      "expected": {
+        "value": 1767270645000,
+        "value_type": "number",
+        "warnings": [],
+        "errored": false
+      }
+    },
+    {
+      "id": "V-ENGINE-E9-003",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E9",
+      "scenario": "epoch_ms +08:00 offset honored",
+      "expr_tree": {
+        "epoch_ms": "2026-01-01T12:30:45+08:00"
+      },
+      "context": {},
+      "expected": {
+        "value": 1767241845000,
+        "value_type": "number",
+        "warnings": [],
+        "errored": false
+      }
+    },
+    {
+      "id": "V-ENGINE-E9-004",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E9",
+      "scenario": "days_between no-timezone datetime UTC floor",
+      "expr_tree": {
+        "days_between": [
+          "2026-01-01T23:59:59",
+          "2026-01-02T00:00:01"
+        ]
+      },
+      "context": {},
+      "expected": {
+        "value": 0,
+        "value_type": "number",
+        "warnings": [],
         "errored": false
       }
     },

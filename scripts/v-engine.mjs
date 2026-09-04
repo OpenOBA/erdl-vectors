@@ -456,6 +456,11 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E8', scenario: 'all(empty)=false', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
     { constraint: 'E8', scenario: 'any(empty)=false', tree: { any: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
     { constraint: 'E8', scenario: 'none(empty)=false', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: true } }, ctx: { items: [] } },
+    // E9 time-node UTC semantics (4, added 2026-09-05 to lock §7.3(f) no-tz = UTC): no-timezone datetime parses as UTC, explicit Z/offset honored
+    { constraint: 'E9', scenario: 'epoch_ms no-timezone datetime = UTC', tree: { epoch_ms: '2026-01-01T12:30:45' }, ctx: {} },
+    { constraint: 'E9', scenario: 'epoch_ms Z suffix', tree: { epoch_ms: '2026-01-01T12:30:45Z' }, ctx: {} },
+    { constraint: 'E9', scenario: 'epoch_ms +08:00 offset honored', tree: { epoch_ms: '2026-01-01T12:30:45+08:00' }, ctx: {} },
+    { constraint: 'E9', scenario: 'days_between no-timezone datetime UTC floor', tree: { days_between: ['2026-01-01T23:59:59', '2026-01-02T00:00:01'] }, ctx: {} },
     // E10 NFC normalization (2, decomposed vs precomposed, verifies evaluation-layer NFC)
     { constraint: 'E10', scenario: 'NFC decomposed field value == precomposed literal', tree: { eq: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301' } },
     { constraint: 'E10', scenario: 'NFC decomposed field value contains precomposed', tree: { contains: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301 au lait' } },

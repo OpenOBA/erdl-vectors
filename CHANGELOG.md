@@ -11,10 +11,11 @@
 Decision Object v1.5 扁平哈希链跨实现测试向量集。
 
 - **V-DO-v15 审计层 78 条**（`decision-object-vectors-v1.5.json`）：决策类型 13 / 链攻击检测 8 / 锚定攻击检测 10 / 金丝雀 1 / 结论层 14 / 法域合规 32
-- **V-ENGINE 表达层 223 条**（`v-engine-vectors.json`）：节点语义 136（34 节点 × 4 场景）/ 求值约束 35 / Simple 编译 30 / gloss 16 / 投影面 6
+- **V-ENGINE 表达层 227 条**（`v-engine-vectors.json`）：节点语义 136（34 节点 × 4 场景）/ 求值约束 39 / Simple 编译 30 / gloss 16 / 投影面 6
 - **规范性契约**：`RUNNER_CONTRACT.md`（规则 R1–R6）+ `docs/VERIFIER-GUIDE.md`
 - **验证程序**：五步验证法 Step 0–6（RFC-002 §7），参考实现 `scripts/verify-v1.5.js`（零依赖 self-built JCS）
 - **自动记录**：`scripts/generate-conformance.cjs` → `conformance/CONFORMANCE.md`（CI 自动生成，记录 Check 1/2 + K01 判别 + R1–R6；`npm run conformance`）+ `submissions/README.md`（第三方 runner 提交管道）
+- **2026-09-05 增量（非 DO 升版，Core 301 → 305）**：新增 E9 时间节点 UTC 语义约束向量 4 条（`epoch_ms` 无时区后缀按 UTC / `Z` 后缀 / `+08:00` 偏移 / `days_between` floor），锁定规范 §7.3(f)「无时区后缀按 UTC」的跨实现语义；表达层 223 → 227，语义敏感向量 57 → 61。同步修复独立验证器（`verify-v-engine.mjs`）时间解析：严格 ISO 8601（无时区后缀补 Z 按 UTC）+ `days_between` `Math.round` → `Math.floor`（对齐 §7.3(f)）。
 - **2026-09-02 增量（非 DO 升版，Core 301 不变）**：新增 §1.4 生产侧不变量 / §1.5 决策推导语义 / §1.6 Producer Contract；新增 decision_divergence（跨层语义重推，V-DIVERGENCE 3 条，`npm run verify:decision`）+ V-PRODUCER（producer-side 一致性，`npm run verify:producer`）；附录 A 新增 P-05 残余风险；P6 可解析集语义澄清。鸣谢：Santosh Kumar Puppala（norviq-dev）。
 
 ## v1.3（历史档案，归档于 archive/v1.3/）

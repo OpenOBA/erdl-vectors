@@ -88,14 +88,31 @@ function toDecimalString(r, scale = 14) {
 
 // ═══════════════════════════════════════════════
 // 2. independent implementation: time UTC (independent of reference-engine date-utils)
+//    —— strict ISO 8601: no-timezone datetime parses as UTC (spec §7.3(f)), floor day diff
 // ═══════════════════════════════════════════════
-function toDate(v) { const d = new Date(typeof v === 'string' ? v : ''); return Number.isNaN(d.getTime()) ? null : d }
-function daysBetween(from, to) {
-  const d1 = new Date(String(from)).getTime(); const d2 = new Date(String(to)).getTime()
-  if (Number.isNaN(d1) || Number.isNaN(d2)) return null
-  return Math.round((d2 - d1) / 86400000)
+function parseIso(v) {
+  if (typeof v !== 'string') return null
+  const s = v.trim()
+  let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
+  if (m) {
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]))
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+  m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.exec(s)
+  if (m) {
+    const tz = m[8]
+    const d = new Date(tz === undefined ? `${s}Z` : s) // no-tz -> UTC
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+  return null
 }
-function epochMs(v) { const t = new Date(String(v)).getTime(); return Number.isNaN(t) ? null : t }
+function toDate(v) { return parseIso(v) }
+function daysBetween(from, to) {
+  const d1 = parseIso(from); const d2 = parseIso(to)
+  if (d1 === null || d2 === null) return null
+  return Math.floor((d2.getTime() - d1.getTime()) / 86400000)
+}
+function epochMs(v) { const d = parseIso(v); return d === null ? null : d.getTime() }
 function dateAdd(unit, base, amount) {
   const d = toDate(base); if (d === null) return null
   const n = Number(amount); const out = new Date(d)
@@ -255,7 +272,7 @@ function serializeValue(v) {
 const data = JSON.parse(readFileSync(new URL('../v-engine-vectors.json', import.meta.url), 'utf8'))
 
 const SENSITIVE_NODES = new Set(['add', 'sub', 'mul', 'div', 'round', 'days_between', 'epoch_ms', 'date_add', 'date_part', 'month_last_day', 'aggregate'])
-const SENSITIVE_CONSTRAINTS = new Set(['E2', 'E8', 'E10'])
+const SENSITIVE_CONSTRAINTS = new Set(['E2', 'E8', 'E10', 'E9'])
 
 let checked = 0, matched = 0
 const mismatches = []
