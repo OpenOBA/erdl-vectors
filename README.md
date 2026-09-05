@@ -1,175 +1,177 @@
-# ERDL Decision Object · 跨实现验证向量 v1.5
+# ERDL Decision Object · Cross-Implementation Verification Vectors v1.5
 
-> Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · 向量与规范 CC0-1.0 · 代码 Apache-2.0（见 LICENSE / LICENSE-CC0）
+[![Version](https://img.shields.io/badge/version-v1.5.0-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-305-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]()
 
-> **规范依据**：ERDL-DOBJ-RFC-002 — Decision Object v1.5 扁平哈希链（[`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)）
-> **向量版本**：v1.5.0 · Core 向量 305 条（审计层 78 + 表达层 227）
-> **基于 ERDL 设计**：[ERDL（Entity-Rule Definition Language）](https://github.com/OpenOBA/erdl-landing) —— 声明式规则执行协议；Decision Object 即其决策的审计记录，数据模型见 [ERDL 规范 v2.0](https://github.com/OpenOBA/erdl-landing/blob/main/spec/erdl-spec-v2.0.md)
+> Copyright © 2026 Shenzhen Miaojing Technology Co., Ltd. · Vectors & spec CC0-1.0 · Code Apache-2.0 (see LICENSE / LICENSE-CC0)
 
-AI 治理的跨实现验证基准：一套不属于任何单一实现的中性测试向量。任何语言、任何技术栈的 runner，都可以仅凭规范从第一性原理独立实现 JCS（RFC 8785）+ SHA-256，逐字节重算 Decision Object 哈希并比对。
+> **Spec basis**: ERDL-DOBJ-RFC-002 — Decision Object v1.5 flat-hash chain ([`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md))
+> **Vector version**: v1.5.0 · Core vectors 305 (audit layer 78 + expression layer 227)
+> **Based on the ERDL design**: [ERDL (Entity-Rule Definition Language)](https://github.com/OpenOBA/erdl-landing) — a declarative rule-execution protocol; the Decision Object is the audit record of its decisions; for the data model see [ERDL spec v2.0](https://github.com/OpenOBA/erdl-landing/blob/main/spec/erdl-spec-v2.0.md)
 
-> **谁、哪一天、通过多少条——是测出来的，不是宣称的。**
+A cross-implementation verification benchmark for AI governance: a set of neutral test vectors that belong to no single implementation. Any runner, in any language and any tech stack, can implement JCS (RFC 8785) + SHA-256 independently from first principles on the spec alone, recompute Decision Object hashes byte by byte, and compare.
 
-## 为什么需要独立验证
+> **Who, on what date, passed how many vectors — measured, not claimed.**
 
-AI Agent 正在越来越多地替企业做决定：审批、放行、拒绝、越级。当做决定的一方本身就是软件时，治理信任不能建立在单一厂商的宣称之上——它必须能被任何独立实现验证。
+## Why independent verification is needed
 
-一份规范如果只有一个实现"通过"，无法区分"规范是对的"还是"这个实现恰好与自己的生成器一致"。只有当多个互不相关的实现，各自从规范文本出发独立实现，得到逐字节一致的结果，规范本身才算成立。
+AI Agents are increasingly making decisions on behalf of enterprises: approving, releasing, denying, escalating. When the decision-maker itself is software, governance trust cannot rest on a single vendor's claims — it must be verifiable by any independent implementation.
 
-本仓库就是这项验证的测量现场：向量是中性的，答案是隔离的，记录是自动的，没有任何人给任何人背书。
+If a spec has only one implementation that "passes", there is no way to distinguish "the spec is correct" from "this implementation happens to be consistent with its own generator". Only when multiple mutually unrelated implementations, each starting from the spec text and implementing independently, arrive at byte-identical results does the spec itself stand as established.
 
-## Decision Object：每一次决策的审计记录
+This repository is the measurement site for this verification: the vectors are neutral, the answers are isolated, the records are automatic, and nobody endorses anybody.
 
-Decision Object 是 ERDL 规则引擎一次决策的审计记录——基于 [ERDL（Entity-Rule Definition Language）](https://github.com/OpenOBA/erdl-landing) 设计，完整记录决策发生时的命中规则、匹配运算符与评估上下文。数据模型与哈希规则定义于规范 [`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)。
+## Decision Object: the audit record of every decision
 
-其完整性由哈希链锚定：
+The Decision Object is the audit record of one decision of the ERDL rule engine — designed on the basis of [ERDL (Entity-Rule Definition Language)](https://github.com/OpenOBA/erdl-landing), fully recording the matched rules, matched operators, and evaluation context at the moment the decision occurred. The data model and hash rules are defined in the spec [`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md).
 
-- **防篡改证据**：对象移除 `audit.hash` 自身后，经 JCS（RFC 8785）规范化、SHA-256 计算，得到自报的 `audit.hash`（`sha256:` 前缀）；任何字段篡改都会导致审计哈希失配——可检测、可追溯；
-- **三层证据体系**：哈希证明完整性，签名证明身份，时间戳证明时间；
-- **扁平哈希链**：决策记录以 `previous_hash` 串链，篡改历史、删记录、指针悬空、时钟回退、整链重建、版本降级、混链等攻击均被建模为可检测场景（见下文链攻击向量）。
+Its integrity is anchored by the hash chain:
 
-## 跨实现验证：征集独立 Runner
+- **Tamper-proof evidence**: with `audit.hash` itself removed from the object, JCS (RFC 8785) canonicalization followed by SHA-256 yields the self-reported `audit.hash` (`sha256:` prefix); tampering with any field causes the audit hash to mismatch — detectable and traceable;
+- **Three-layer evidence system**: hash proves integrity, signature proves identity, timestamp proves time;
+- **Flat-hash chain**: decision records are chained by `previous_hash`; attacks such as history tampering, record deletion, dangling pointers, clock regression, whole-chain rebuild, version downgrade, and mixed chains are all modeled as detectable scenarios (see the chain-attack vectors below).
 
-**这是本仓库的核心目的。**
+## Cross-implementation verification: call for independent Runners
 
-78 条审计层向量是一个中性基准：它不预设任何语言、框架或技术栈，只预设规范本身。我们公开征集独立 runner：
+**This is the core purpose of this repository.**
 
-1. 只读规范与契约：[RUNNER_CONTRACT.md](RUNNER_CONTRACT.md)（规则 R1–R6）+ [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md) + RFC-002；
-2. **自行实现 JCS（RFC 8785）+ SHA-256**——不依赖 `json-canonicalize` 或任何第三方 canonicalizer（R6）；
-3. 对 `decision-object-vectors-v1.5.json` 全部 78 条向量逐条重算，通过 Check 1（与工件自报 `audit.hash` 自洽）+ Check 2（canonical bytes 与独立预言逐字节一致）双重门；
-4. 金丝雀 K01 必须正确判别：Check 1 MISMATCH + Check 2 MATCH（见下文验证原则）;
-5. 提交 `canonical_hex` + `k01_check1`（见 [submissions/README.md](submissions/README.md)），CI 交叉验证，合并后自动登记进 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表。
+The 78 audit-layer vectors are a neutral benchmark: they presuppose no language, framework, or tech stack — only the spec itself. We openly call for independent runners:
 
-逐字节重算一致，即证明这份标准在你的实现下成立。v1.5 的 78 条哈希层向量现已有两个独立第三方 Runner 逐字节验证（Go / norviq-go，2026-09-01；Python / concordia-python，2026-09-02），各 107/107 canonical bytes——见 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表。
+1. Read only the spec and the contract: [RUNNER_CONTRACT.md](RUNNER_CONTRACT.md) (rules R1–R6) + [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md) + RFC-002;
+2. **Implement JCS (RFC 8785) + SHA-256 yourself** — no dependency on `json-canonicalize` or any third-party canonicalizer (R6);
+3. Recompute all 78 vectors in `decision-object-vectors-v1.5.json` vector by vector, passing the dual gates of Check 1 (self-consistent with the artifact's self-reported `audit.hash`) + Check 2 (canonical bytes byte-identical with the independent oracle);
+4. The canary K01 must be correctly discriminated: Check 1 MISMATCH + Check 2 MATCH (see the verification principles below);
+5. Submit `canonical_hex` + `k01_check1` (see [submissions/README.md](submissions/README.md)); CI cross-verifies, and after merge the result is automatically registered in the [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) registry.
 
-## A2A 发展语境
+Byte-identical recomputation proves that this standard holds under your implementation. The v1.5 78 hash-layer vectors are now byte-verified by two independent third-party runners (Go / norviq-go, 2026-09-01; Python / concordia-python, 2026-09-02), each at 107/107 canonical bytes — see the [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) registry.
 
-A2A（Agent-to-Agent）协议生态正在快速生长。当 Agent 之间开始互相委托决策、互相审批、交换证据时，跨实现的信任不能靠双边背书，而必须建立在可独立验证的基础之上——一方 Agent 产出的决策记录，必须能被另一方的独立实现逐字节核验。
+## A2A context
 
-Decision Object 的验证体系遵循的正是这条标准化路径（Erik Newton 于 A2A Discussion #2031 提出）：
+The A2A (Agent-to-Agent) protocol ecosystem is growing rapidly. When agents begin to delegate decisions to one another, approve one another, and exchange evidence, cross-implementation trust cannot rest on bilateral endorsements; it must be built on a foundation that is independently verifiable — the decision record produced by one agent must be byte-verifiable by the other side's independent implementation.
 
-> **三个独立实现 + 一个开放规范 + 没有单一所有者。**
+The Decision Object verification system follows exactly this standardization path (proposed by Erik Newton in A2A Discussion #2031):
 
-每一个独立 runner，既是对本规范的验证，也是为 A2A 时代的信任基础设施添一块砖。
+> **Three independent implementations + one open spec + no single owner.**
 
-## 向量体系
+Every independent runner is both a verification of this spec and one brick added to the trust infrastructure of the A2A era.
 
-Core 合计 **305 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 227。
+## Vector system
 
-### 覆盖总览
+Core total **305** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 227.
 
-| 验证层 | 类别 | 覆盖对象 | 数量 | 状态 |
+### Coverage overview
+
+| Verification layer | Category | Coverage object | Count | Status |
 |--------|------|---------|:---:|------|
-| 审计层 | V-DO-v15 | 决策类型 13 / 链攻击 8 / 锚定 10 / 金丝雀 1 / 结论 14 / 法域 32 | 78 | ✅ 已验证（第三方 ×2） |
-| 表达层 | V-ENGINE | 节点语义 136 + 求值约束 39 + Simple 编译 30 | 205 | 未验证（仅参考） |
-| 表达层 | V-GLOSS / V-PROJ | gloss 16（渲染 12 + 完整性 4）+ 投影面 6 | 22 | 未验证（仅参考） |
-| **合计** | | **Core** | **305** | **部分验证（78/305）** |
+| Audit layer | V-DO-v15 | Decision types 13 / chain attacks 8 / anchoring 10 / canary 1 / conclusion 14 / jurisdiction 32 | 78 | ✅ Verified (third-party ×2) |
+| Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 39 + Simple compilation 30 | 205 | Unverified (reference only) |
+| Expression layer | V-GLOSS / V-PROJ | gloss 16 (render 12 + completeness 4) + projection facets 6 | 22 | Unverified (reference only) |
+| **Total** | | **Core** | **305** | **Partial (78/305)** |
 
-**验证状态（二元）**：
+**Verification status (binary)**:
 
-- **已验证**：审计层 V-DO-v15 78 条哈希层向量，由两个独立第三方 Runner 逐字节验证——norviq-go（Go，2026-09-01）、concordia-python（Python，Erik Newton，2026-09-02），各 107/107 canonical bytes；历史 v1.3 的 13 条 AV（Erik Newton，2026-07-30）已由 v1.5 取代；
-- **未验证**：表达层 227 条（V-ENGINE 205 + V-GLOSS / V-PROJ 22），仅参考实现通过，待独立第三方 Runner 验证。
+- **Verified**: the audit layer V-DO-v15 78 hash-layer vectors, byte-verified by two independent third-party runners — norviq-go (Go, 2026-09-01) and concordia-python (Python, Erik Newton, 2026-09-02), each at 107/107 canonical bytes; the historical v1.3 13 AV vectors (Erik Newton, 2026-07-30) are superseded by v1.5;
+- **Unverified**: the expression layer 227 vectors (V-ENGINE 205 + V-GLOSS / V-PROJ 22), passed only by the reference implementation, awaiting verification by independent third-party Runners.
 
-**规划未生成（不计数）**：签名 V-SIGN 5 + 时间锚定 TSA 3 + 状态验证 V-TEMPORAL 4。
+**Planned, not generated (not counted)**: signature V-SIGN 5 + time anchoring TSA 3 + state verification V-TEMPORAL 4.
 
-> **向量文件**：`decision-object-vectors-v1.5.json`（V-DO-v15 审计层 78 条）+ `v-engine-vectors.json`（V-ENGINE 表达层 227 条）。
+> **Vector files**: `decision-object-vectors-v1.5.json` (V-DO-v15 audit layer, 78 vectors) + `v-engine-vectors.json` (V-ENGINE expression layer, 227 vectors).
 
-### V-DO-v15 审计层（78 条）
+### V-DO-v15 audit layer (78 vectors)
 
-| 类别 | 编号段 | 数量 | 内容 |
+| Category | Number range | Count | Content |
 |------|------|:---:|------|
-| 决策类型覆盖 | V-DO-v15-D01..D13 | 13 | 13 种决策类型 × 扁平哈希（含 canonical_tree 字段） |
-| 链攻击检测 | V-DO-v15-C01..C08 | 8 | 正常链基线 + 7 攻击（篡改 / 删记录 / 指针悬空 / 时钟回退 / 整链重建 / 版本降级 / 混链） |
-| 锚定攻击检测 | V-DO-v15-A01..A10 | 10 | 知识 / 引用 / 分片 / 附件 / 意图 / 记忆 / 树快照 / 树篡改 / B 类文本 |
-| 金丝雀 | V-DO-v15-K01 | 1 | 链位置金丝雀（延续 AV-013 模式） |
-| 结论层 | V-DO-v15-G01..G14 | 14 | 结构攻击恒定 6 + 领域示例 8（政务 4 + 企业 4） |
-| 法域合规 | V-COMP-001..021 + F01..F11 | 32 | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含第一层篡改 / 风险条件层 / 优先级锚定） |
-| **哈希层合计** | | **78** | D / C / A / K / G / V-COMP |
+| Decision-type coverage | V-DO-v15-D01..D13 | 13 | 13 decision types × flat hash (with the canonical_tree field) |
+| Chain-attack detection | V-DO-v15-C01..C08 | 8 | Normal-chain baseline + 7 attacks (tamper / record deletion / dangling pointer / clock regression / whole-chain rebuild / version downgrade / mixed chain) |
+| Anchoring-attack detection | V-DO-v15-A01..A10 | 10 | Knowledge / reference / fragment / attachment / intent / memory / tree snapshot / tree tamper / type-B text |
+| Canary | V-DO-v15-K01 | 1 | Chain-position canary (continues the AV-013 pattern) |
+| Conclusion layer | V-DO-v15-G01..G14 | 14 | Structural attacks fixed 6 + domain examples 8 (government 4 + enterprise 4) |
+| Jurisdiction compliance | V-COMP-001..021 + F01..F11 | 32 | Field conformance 21 (jurisdiction 7 + framework 14) + failure detection 11 (including first-layer tamper / risk-condition layer / priority pinning) |
+| **Hash-layer total** | | **78** | D / C / A / K / G / V-COMP |
 
-规划、未生成、不计数：时间锚定 V-DO-v15-T01..T03（3 条）、签名链 V-SIGN-001..005（5 条），随签名层实现后补入。
+Planned, not generated, not counted: time anchoring V-DO-v15-T01..T03 (3 vectors), signature chain V-SIGN-001..005 (5 vectors), to be added after the signature layer is implemented.
 
-### V-ENGINE 表达层（227 条）
+### V-ENGINE expression layer (227 vectors)
 
-节点语义 136（34 节点 × 4 场景）+ 求值约束 39（E1–E12 可向量化子集）+ Simple 编译 30（运算符）+ gloss 16（渲染 12 + 完整性 4）+ 投影面编译 6。
+Node semantics 136 (34 nodes × 4 scenarios) + evaluation constraints 39 (the E1–E12 vectorizable subset) + Simple compilation 30 (operators) + gloss 16 (render 12 + completeness 4) + projection-facet compilation 6.
 
-### 语义重推与生产侧一致性（2026-09-02 新增，非 Core 305）
+### Semantic re-derivation and producer-side conformance (added 2026-09-02, not in Core 305)
 
-在 Core 305 之上，新增两类验证对象，覆盖「决策-规则一致性」与「记录-执行保真度」——这是哈希/字段检查（V-DO、V-ENGINE）够不到的两个维度：
+On top of Core 305, two new verification objects cover "decision-rule coherence" and "record-emission fidelity" — two dimensions that hash/field checks (V-DO, V-ENGINE) cannot reach:
 
-| 验证对象 | 系列 | 数量 | 内容 |
+| Verification object | Series | Count | Content |
 |---------|------|:---:|------|
-| decision_divergence（跨层语义重推） | V-DIVERGENCE | 3 | 按 RFC-002 §1.5 从 DO 存储的 context+rules 重推决策，断言 `result.decision` 一致；catch「allow 引用 deny」等内部不自洽 |
-| V-PRODUCER（producer-side 一致性） | 场景 | 3 | 按 §1.6 Producer Contract 运行 producer，捕获 enforcement vs 发射 DO，断言一致；唯一能触达 P-05 fidelity 的地方 |
+| decision_divergence (cross-layer semantic re-derivation) | V-DIVERGENCE | 3 | Re-derive the decision from the DO's stored context+rules per RFC-002 §1.5, assert `result.decision` consistency; catches internal incoherence such as "ALLOW citing a DENY rule" |
+| V-PRODUCER (producer-side conformance) | scenarios | 3 | Run the producer per §1.6 Producer Contract, capture enforcement vs. emitted DO, assert consistency; the only place P-05 fidelity is reachable |
 
-> **bound 非 closure**：decision_divergence 覆盖「决策-规则一致性」，V-PRODUCER 覆盖「记录-执行保真度」（附录 A P-05）——前者可从成品 DO 验证，后者只能从 producer 运行验证。脚本：`npm run verify:decision` / `npm run verify:producer`。
+> **Bound, not a closure**: decision_divergence covers decision-rule coherence; V-PRODUCER covers record-emission fidelity (Appendix A P-05) — the former is verifiable from the finished DO, the latter only by running the producer. Scripts: `npm run verify:decision` / `npm run verify:producer`.
 
-### Extension（随行业增长）
+### Extension (grows with industries)
 
-`V-JURIS` / `V-SCENE` / `V-STAKE` / `V-NL` 随行业知识包增长，新增条目纳入冻结管理；Core 基线定基期内只增不减。
+`V-JURIS` / `V-SCENE` / `V-STAKE` / `V-NL` grow with industry knowledge packs; new entries are placed under freeze management; the Core baseline is append-only (only grows, never shrinks) during the baseline-fixing period.
 
-## 快速开始（Runner 导向）
+## Quick start (Runner-oriented)
 
-### 0. 先读契约
+### 0. Read the contract first
 
-- 规范性契约：[RUNNER_CONTRACT.md](RUNNER_CONTRACT.md)——R1–R6 与 conformance 判定的权威定义，可仅凭契约从第一性原理实现验证器；
-- 实现指南：[docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md)——字段、breach 码、Check 1/2 检测规则；
-- 规范原文：[docs/OPENOBA-DOBJ-RFC-002-CN.md](docs/OPENOBA-DOBJ-RFC-002-CN.md)。
+- Normative contract: [RUNNER_CONTRACT.md](RUNNER_CONTRACT.md) — the authoritative definition of R1–R6 and conformance determination; a verifier can be implemented from first principles on the contract alone;
+- Implementation guide: [docs/VERIFIER-GUIDE.md](docs/VERIFIER-GUIDE.md) — fields, breach codes, Check 1/2 detection rules;
+- Spec text: [docs/OPENOBA-DOBJ-RFC-002-CN.md](docs/OPENOBA-DOBJ-RFC-002-CN.md).
 
-### 1. 本地验证（参考实现）
+### 1. Local verification (reference implementation)
 
 ```bash
-npm install             # 安装依赖（json-canonicalize 仅供参考管线做确定性比对，vitest 用于测试；runner 自身 MUST NOT 依赖它）
-npm run generate          # 生成 V-DO 78 条向量 + 答案文件（canonical_hex 物理隔离，.gitignore）
-npm run generate:vengine  # 生成 V-ENGINE 227 条向量（@openoba/erdl 参考引擎）
-npm run verify            # V-DO 五步验证法 Step 0–6 + 语义 breach 检测
-npm run verify:vengine    # V-ENGINE 表达层独立验证（61 条语义敏感向量）
-npm run verify:vengine:full  # V-ENGINE 全量 227 条
-npm run verify:decision  # decision_divergence 跨层语义重推（需 @openoba/erdl）
-npm run verify:producer  # V-PRODUCER producer-side 一致性
-npm run conformance       # 自动生成 conformance/CONFORMANCE.md（Check 1/2 + K01 + R1–R6 合规报告）
-npm test                  # vitest 回归套件（含 web/Node 一致性 + 对抗性回归守门）
+npm install             # install dependencies (json-canonicalize is used only by the reference pipeline for deterministic comparison, vitest for tests; runners themselves MUST NOT depend on it)
+npm run generate          # generate the 78 V-DO vectors + answers file (canonical_hex physically isolated, .gitignore)
+npm run generate:vengine  # generate the 227 V-ENGINE vectors (@openoba/erdl reference engine)
+npm run verify            # V-DO Five-Step Verification Step 0–6 + semantic breach detection
+npm run verify:vengine    # V-ENGINE expression-layer independent verification (61 semantics-sensitive vectors)
+npm run verify:vengine:full  # V-ENGINE full 227 vectors
+npm run verify:decision  # decision_divergence cross-layer semantic re-derivation (requires @openoba/erdl)
+npm run verify:producer  # V-PRODUCER producer-side conformance
+npm run conformance       # auto-generate conformance/CONFORMANCE.md (Check 1/2 + K01 + R1–R6 conformance report)
+npm test                  # vitest regression suite (including web/Node consistency + adversarial regression gates)
 ```
 
-### 2. 在线验证（无需安装）
+### 2. Online verification (no install required)
 
-打开 `web/verify.html`（浏览器端 self-built JCS + Web Crypto SHA-256），粘贴单条 DO 验 hash，或加载向量文件验证全部 78 条。可直接双击打开（file://），或 `npx serve web/` 本地托管。
+Open `web/verify.html` (browser-side self-built JCS + Web Crypto SHA-256): paste a single DO to verify its hash, or load the vector file to verify all 78 vectors. It can be opened by double-clicking (file://), or hosted locally with `npx serve web/`.
 
-### 3. 提交你的验证结果
+### 3. Submit your verification results
 
-按 [submissions/README.md](submissions/README.md)：
+Follow [submissions/README.md](submissions/README.md):
 
-1. Fork 本仓库，从规范 + 契约自行实现 JCS（RFC 8785）+ SHA-256（无 SDK），对全部 78 条向量跑通；
-2. 写入 `submissions/<your-runner-name>-output.json`：每个向量的 **canonical_hex**（删 `audit.hash` 后的 JCS 输出字节，hex 编码）+ **k01_check1**（必须为 `"MISMATCH"`）；
-3. 开 PR——CI 逐字节交叉验证（`verify-submission.cjs`）并回帖结果；
-4. 合并后自动登记进 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表（`scripts/update-registry.cjs` 从 `submissions/*.json` 派生，未通过的不登记）。
+1. Fork this repository, implement JCS (RFC 8785) + SHA-256 yourself from the spec + contract (no SDK), and run all 78 vectors successfully;
+2. Write into `submissions/<your-runner-name>-output.json`: the **canonical_hex** of each vector (the JCS output bytes after deleting `audit.hash`, hex-encoded) + **k01_check1** (must be `"MISMATCH"`);
+3. Open a PR — CI cross-verifies byte by byte (`verify-submission.cjs`) and posts the result back;
+4. After merge, automatically registered in the [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) registry (`scripts/update-registry.cjs` derives from `submissions/*.json`; failures are not registered).
 
-**自动记录**：CI 验证通过后自动生成 [conformance/CONFORMANCE.md](conformance/CONFORMANCE.md)，记录「谁、哪天、通过多少条」+ Check 1/2 + K01 判别 + R1–R6 对照结论——结果由验证运行本身产出，非手工背书，且 CI 有新鲜度门禁（stale 即红）。
+**Auto-record**: after CI verification passes, [conformance/CONFORMANCE.md](conformance/CONFORMANCE.md) is auto-generated, recording "who, on what date, passed how many vectors" + Check 1/2 + K01 discrimination + R1–R6 comparison conclusions — the results are produced by the verification run itself, not hand-written endorsement, and CI has a freshness gate (stale → red).
 
-## 验证原则
+## Verification principles
 
-- **Measurements, not endorsements**：注册表只记录测量事实——谁、哪天、通过多少条；不认证、不背书、不保证。
-- **金丝雀是诚实性哨兵**：金丝雀 K01 的存储哈希由「删掉整个 `audit` 对象」的缺陷实现生成。正确实现只删 `audit.hash`，重算必然失配——**Check 1 MISMATCH + Check 2 MATCH 才算正确判别**（失配在 hash 层而非字节层）；Check 1 返回 MATCH 的 runner 即跳过了独立重算，被当场捕获。
-- **答案隔离**：答案预言（`decision-object-answers-v1.5.json`，canonical_hex）物理隔离（`.gitignore`），提交者与合规运行不可读；conformance 由契约定义，不由「匹配预言」定义。
-- **跨实现对等**：同一向量在 TS / Python / Rust（Go 可选第四实现）下结果逐字节一致。
-- **每条有归属**：每条向量明确验证哪个对象，覆盖成矩阵，回归可捕获。
+- **Measurements, not endorsements**: the registry records only measurement facts — who, on what date, passed how many vectors; no certification, no endorsement, no guarantee.
+- **The canary is the honesty sentinel**: the stored hash of canary K01 was produced by a defective implementation that "deletes the entire `audit` object". A correct implementation deletes only `audit.hash`, and the recompute necessarily mismatches — **only Check 1 MISMATCH + Check 2 MATCH counts as correct discrimination** (the mismatch is at the hash layer, not the byte layer); a runner returning MATCH on Check 1 has skipped independent recompute and is caught on the spot.
+- **Answer isolation**: the answer oracle (`decision-object-answers-v1.5.json`, canonical_hex) is physically isolated (`.gitignore`), unreadable by submitters and compliant runs; conformance is defined by the contract, not by "matching the oracle".
+- **Cross-implementation parity**: the same vector yields byte-identical results under TS / Python / Rust (with Go as an optional fourth implementation).
+- **Every vector has attribution**: each vector explicitly states which object it verifies; coverage forms a matrix; regressions are catchable.
 
-## 致谢
+## Acknowledgments
 
-对本规范的中立验证原则做出贡献的合作者：
+Collaborators who contributed to the neutral-verification principle of this spec:
 
-- **Christopher Hopley（chopmob-cloud / AlgoVoi）**——独立技术审阅者。在 v1.2 / v1.3 审计中发现自引用哈希排除规则缺位、字符串小数跨引擎不一致等关键问题，推动扁平哈希架构确立；其洁净室 RFC 8785 JCS + SHA-256 检查器报告了四个技术发现（C1–C4）与三个安全问题（S1–S3），其中双哈希算法降级（CWE-757）与 schema_ref SSRF 攻击面直接推动了安全加固。
-- **Erik Newton（Concordia）**——首个独立 Runner 实现者，「中立性不是宣称的，是测出来的」原则的提出者。在 A2A Discussion #2031 确立「三个独立实现、一个开放规范、没有单一所有者」的标准化路径；以 Python 纯规范实现（自建 JCS）逐字节验证 v1.3 全部 13 条 AV 向量；贡献了链完整性金丝雀设计、答案文件分离架构与 generated-artifact + clean-room + registry 的 CI 验证架构。
-- **Santosh Kumar Puppala（norviq-dev）**——提出 record-emission fidelity 缺口（附录 A P-05）及 PEP/缓存命中路径的真实事故案例；提出 P6 可解析集语义歧义；将 decision_divergence 界定为「bound 非 closure」。
-- **Rulsynor 团队**——参考规则引擎实现，为 Decision Object 字段设计提供真实工程约束输入，是测试向量生成的基准。
+- **Christopher Hopley (chopmob-cloud / AlgoVoi)** — independent technical reviewer. In the v1.2 / v1.3 audits he found key issues such as the missing self-reference hash-exclusion rule and cross-engine string-decimal inconsistency, driving the establishment of the flat-hash architecture; his clean-room RFC 8785 JCS + SHA-256 checker reported four technical findings (C1–C4) and three security issues (S1–S3), among which the dual-hash-algorithm downgrade (CWE-757) and the schema_ref SSRF attack surface directly drove security hardening.
+- **Erik Newton (Concordia)** — the first independent Runner implementer, proposer of the principle "neutrality is not claimed, but measured". In A2A Discussion #2031 he established the standardization path of "three independent implementations, one open spec, no single owner"; byte-verified all 13 AV vectors of v1.3 with a Python spec-only implementation (self-built JCS); contributed the chain-integrity canary design, the answer-file separation architecture, and the CI verification architecture of generated-artifact + clean-room + registry.
+- **Santosh Kumar Puppala (norviq-dev)** — raised the record-emission fidelity gap (Appendix A P-05) with a real-world PEP / cache-hit bug example; raised the P6 resolvable-set semantic ambiguity; scoped decision_divergence as a "bound, not a closure".
+- **Rulsynor team** — the reference rule-engine implementation; provided real engineering-constraint input for the Decision Object field design; the baseline for test-vector generation.
 
-## 归档说明
+## Archive note
 
-| 目录 | 内容 | 状态 |
+| Directory | Content | Status |
 |------|------|------|
-| `archive/v1.3/` | v1.3 全量：101 条 AV 向量 + 生成/验证脚本 + 测试 + RFC-001（CN/EN）+ 设计文档 + Runner 注册表 | 历史档案 + JCS 回归套件 |
+| `archive/v1.3/` | v1.3 full set: 101 AV vectors + generation/verification scripts + tests + RFC-001 (CN/EN) + design docs + Runner registry | Historical archive + JCS regression suite |
 
-v1.3 的 AV-* 编号归档后不复用、不与 V-DO-v15 并存于现行审计层。
+After archiving, the v1.3 AV-* numbering is not reused and does not coexist with V-DO-v15 in the current audit layer.
 
 ---
 
-> *中立性是被测出来的，不是宣称出来的。*
+> *Neutrality is measured, not claimed.*
