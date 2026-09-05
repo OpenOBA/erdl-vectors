@@ -137,7 +137,7 @@ Check in order; return on hit:
 
 ### 4.4 decision_divergence (cross-layer semantic re-derivation)
 
-`decision_divergence` is a **cross-layer semantic re-derivation check** (uses the deterministic evaluator `@openoba/erdl`, pinned by the 223 V-ENGINE vectors; its object is the hash-layer DO's decision field), not a hash-layer/field check (P1–P6):
+`decision_divergence` is a **cross-layer semantic re-derivation check** (uses the deterministic evaluator `@openoba/erdl`, pinned by the 227 V-ENGINE vectors; its object is the hash-layer DO's decision field), not a hash-layer/field check (P1–P6):
 
 1. Re-derive the decision per RFC-002 §1.5: ① rule evaluation (ring/priority/override) → rule decision; ② human_oversight upgrade (`risk_level ∈ {high, critical}` and `required=true` → REQUEST_HUMAN); ③ fallback (`metadata.decision` > default `ALLOW`);
 2. Assert `result.decision === the re-derived result`; a mismatch is `decision_divergence`.

@@ -137,7 +137,7 @@ hash 自洽 ≠ 无攻击。语义类向量篡改后**重算 hash 保持自洽**
 
 ### 4.4 decision_divergence（跨层语义重推）
 
-`decision_divergence` 是**跨层语义重推检查**（用确定性求值器 `@openoba/erdl`，被 V-ENGINE 223 向量钉住；对象是哈希层 DO 的决策字段），非哈希层/字段检查（P1–P6）：
+`decision_divergence` 是**跨层语义重推检查**（用确定性求值器 `@openoba/erdl`，被 V-ENGINE 227 向量钉住；对象是哈希层 DO 的决策字段），非哈希层/字段检查（P1–P6）：
 
 1. 按 RFC-002 §1.5 语义重推决策：①规则求值（ring/priority/override）→ 规则决策；②human_oversight 升级（`risk_level ∈ {high, critical}` 且 `required=true` → REQUEST_HUMAN）；③fallback（`metadata.decision` > 默认 `ALLOW`）；
 2. 断言 `result.decision === 重推结果`；不一致即 `decision_divergence`。

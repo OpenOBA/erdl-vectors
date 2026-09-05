@@ -63,7 +63,7 @@ Core total **305** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 227.
 | Audit layer | V-DO-v15 | Decision types 13 / chain attacks 8 / anchoring 10 / canary 1 / conclusion 14 / jurisdiction 32 | 78 | ✅ Verified (third-party ×2) |
 | Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 39 + Simple compilation 30 | 205 | Unverified (reference only) |
 | Expression layer | V-GLOSS / V-PROJ | gloss 16 (render 12 + completeness 4) + projection facets 6 | 22 | Unverified (reference only) |
-| **Total** | | **Core** | **301** | **Partial (78/301)** |
+| **Total** | | **Core** | **305** | **Partial (78/305)** |
 
 **Verification status (binary)**:
 
