@@ -1,6 +1,8 @@
 # ERDL Decision Object · 跨实现验证向量 v1.5
 
-[![Version](https://img.shields.io/badge/version-v1.5.0-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]()
+[![Version](https://img.shields.io/badge/version-v1.5.0-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-239-blueviolet)]()
+
+> ⚠️ **概念验证（Proof of Concept）** —— 本项目处于早期 alpha 阶段，尚未达到生产就绪，请勿用于生产环境。
 
 > Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · 向量与规范 CC0-1.0 · 代码 Apache-2.0（见 LICENSE / LICENSE-CC0）
 
@@ -175,3 +177,7 @@ v1.3 的 AV-* 编号归档后不复用、不与 V-DO-v15 并存于现行审计�
 ---
 
 > *中立性是被测出来的，不是宣称出来的。*
+
+## 联系方式
+
+- **支持**：[support@openoba.com](mailto:support@openoba.com)

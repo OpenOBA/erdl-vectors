@@ -2,6 +2,8 @@
 
 [![Version](https://img.shields.io/badge/version-v1.5.0-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-239-blueviolet)]()
 
+> ⚠️ **Proof of Concept** — this project is in early alpha and not yet production-ready. Use at your own risk.
+
 > Copyright © 2026 Shenzhen Miaojing Technology Co., Ltd. · Vectors & spec CC0-1.0 · Code Apache-2.0 (see LICENSE / LICENSE-CC0)
 
 > **Spec basis**: ERDL-DOBJ-RFC-002 — Decision Object v1.5 flat-hash chain ([`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md))
@@ -175,3 +177,7 @@ After archiving, the v1.3 AV-* numbering is not reused and does not coexist with
 ---
 
 > *Neutrality is measured, not claimed.*
+
+## Contact
+
+- **Support**: [support@openoba.com](mailto:support@openoba.com)
