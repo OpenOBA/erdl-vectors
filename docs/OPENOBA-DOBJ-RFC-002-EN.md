@@ -46,21 +46,21 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( all DO fields − audit.hash − sig
 ```
 
 - **Single deletion point**: in hash mode only `audit.hash` itself is deleted (self-reference exclusion; `signature`/`signing_key_id` do not exist in hash mode, so the defensive deletion is a no-op); in signature mode the three fields `audit.hash`/`signature`/`signing_key_id` are deleted. **Deletion semantics are unified: delete (delete key), never blank** — the two produce different JCS bytes;
-- **Self-reference exclusion for intra-field hashes** (same as `audit.hash`): when computing `policies[].hash` and `compliance_profile.profile_hash`, the field being computed (the hash key) MUST be temporarily removed before JCS, to prevent self-reference loops (SPEC §28.4); its **value** (the already-computed hash) participates in the whole-DO flat hash as an ordinary field;
-- **`policies[].hash` preimage excludes gloss**: `policies[].hash` is the hash of the rule **content**, its preimage being the rule structural fields (id/name/when/then/priority/ring/author_id, SPEC §28.4), **excluding gloss** (gloss is a render product, not rule content, SPEC §14 G4); gloss tampering does not affect `policies[].hash` — it is detected by render validation (`gloss == render(tree)`, SPEC §14 G2), not by hash mismatch.
+- **Self-reference exclusion for intra-field hashes** (same as `audit.hash`): when computing `policies[].hash` and `compliance_profile.profile_hash`, the field being computed (the hash key) MUST be temporarily removed before JCS, to prevent self-reference loops (RFC-002 §1); its **value** (the already-computed hash) participates in the whole-DO flat hash as an ordinary field;
+- **`policies[].hash` preimage excludes gloss**: `policies[].hash` is the hash of the rule **content**, its preimage being the rule structural fields (id/name/when/then/priority/ring/author_id, RFC-002 §1), **excluding gloss** (gloss is a render product, not rule content, SPEC §8.3 G4); gloss tampering does not affect `policies[].hash` — it is detected by render validation (`gloss == render(tree)`, SPEC §8.3 G2), not by hash mismatch.
 - **preimage_version constant (v1.5 hash mode)**: `"erdl-do-v1.5-hash-flat"` — a **domain separator** (prevents cross-version/cross-mode hash collisions, following the EIP-712 domain-separator idea), enters the preimage and is hash-protected; **routing is carried by the audit.mode field (§10.2); preimage_version does not carry routing**.
-- All remaining fields (CORE + JURISDICTION + extensions + canonical_tree) **participate in JCS unconditionally** — no whitelist, no projection, no verifier-side field-selection logic; **generator-side trimming by `activated_fields` (SPEC §28.3) is the preceding step** — unactivated JURISDICTION fields are already physically removed on the generator side, so the verifier side still does zero selection, zero projection.
+- All remaining fields (CORE + JURISDICTION + extensions + canonical_tree) **participate in JCS unconditionally** — no whitelist, no projection, no verifier-side field-selection logic; **generator-side trimming by `activated_fields` (RFC-002 §1) is the preceding step** — unactivated JURISDICTION fields are already physically removed on the generator side, so the verifier side still does zero selection, zero projection.
 
 ### 1.2 Relationship to v1.3
 
-The pipeline is fully isomorphic (the five-step verification is unchanged); the only difference is the field-set extension: canonical_tree, knowledge-reference pointers, attachment pointers, compliance_profile.profile_hash, human_oversight objectification, first-layer compliance fields, and JURISDICTION fields 10→15 (SPEC §27.3). **The verifier needs to learn no new projection logic** — this is exactly why independent third parties can verify at low cost.
+The pipeline is fully isomorphic (the five-step verification is unchanged); the only difference is the field-set extension: canonical_tree, knowledge-reference pointers, attachment pointers, compliance_profile.profile_hash, human_oversight objectification, first-layer compliance fields, and JURISDICTION fields 10→15 (RFC-002 §5.3). **The verifier needs to learn no new projection logic** — this is exactly why independent third parties can verify at low cost.
 
 ### 1.3 JCS Implementation Constraints (strict RFC 8785, zero customization)
 
 1. Key order: UTF-16 code-unit order (RFC 8785 §3.2.1); DO field names are all ASCII, no ordering ambiguity;
 2. Numbers: IEEE 754 double-precision serialization (ECMA-262 §7.1.12.1, V8/Ryu as the reference implementation);
-3. **Integer constraint**: DO number fields (evaluation_duration_ms, policies[].version, ring, total_evaluated/total_matched, confidence_score, etc.) MUST be native integers without a decimal point, within the JS safe-integer range ±(2^53-1) (SPEC §28.2); `confidence_score` is a 0–100 integer scale (not a [0,1] ratio); business decimals (amounts/ratios) MUST enter the DO as fixed-point strings, native numbers forbidden;
-4. Strings: **preserved as-is**, JCS performs no normalization; a lone surrogate (e.g. U+DEAD) MUST cause the implementation to terminate with an error. **Minimal canonical representation of decimal strings** (generator MUST complete it; JCS preserves as-is): fixed-point decimal/amount strings MUST forbid trailing zeros ("0.950"→"0.95"), must not carry a decimal point on integers ("1.0"→"1"), must forbid scientific notation / leading zeros / surrounding spaces; fixed-point rounding (SPEC §10 E2 scale=14 + half-even) is completed before serialization;
+3. **Integer constraint**: DO number fields (evaluation_duration_ms, policies[].version, ring, total_evaluated/total_matched, confidence_score, etc.) MUST be native integers without a decimal point, within the JS safe-integer range ±(2^53-1) (RFC-002 §1.3); `confidence_score` is a 0–100 integer scale (not a [0,1] ratio); business decimals (amounts/ratios) MUST enter the DO as fixed-point strings, native numbers forbidden;
+4. Strings: **preserved as-is**, JCS performs no normalization; a lone surrogate (e.g. U+DEAD) MUST cause the implementation to terminate with an error. **Minimal canonical representation of decimal strings** (generator MUST complete it; JCS preserves as-is): fixed-point decimal/amount strings MUST forbid trailing zeros ("0.950"→"0.95"), must not carry a decimal point on integers ("1.0"→"1"), must forbid scientific notation / leading zeros / surrounding spaces; fixed-point rounding (SPEC §7.2 scale=14 + half-even) is completed before serialization;
 5. **NFC boundary**: Unicode normalization (NFC) is done once at the **engine data-entry point** (all strings entering the DO are NFC'd at write time, including tree literals, type-B text reason/instruction/correction, and knowledge fileName); the JCS process itself has zero normalization steps (strict RFC 8785 as-is);
 6. **Omit over Null**: when an optional field is null/undefined/empty-array, the generator **physically deletes the key (delete key)**, never blanks (blank: empty string/empty object/placeholder value) — delete and blank produce different JCS bytes; empty object {} and empty string "" (non-null) are preserved. **Exceptions**: ① chain-anchoring fields `audit.previous_hash`/`audit.previous_signature` MUST be preserved into JCS when the first record is null (§10.2#3, genesis-block cross-implementation symmetry); ② the `extensions` empty array MUST be preserved (RFC-001 §3.3 C3 conclusion write-back, avoiding mismatch with v1.3 regression vectors);
 7. **Array order**: JCS key-order sorting applies only to object keys; it MUST NOT reorder array elements — array order is a semantic fact (expr_tree follows matched_rules order, knowledge_references/attachments follow retrieval/upload order, policies follow load order, rules_matched follows hit order);
@@ -79,7 +79,7 @@ This invariant is **unverifiable from a finished artifact** — a verifier sees 
 
 The derivation of `result.decision` (the normative basis for the `decision_divergence` check):
 
-1. **Rule evaluation**: evaluate all `policies[].when` per ERDL SPEC §7 semantics (ring 0→3, priority ascending = higher priority, first-match + override), yielding the rule decision;
+1. **Rule evaluation**: evaluate all `policies[].when` per SPEC §7 semantics (ring 0→3, priority ascending = higher priority, first-match + override), yielding the rule decision;
 2. **human_oversight upgrade**: if `compliance_profile.risk_level ∈ {high, critical}` and `human_oversight.required === true`, then `result.decision MUST = REQUEST_HUMAN` (high-risk decisions require human adjudication, overriding the rule decision);
 3. **fallback**: when no rule matches, `metadata.decision` (if present) > default `ALLOW`.
 
@@ -105,17 +105,17 @@ Reference: `scripts/verify-producer.mjs` (a single-path producer is fully consis
 
 | Rule | Content |
 |------|------|
-| Node set | SPEC §10 frozen 34-node baseline (not §44); only trimmed, never expanded; future additions go through version upgrade |
+| Node set | SPEC §5.3 frozen 34-node baseline (not RFC-002 §9); only trimmed, never expanded; future additions go through version upgrade |
 | Tree shape | **JSON nested object** (`{"eq":[{...},"exec"]}`), not an S-expression string; JCS recursively canonicalized |
 | Node order | in-tree arrays follow semantic order (e.g. arithmetic/logical argument order); JCS does not reorder array elements; the matched_rules array follows hit order (§1.3#7) |
 | Field names carry weight | metadata (source location, comments, gloss) stripped; semantics carried by key names and values |
-| Numeric literals | rule values enter the tree as **fixed-point decimal strings** (scale=14 + half-even, SPEC §10 E2; engine parses via fromDecimalString), native numbers forbidden, avoiding IEEE 754 cross-language precision divergence; serialized to **minimal canonical representation** (§1.3#4, no trailing zeros / no decimal point on integers) |
+| Numeric literals | rule values enter the tree as **fixed-point decimal strings** (scale=14 + half-even, SPEC §7.2; engine parses via fromDecimalString), native numbers forbidden, avoiding IEEE 754 cross-language precision divergence; serialized to **minimal canonical representation** (§1.3#4, no trailing zeros / no decimal point on integers) |
 | String literals | NFC'd once at the engine entry point, thereafter as-is |
 | 0 hits | field absent (Omit), zero special-casing on the verifier side |
 | Non-pure-condition rules (fn delegation, compile returns null) | that rule has no canonical_tree key (Omit); the decision fact is still anchored by the remaining matched_rules fields |
-| **Stateful operators (within/rate)** | **state does not enter canonical_tree; it enters the DO via the `temporal_state` field** (see §2.4); the window count is an input that affects the decision, MUST enter the audit chain and be offline-recomputable, consistent with SPEC §11.4 |
+| **Stateful operators (within/rate)** | **state does not enter canonical_tree; it enters the DO via the `temporal_state` field** (see §2.4); the window count is an input that affects the decision, MUST enter the audit chain and be offline-recomputable, consistent with SPEC §5.2 |
 
-> **Boundary-coverage division**: the construction semantics of the canonicalization boundaries listed above (0-hit Omit / non-pure-condition no tree key / fixed-point tree literals / NFC strings) are covered by the V-ENGINE expression vectors (SPEC §44.1); the V-DO-v15 hash-layer vectors treat canonical_tree as an opaque field, verifying its "participation in the flat hash + snapshot comparability", without re-covering the in-tree canonicalization.
+> **Boundary-coverage division**: the construction semantics of the canonicalization boundaries listed above (0-hit Omit / non-pure-condition no tree key / fixed-point tree literals / NFC strings) are covered by the V-ENGINE expression vectors (RFC-002 §9); the V-DO-v15 hash-layer vectors treat canonical_tree as an opaque field, verifying its "participation in the flat hash + snapshot comparability", without re-covering the in-tree canonicalization.
 
 ### 2.3 Independent Recompute Verification
 
@@ -185,8 +185,8 @@ Multi-jurisdiction simultaneous activation = the union of activated_fields (RFC-
 
 | Type | Semantics | Fields |
 |------|------|------|
-| Resident fact | required in every DO | all CORE 14 fields (spec/decision_id/compliance_profile/execution_trace_id/timestamp/evaluation_duration_ms/agent/context/rule_set_version/policies/evaluation/result/human_oversight/audit, see SPEC §27.2) |
-| Jurisdiction-activated | MUST be filled once declared in activated_fields; missing is judged compliance_field_missing | JURISDICTION 15 fields (model_id / agent.known_limitations / fairness_assessment / impact_assessment_id / autonomy_level / data_modification_expected / context_snapshot_hash / sanitized_context / confidence_score / signature / signing_key_id / agent.aid / agent.tool_registry_hash / agent.algorithm_filing_no / agent.model_registration_id, see SPEC §27.3) |
+| Resident fact | required in every DO | all CORE 14 fields (spec/decision_id/compliance_profile/execution_trace_id/timestamp/evaluation_duration_ms/agent/context/rule_set_version/policies/evaluation/result/human_oversight/audit, see RFC-002 §5.3) |
+| Jurisdiction-activated | MUST be filled once declared in activated_fields; missing is judged compliance_field_missing | JURISDICTION 15 fields (model_id / agent.known_limitations / fairness_assessment / impact_assessment_id / autonomy_level / data_modification_expected / context_snapshot_hash / sanitized_context / confidence_score / signature / signing_key_id / agent.aid / agent.tool_registry_hash / agent.algorithm_filing_no / agent.model_registration_id, see RFC-002 §5.3) |
 | Conditionally-activated | produced by fact (human intervention / business object present / stateful operator hit) | human_oversight (`required` resident + `status`/`human_actor_id`/`timestamp`/`override_reason` conditional) / knowledge_references / attachments / intent / tool (`context.tool.name`) / outcome / evaluation.temporal_state (§2.4, produced on within/rate hit, existence covered by V-TEMPORAL, not included in V-COMP field-existence checks) |
 
 > **Existence coverage of conditionally-activated fields**: human_oversight missing → F04 (oversight_missing); knowledge_references unresolvable → A02 (content_unresolvable); tampering of conditional fields such as attachments/intent/outcome is naturally covered by the hash (flat scheme zero-selection); temporal_state covered by V-TEMPORAL.
@@ -219,7 +219,7 @@ Step 4: SHA-256(canonical bytes) → recomputed hash
 Step 5: compare recomputed hash with stored audit.hash
 Step 6 (vector-verification mandatory): the recomputed hash is also cross-checked against the answer file's expected value (canonical_hex, full JCS preimage hex, independent answer file)
         — step 5 verifies "the artifact's claim about its own digest", step 6 verifies "the vector's own expectation"
-        the two are independent, preventing stale self-referential digest; canonical_hex is physically isolated (SPEC §48.3), unreadable by compliant runs
+        the two are independent, preventing stale self-referential digest; canonical_hex is physically isolated (RFC-002 §2), unreadable by compliant runs
 ```
 
 > **Resource limit**: when a single DO serializes beyond 1 MB, the verifier MUST reject (`resource_limit_exceeded`), preventing DoS.
@@ -230,7 +230,7 @@ Break determination (hash mode, any one breaks): ① audit.hash recompute mismat
 
 > **Detection priority (supplement)**: the verifier first checks hash self-consistency (①), then version support (④); only after the whole chain is hash-self-consistent does it run structural-semantic detection, reporting the first hit in the order "genesis mismatch (§9.2 C06) → previous_hash dangling → chain_seq gap → mode mixing → time regression (§9.2 C05)".
 
-Reference-integrity warning (not a break): content_unresolvable (cold-storage deletion / loss). Chain scale governance (sharding + Merkle + Checkpoint + incremental verification) is in SPEC §29.7 — this section defines only the linear-chain break determination.
+Reference-integrity warning (not a break): content_unresolvable (cold-storage deletion / loss). Chain scale governance (sharding + Merkle + Checkpoint + incremental verification) is in RFC-002 §8 — this section defines only the linear-chain break determination.
 
 Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correct implementation MISMATCHes, a regressed implementation (skipping independent recompute / taking the wrong preimage) MATCHes and is caught. The canary vector's `expected.breach` is marked with the dedicated code `canary_mismatch` (not a semantic breach; it only marks "a correct implementation MUST hash MISMATCH").
 
@@ -259,7 +259,7 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 
 > **Verification objects added 2026-09-02 (not in Core 317)**: `decision_divergence` (cross-layer semantic re-derivation, V-DIVERGENCE 3 vectors, re-derives the decision from the DO's stored context+rules per §1.5, see VERIFIER-GUIDE §4.4) + `V-PRODUCER` (producer-side conformance, runs the producer per §1.6 Producer Contract, capturing enforcement vs. emitted DO — the only place P-05 is reachable).
 
-> **Naming clarification (avoiding confusion with SPEC §45 V-SCENE semantics)**: SPEC §45's V-SCENE specifically means the **seven lifecycle-stage** business-scenario verification (identity/position/training/operation/audit/trust/retirement), numbered `V-SCENE-NNN`. The within/rate stateful-operator window-count verification is a **different verification object** (operator-state correctness, not a business-scenario loop), so this specification carries it under an **independent sequence V-TEMPORAL**, not occupying V-SCENE numbers — corresponding to the "independent state-verification vectors" branch of SPEC §44 line 2462 "into V-SCENE (multi-decision sequence) **or independent state-verification vectors**".
+> **Naming clarification (avoiding confusion with PAE-spec §45 V-SCENE semantics)**: PAE-spec §45's V-SCENE specifically means the **seven lifecycle-stage** business-scenario verification (identity/position/training/operation/audit/trust/retirement), numbered `V-SCENE-NNN`. The within/rate stateful-operator window-count verification is a **different verification object** (operator-state correctness, not a business-scenario loop), so this specification carries it under an **independent sequence V-TEMPORAL**, not occupying V-SCENE numbers — corresponding to the "independent state-verification vectors" branch of RFC-002 §9 line 2462 "into V-SCENE (multi-decision sequence) **or independent state-verification vectors**".
 >
 > **Impact of temporal_state entering the DO on existing vectors**: `temporal_state` is a conditionally-activated field, produced only when a within/rate rule is matched. The existing 78 vectors contain no within/rate conditions (fully checked), so temporal_state entering the DO **does not change the preimage of any existing vector**; no need to regenerate the existing 78. V-TEMPORAL 4 are new coverage, verifying the "cross-decision window-count" behavior not covered by existing vectors.
 
@@ -365,7 +365,7 @@ This specification narrows `jurisdiction_mismatch` to a single meaning:
 | Scenario | Why not this code | Already covered by |
 |------|------|------|
 | jurisdiction declaration **tampered** (profile swapped) | an integrity problem, caught by cryptography rather than semantic checks | `profile_hash` pinning → **V-COMP-F02** (hash_mismatch) |
-| DO-declared jurisdiction **≠ deployment-expected jurisdiction** (config mismatch) | a stateless verifier does not hold the "deployment expectation" input, cannot judge | deployment-time config validation (runtime); to vectorize, the vector would need to carry `expected_jurisdictions` metadata → belongs to the **V-JURIS** layer (SPEC §45 classification: V-COMP verifies field **existence**, V-JURIS verifies field **semantic correctness**) |
+| DO-declared jurisdiction **≠ deployment-expected jurisdiction** (config mismatch) | a stateless verifier does not hold the "deployment expectation" input, cannot judge | deployment-time config validation (runtime); to vectorize, the vector would need to carry `expected_jurisdictions` metadata → belongs to the **V-JURIS** layer (PAE-spec §45 classification: V-COMP verifies field **existence**, V-JURIS verifies field **semantic correctness**) |
 | jurisdiction legitimate but **its required fields not activated** | not a jurisdiction-code problem | → `compliance_field_missing` (P2) |
 
 ### 9.2 C-Series Chain-Attack Vector Full List (8)
@@ -432,13 +432,13 @@ This specification narrows `jurisdiction_mismatch` to a single meaning:
 | V-DO-v15-T02 | clock drift (timestamp vs TSA-anchored time deviation exceeds threshold) | clock_drift_detected |
 | V-DO-v15-T03 | key decision without time anchor (key node missing timestamp_proof) | timestamp_anchor_missing |
 
-**T02 detection logic (`clock_drift_detected`)**: the verifier compares `DO.timestamp` against the TSA-stamped time inside `timestamp_proof.token`; a deviation > threshold (default 60s, configurable) is judged `clock_drift_detected`. The `timestamp_proof` field set is authoritative in SPEC §27.5 (`tsa_id`/`token`/`anchored_field`/`requested_at`).
+**T02 detection logic (`clock_drift_detected`)**: the verifier compares `DO.timestamp` against the TSA-stamped time inside `timestamp_proof.token`; a deviation > threshold (default 60s, configurable) is judged `clock_drift_detected`. The `timestamp_proof` field set is authoritative in RFC-002 §9.5 (`tsa_id`/`token`/`anchored_field`/`requested_at`).
 
-**T03 detection logic (`timestamp_anchor_missing`)**: the verifier checks whether `timestamp_proof` exists when the decision type ∈ {DELEGATE, ESCALATE, REQUEST_HUMAN} (key decisions needing external hand-off under single-agent semantics); missing is judged `timestamp_anchor_missing`. Multi-agent collaboration key nodes (DELEGATE/HANDOFF/APPROVE) are in SPEC §30.2.
+**T03 detection logic (`timestamp_anchor_missing`)**: the verifier checks whether `timestamp_proof` exists when the decision type ∈ {DELEGATE, ESCALATE, REQUEST_HUMAN} (key decisions needing external hand-off under single-agent semantics); missing is judged `timestamp_anchor_missing`. Multi-agent collaboration key nodes (DELEGATE/HANDOFF/APPROVE) are in RFC-002 §10.
 
 **T01 TSA-token timeliness and offline verification**: TSA tokens have timeliness (a token becomes invalid after the TSA certificate expires). The vector set runs offline (no network dependency); the TSA token MUST be a pre-generated real response with the complete TSA certificate chain embedded (tsa_id → certificate → root CA), the verifier verifies the certificate chain offline. The README declares the TSA token validity and the post-expiry degradation path (after certificate expiry, T01 is marked as a "historical verification baseline"). Prefer long-valid TSA certificates (e.g. DigiCert's free TSA, certificate validity 5–10 years).
 
-> The T-series 3 breach codes and detection logic are frozen `[FREEZE-3]` with this section, synchronized with SPEC §27.5 field freezing; vector generation executes after the signature layer (V-SIGN, §10.3) lands.
+> The T-series 3 breach codes and detection logic are frozen `[FREEZE-3]` with this section, synchronized with RFC-002 §9.5 field freezing; vector generation executes after the signature layer (V-SIGN, §10.3) lands.
 
 
 ## 10. Three-Layer Evidence System (Hash/Signature/TSA)
@@ -458,7 +458,7 @@ Layer 1 hash chain → Layer 2 ECDSA P-256 signature chain (unfrozen) → Layer 
   "previous_signature": "...",       // the previous DO's signature (signature-chain anchoring; null for the first)
   "timestamp_proof": { ... },        // TSA time anchor (optional)
   "retention": { ... },              // evidence retention period (retention_until / retention_basis)
-  "chain_id": "...",                 // sub-chain identifier (= session_id, SPEC §29.7 sharding governance)
+  "chain_id": "...",                 // sub-chain identifier (= session_id, RFC-002 §8 sharding governance)
   "chain_seq": 0                     // sub-chain sequence number (0-based, monotonically increasing)
 }
 // hash fields audit.hash / previous_hash / commitment physically omitted (deprecated in signature mode)

@@ -69,7 +69,7 @@ const div = (a, b) => norm(a.num * b.den, a.den * b.num)
 const cmp = (a, b) => { const l = a.num * b.den, r = b.num * a.den; return l < r ? -1 : l > r ? 1 : 0 }
 const nfc = (s) => s.normalize('NFC')
 
-/** scale=14 + half-even → decimal string (integer without decimal point, decimal trailing-zero trimmed, §28.2) */
+/** scale=14 + half-even → decimal string (integer without decimal point, decimal trailing-zero trimmed, SPEC §8.2) */
 function toDecimalString(r, scale = 14) {
   const pow = 10n ** BigInt(scale); const neg = r.num < 0n; const abs = neg ? -r.num : r.num
   const ip = abs / r.den; const rem = abs % r.den

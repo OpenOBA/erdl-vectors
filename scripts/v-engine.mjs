@@ -71,7 +71,7 @@ export function serializeValue(v) {
             return { value: r.num.toString(), type: 'rational' };
         return { value: toDecimalString(r, 14), type: 'rational' };
     }
-    // plain object: JCS lexicographic (key sort + recursion), cross-implementation byte-identical (§28.2)
+    // plain object: JCS lexicographic (key sort + recursion), cross-implementation byte-identical (RFC-002 §1.3)
     if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
         return { value: canonicalize(v), type: 'object' };
     }

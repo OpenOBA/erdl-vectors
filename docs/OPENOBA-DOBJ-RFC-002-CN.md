@@ -46,21 +46,21 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 ```
 
 - **唯一删除点**：哈希模式下仅删除 `audit.hash` 自身（自引用排除；`signature`/`signing_key_id` 在哈希模式下不存在，防御性删除为 no-op）；签名模式下删除 `audit.hash`/`signature`/`signing_key_id` 三字段。**删除语义唯一化：删除（delete key），禁止置空（blank）**——两者产生不同 JCS 字节；
-- **字段内哈希的自引用排除**（与 `audit.hash` 同理）：`policies[].hash` 与 `compliance_profile.profile_hash` 计算时，被计算字段自身（hash 键）MUST 在 JCS 之前临时移除，防自引用循环（SPEC §28.4）；其**值**（已算好的哈希）作为普通字段参与全 DO 扁平哈希；
-- **`policies[].hash` 原像不含 gloss**：`policies[].hash` 是规则**内容**的哈希，原像为规则结构字段（id/name/when/then/priority/ring/author_id，SPEC §28.4），**不含 gloss**（gloss 是渲染产物非规则内容，SPEC §14 G4）；gloss 篡改不影响 `policies[].hash`，由渲染校验（`gloss == render(树)`，SPEC §14 G2）检出，而非哈希失配。
+- **字段内哈希的自引用排除**（与 `audit.hash` 同理）：`policies[].hash` 与 `compliance_profile.profile_hash` 计算时，被计算字段自身（hash 键）MUST 在 JCS 之前临时移除，防自引用循环（RFC-002 §1）；其**值**（已算好的哈希）作为普通字段参与全 DO 扁平哈希；
+- **`policies[].hash` 原像不含 gloss**：`policies[].hash` 是规则**内容**的哈希，原像为规则结构字段（id/name/when/then/priority/ring/author_id，RFC-002 §1），**不含 gloss**（gloss 是渲染产物非规则内容，SPEC §8.3 G4）；gloss 篡改不影响 `policies[].hash`，由渲染校验（`gloss == render(树)`，SPEC §8.3 G2）检出，而非哈希失配。
 - **preimage_version 常量（v1.5 哈希模式）**：`"erdl-do-v1.5-hash-flat"`——**域分隔符**（防跨版本/跨模式哈希碰撞，EIP-712 domain separator 思想），进原像受哈希保护；**选路由 audit.mode 字段承载（§10.2），preimage_version 不承担选路**。
-- 其余全部字段（CORE + JURISDICTION + extensions + canonical_tree）**无条件参与 JCS**，无白名单、无投影、无验证器侧字段取舍逻辑；**生成端按 `activated_fields` 裁剪（SPEC §28.3）是本条的前置步骤**——未激活 JURISDICTION 字段在生成端已物理移除，验证器侧仍零取舍、零投影。
+- 其余全部字段（CORE + JURISDICTION + extensions + canonical_tree）**无条件参与 JCS**，无白名单、无投影、无验证器侧字段取舍逻辑；**生成端按 `activated_fields` 裁剪（RFC-002 §1）是本条的前置步骤**——未激活 JURISDICTION 字段在生成端已物理移除，验证器侧仍零取舍、零投影。
 
 ### 1.2 与 v1.3 的关系
 
-管线完全同构（五步验证法不变），差异仅在字段集扩展：canonical_tree、知识引用指针、附件指针、compliance_profile.profile_hash、human_oversight 对象化、第一层合规字段、JURISDICTION 字段 10→15（SPEC §27.3）。**验证器无需学习任何新的投影逻辑**——这正是独立第三方可以低成本验证的原因。
+管线完全同构（五步验证法不变），差异仅在字段集扩展：canonical_tree、知识引用指针、附件指针、compliance_profile.profile_hash、human_oversight 对象化、第一层合规字段、JURISDICTION 字段 10→15（RFC-002 §5.3）。**验证器无需学习任何新的投影逻辑**——这正是独立第三方可以低成本验证的原因。
 
 ### 1.3 JCS 实现约束（严格 RFC 8785，零自定义）
 
 1. 键序：UTF-16 码元序（RFC 8785 §3.2.1）；DO 字段名全部 ASCII，无排序歧义；
 2. 数字：IEEE 754 双精度序列化（ECMA-262 §7.1.12.1，V8/Ryu 为参考实现）；
-3. **整数约束**：DO 的 number 字段（evaluation_duration_ms、policies[].version、ring、total_evaluated/total_matched、confidence_score 等）MUST 为不带小数点的原生整数，值域在 JS 安全整数范围 ±(2^53-1) 内（SPEC §28.2）；`confidence_score` 为 0–100 整数刻度（非 [0,1] 比例）；业务小数（金额/比例）MUST 以定点字符串进 DO，禁原生 number；
-4. 字符串：**原样保留**（as is），JCS 不做任何规范化；lone surrogate（如 U+DEAD）MUST 使实现报错终止。**十进制字符串的最小规范表示**（生成端 MUST 完成，JCS 阶段原样保留）：定点小数/金额字符串 MUST 禁尾零（"0.950"→"0.95"）、整数部分不带小数点（"1.0"→"1"）、禁科学计数法/前导零/前后空格；定点舍入（SPEC §10 E2 scale=14 + half-even）在序列化前完成；
+3. **整数约束**：DO 的 number 字段（evaluation_duration_ms、policies[].version、ring、total_evaluated/total_matched、confidence_score 等）MUST 为不带小数点的原生整数，值域在 JS 安全整数范围 ±(2^53-1) 内（RFC-002 §1.3）；`confidence_score` 为 0–100 整数刻度（非 [0,1] 比例）；业务小数（金额/比例）MUST 以定点字符串进 DO，禁原生 number；
+4. 字符串：**原样保留**（as is），JCS 不做任何规范化；lone surrogate（如 U+DEAD）MUST 使实现报错终止。**十进制字符串的最小规范表示**（生成端 MUST 完成，JCS 阶段原样保留）：定点小数/金额字符串 MUST 禁尾零（"0.950"→"0.95"）、整数部分不带小数点（"1.0"→"1"）、禁科学计数法/前导零/前后空格；定点舍入（SPEC §7.2 scale=14 + half-even）在序列化前完成；
 5. **NFC 边界**：Unicode 规范化（NFC）在**引擎数据入口**做一次（所有进 DO 的字符串写入时 NFC，含树字面量、B 类文本 reason/instruction/correction、知识 fileName），JCS 流程本身零规范化步骤（严格 RFC 8785 as-is）；
 6. **Omit over Null**：可选字段值为 null/undefined/空数组时，生成端**物理删除键（delete key）**，禁止置空（blank：空串/空对象/占位值）——delete 与 blank 产生不同 JCS 字节；空对象 {} 与空字符串 ""（非 null）保留。**例外**：① 链锚定字段 `audit.previous_hash`/`audit.previous_signature` 首条为 null 时 MUST 保留进 JCS（§10.2#3，创世块跨实现对称性）；② `extensions` 空数组 MUST 保留（RFC-001 §3.3 C3 结论回写，避免与 v1.3 回归向量失配）；
 7. **数组序**：JCS 键序排序仅作用于对象键，MUST NOT 重排数组元素——数组序是语义事实（expr_tree 按 matched_rules 序、knowledge_references/attachments 按检索/上传序、policies 按加载序、rules_matched 按命中序）；
@@ -78,7 +78,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 `result.decision` 的推导规则（为 `decision_divergence` 检查提供规范基础）：
 
-1. **规则求值**：按 ERDL SPEC §7 语义（ring 0→3、priority 升序=优先级高、first-match + override）求值全部 `policies[].when`，得到规则决策；
+1. **规则求值**：按 SPEC §7 语义（ring 0→3、priority 升序=优先级高、first-match + override）求值全部 `policies[].when`，得到规则决策；
 2. **human_oversight 升级**：若 `compliance_profile.risk_level ∈ {high, critical}` 且 `human_oversight.required === true`，则 `result.decision MUST = REQUEST_HUMAN`（高危决策须人工裁决，覆盖规则决策）；
 3. **fallback**：无规则命中时，`metadata.decision`（若存在）> 默认 `ALLOW`。
 
@@ -104,17 +104,17 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 | 规则 | 内容 |
 |------|------|
-| 节点集 | SPEC §10 冻结 34 节点基线（非 §44），只裁剪不扩张，未来增补走版本升级 |
+| 节点集 | SPEC §5.3 冻结 34 节点基线（非 RFC-002 §9），只裁剪不扩张，未来增补走版本升级 |
 | 树形态 | **JSON 嵌套对象**（`{"eq":[{...},"exec"]}`），非 S-expression 字符串；JCS 递归规范化 |
 | 节点序 | 树内部数组按语义序（如算术/逻辑参数序），JCS 不重排数组元素；matched_rules 数组按命中顺序（§1.3#7） |
 | 字段名承重 | 元数据（source location、注释、gloss）剥离，语义由键名与值承载 |
-| 数值字面量 | 规则值以**定点小数字符串**进树（scale=14 + half-even，SPEC §10 E2；引擎 fromDecimalString 解析），禁原生 number，规避 IEEE 754 跨语言精度分叉；序列化为**最小规范表示**（§1.3#4，禁尾零/禁整数带小数点） |
+| 数值字面量 | 规则值以**定点小数字符串**进树（scale=14 + half-even，SPEC §7.2；引擎 fromDecimalString 解析），禁原生 number，规避 IEEE 754 跨语言精度分叉；序列化为**最小规范表示**（§1.3#4，禁尾零/禁整数带小数点） |
 | 字符串字面量 | 引擎入口统一 NFC 一次，此后 as-is |
 | 命中 0 条 | 字段不存在（Omit），验证端零特判 |
 | 非纯条件规则（fn 委派，编译返回 null） | 该规则无 canonical_tree 键（Omit）；决策事实仍由 matched_rules 其余字段锚定 |
-| **有状态算子（within/rate）** | **状态不进 canonical_tree，而以 `temporal_state` 字段进 DO**（见 §2.4）；窗口计数是影响决策的输入，MUST 进审计链、可离线重算验证，与 SPEC §11.4 一致 |
+| **有状态算子（within/rate）** | **状态不进 canonical_tree，而以 `temporal_state` 字段进 DO**（见 §2.4）；窗口计数是影响决策的输入，MUST 进审计链、可离线重算验证，与 SPEC §5.2 一致 |
 
-> **边界覆盖分工**：本表所列规范化边界（命中 0 条 Omit / 非纯条件无树键 / 定点小数树字面量 / NFC 字符串）的**构造语义**由 V-ENGINE 表达式向量（SPEC §44.1）覆盖；V-DO-v15 哈希层向量将 canonical_tree 作为不透明字段验证其「参与扁平哈希 + 快照可比对」，不重复覆盖树内部规范化。
+> **边界覆盖分工**：本表所列规范化边界（命中 0 条 Omit / 非纯条件无树键 / 定点小数树字面量 / NFC 字符串）的**构造语义**由 V-ENGINE 表达式向量（RFC-002 §9）覆盖；V-DO-v15 哈希层向量将 canonical_tree 作为不透明字段验证其「参与扁平哈希 + 快照可比对」，不重复覆盖树内部规范化。
 
 ### 2.3 独立重算验证
 
@@ -184,8 +184,8 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 | 类型 | 语义 | 字段 |
 |------|------|------|
-| 常驻事实 | 每条 DO 必具 | CORE 14 字段全量（spec/decision_id/compliance_profile/execution_trace_id/timestamp/evaluation_duration_ms/agent/context/rule_set_version/policies/evaluation/result/human_oversight/audit，见 SPEC §27.2） |
-| 法域激活 | activated_fields 声明后 MUST 填充，缺失判 compliance_field_missing | JURISDICTION 15 字段（model_id / agent.known_limitations / fairness_assessment / impact_assessment_id / autonomy_level / data_modification_expected / context_snapshot_hash / sanitized_context / confidence_score / signature / signing_key_id / agent.aid / agent.tool_registry_hash / agent.algorithm_filing_no / agent.model_registration_id，见 SPEC §27.3） |
+| 常驻事实 | 每条 DO 必具 | CORE 14 字段全量（spec/decision_id/compliance_profile/execution_trace_id/timestamp/evaluation_duration_ms/agent/context/rule_set_version/policies/evaluation/result/human_oversight/audit，见 RFC-002 §5.3） |
+| 法域激活 | activated_fields 声明后 MUST 填充，缺失判 compliance_field_missing | JURISDICTION 15 字段（model_id / agent.known_limitations / fairness_assessment / impact_assessment_id / autonomy_level / data_modification_expected / context_snapshot_hash / sanitized_context / confidence_score / signature / signing_key_id / agent.aid / agent.tool_registry_hash / agent.algorithm_filing_no / agent.model_registration_id，见 RFC-002 §5.3） |
 | 条件激活 | 随事实产生（人类介入/业务对象存在/有状态算子命中） | human_oversight（`required` 常驻 + `status`/`human_actor_id`/`timestamp`/`override_reason` 条件）/ knowledge_references / attachments / intent / tool（`context.tool.name`）/ outcome / evaluation.temporal_state（§2.4，随 within/rate 命中产生，存在性由 V-TEMPORAL 覆盖，不纳入 V-COMP 字段存在性检查） |
 
 > **条件激活字段的存在性覆盖**：human_oversight 缺失 → F04（oversight_missing）；knowledge_references 不可解析 → A02（content_unresolvable）；attachments/intent/outcome 等条件字段的篡改由哈希天然覆盖（扁平方案零取舍）；temporal_state 由 V-TEMPORAL 覆盖。
@@ -217,7 +217,7 @@ Step 4: SHA-256(canonical bytes) → recomputed hash
 Step 5: Compare recomputed hash with stored audit.hash
 Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望值（canonical_hex，全量 JCS preimage hex，独立答案文件）交叉比对
         —— step 5 验证"artifact 对自身摘要的声明"，step 6 验证"向量自身期望"
-        两者独立，防 stale self-referential digest；canonical_hex 物理隔离（SPEC §48.3），合规运行不可读
+        两者独立，防 stale self-referential digest；canonical_hex 物理隔离（RFC-002 §2），合规运行不可读
 ```
 
 > **资源上限**：单条 DO 序列化超过 1 MB 时，验证器 MUST 拒绝（`resource_limit_exceeded`），防 DoS。
@@ -228,7 +228,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 > **检测优先级（补充）**：验证器先做 hash 自洽（①），再判版本支持（④），仅当全链 hash 自洽后才做结构语义检测，并按「genesis 失配（§9.2 C06）→ previous_hash 悬空 → chain_seq 跳变 → mode 混链 → 时间回退（§9.2 C05）」顺序报告第一条命中。
 
-引用完整性告警（非断裂）：content_unresolvable（冷存储删除/灭失）。链规模治理（分片 + Merkle + Checkpoint + 增量验证）见 SPEC §29.7——本节只定义线性链的断裂判定。
+引用完整性告警（非断裂）：content_unresolvable（冷存储删除/灭失）。链规模治理（分片 + Merkle + Checkpoint + 增量验证）见 RFC-002 §8——本节只定义线性链的断裂判定。
 
 金丝雀：v1.5 链位置金丝雀延续 AV-013 模式——正确实现 MISMATCH，regressed 实现（跳过独立重算/错取原像）MATCH 被捕。金丝雀向量的 `expected.breach` 标记为专有码 `canary_mismatch`（非语义 breach，仅标识「正确实现 MUST hash MISMATCH」）。
 
@@ -257,7 +257,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 > **2026-09-02 新增验证对象（非 Core 317）**：`decision_divergence`（跨层语义重推，V-DIVERGENCE 3 条，按 §1.5 从 DO 存储的 context+rules 重推决策，见 VERIFIER-GUIDE §4.4）+ `V-PRODUCER`（producer-side 一致性，按 §1.6 Producer Contract 运行 producer、捕获 enforcement vs 发射 DO，唯一能触达 P-05 的地方）。
 
-> **命名澄清（避免与 SPEC §45 V-SCENE 语义混同）**：SPEC §45 的 V-SCENE 专指**生命周期七阶段**的业务场景验证（身份/岗位/培训/运营/审计/信任/退役），编号 `V-SCENE-NNN`。within/rate 的有状态算子窗口计数验证是**不同的验证对象**（算子状态正确性，非业务场景闭环），故本规范以**独立序列 V-TEMPORAL** 承载，不占用 V-SCENE 编号——对应 SPEC §44 第 2462 行「纳入 V-SCENE（多决策序列）**或独立状态验证向量**」中的「独立状态验证向量」分支。
+> **命名澄清（避免与 PAE-spec §45 V-SCENE 语义混同）**：PAE-spec §45 的 V-SCENE 专指**生命周期七阶段**的业务场景验证（身份/岗位/培训/运营/审计/信任/退役），编号 `V-SCENE-NNN`。within/rate 的有状态算子窗口计数验证是**不同的验证对象**（算子状态正确性，非业务场景闭环），故本规范以**独立序列 V-TEMPORAL** 承载，不占用 V-SCENE 编号——对应 RFC-002 §9 第 2462 行「纳入 V-SCENE（多决策序列）**或独立状态验证向量**」中的「独立状态验证向量」分支。
 >
 > **temporal_state 进 DO 对既有向量的影响**：`temporal_state` 为条件激活字段，仅当 within/rate 规则命中时才产生。既有 78 条向量均不含 within/rate 条件（经全量核查），故 temporal_state 进 DO **不改变任何既有向量的 preimage**，无需重新生成既有 78 条。V-TEMPORAL 4 条为新增覆盖，验证的是既有向量未覆盖的「跨决策窗口计数」行为。
 
@@ -362,7 +362,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 | 场景 | 为何不在本码 | 已由谁覆盖 |
 |------|------|------|
 | 法域声明被**篡改**（偷换画像） | 属完整性问题，由密码学而非语义检查捕获 | `profile_hash` 锤定 → **V-COMP-F02**（hash_mismatch） |
-| DO 声明法域 **≠ 部署期望法域**（配置不匹配） | 无状态验证器不持有「部署期望」输入，判不了 | 部署期配置校验（运行时）；若要向量化，需向量携带 `expected_jurisdictions` 元数据 → 属 **V-JURIS** 层（SPEC §45 分类：V-COMP 验字段**存在**，V-JURIS 验字段**语义正确**） |
+| DO 声明法域 **≠ 部署期望法域**（配置不匹配） | 无状态验证器不持有「部署期望」输入，判不了 | 部署期配置校验（运行时）；若要向量化，需向量携带 `expected_jurisdictions` 元数据 → 属 **V-JURIS** 层（PAE-spec §45 分类：V-COMP 验字段**存在**，V-JURIS 验字段**语义正确**） |
 | 法域合法但**未激活其必需字段** | 不是法域码问题 | → `compliance_field_missing`（P2） |
 
 ### 9.2 C 系列链攻击向量完整清单（8 条）
@@ -429,13 +429,13 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 | V-DO-v15-T02 | 时钟漂移（timestamp 与 TSA 锚定时间偏差超阈值） | clock_drift_detected |
 | V-DO-v15-T03 | 关键决策无时间锚（关键节点缺 timestamp_proof） | timestamp_anchor_missing |
 
-**T02 检测逻辑（`clock_drift_detected`）**：验证器比对 `DO.timestamp` 与 `timestamp_proof.token` 内 TSA 加盖时间，偏差 > 阈值（默认 60s，可配置）判 `clock_drift_detected`。`timestamp_proof` 字段集以 SPEC §27.5 为权威（`tsa_id`/`token`/`anchored_field`/`requested_at`）。
+**T02 检测逻辑（`clock_drift_detected`）**：验证器比对 `DO.timestamp` 与 `timestamp_proof.token` 内 TSA 加盖时间，偏差 > 阈值（默认 60s，可配置）判 `clock_drift_detected`。`timestamp_proof` 字段集以 RFC-002 §9.5 为权威（`tsa_id`/`token`/`anchored_field`/`requested_at`）。
 
-**T03 检测逻辑（`timestamp_anchor_missing`）**：验证器检查决策类型 ∈ {DELEGATE, ESCALATE, REQUEST_HUMAN}（单 Agent 语义下需外部承接的关键决策）时 `timestamp_proof` 是否存在，缺失判 `timestamp_anchor_missing`。多 Agent 协作关键节点（DELEGATE/HANDOFF/APPROVE）见 SPEC §30.2。
+**T03 检测逻辑（`timestamp_anchor_missing`）**：验证器检查决策类型 ∈ {DELEGATE, ESCALATE, REQUEST_HUMAN}（单 Agent 语义下需外部承接的关键决策）时 `timestamp_proof` 是否存在，缺失判 `timestamp_anchor_missing`。多 Agent 协作关键节点（DELEGATE/HANDOFF/APPROVE）见 RFC-002 §10。
 
 **T01 TSA 令牌时效性与离线验核**：TSA 令牌有时效性（TSA 证书过期后令牌失效）。向量集离线运行（不依赖网络），TSA 令牌 MUST 为预生成的真实响应，并嵌入完整 TSA 证书链（tsa_id → 证书 → 根 CA），验证器离线验核证书链。README 声明 TSA 令牌有效期与失效后的降级路径（证书过期后 T01 标记为「历史验证基准」）。优先选择长期有效的 TSA 证书（如 DigiCert 免费 TSA，证书有效期 5–10 年）。
 
-> T 系列 3 条 breach 码与检测逻辑随本节冻结 `[FREEZE-3]`，与 SPEC §27.5 字段冻结同步；向量生成随签名层（V-SIGN，§10.3）落地后执行。
+> T 系列 3 条 breach 码与检测逻辑随本节冻结 `[FREEZE-3]`，与 RFC-002 §9.5 字段冻结同步；向量生成随签名层（V-SIGN，§10.3）落地后执行。
 
 ## 10. 三层证据体系（哈希/签名/TSA）
 
@@ -454,7 +454,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
   "previous_signature": "...",       // 上一条 DO 的 signature（签名链锚定；首条 null）
   "timestamp_proof": { ... },        // TSA 时间锚（可选）
   "retention": { ... },              // 证据保留期（retention_until / retention_basis）
-  "chain_id": "...",                 // 子链标识（= session_id，SPEC §29.7 分片治理）
+  "chain_id": "...",                 // 子链标识（= session_id，RFC-002 §8 分片治理）
   "chain_seq": 0                     // 子链内序号（0 起单调递增）
 }
 // 哈希字段 audit.hash / previous_hash / commitment 物理省略（签名模式弃用）
