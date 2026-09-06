@@ -270,6 +270,9 @@ function serializeValue(v) {
 // 5. read JSON + recompute semantic-sensitive vectors + compare
 // ═══════════════════════════════════════════════
 const data = JSON.parse(readFileSync(new URL('../v-engine-vectors.json', import.meta.url), 'utf8'))
+// Oracle isolation (ER9): the committed vectors carry no `expected`; re-attach from the gitignored answers file.
+const answers = JSON.parse(readFileSync(new URL('../v-engine-answers.json', import.meta.url), 'utf8'))
+for (const v of data.vectors) v.expected = answers[v.id]
 
 const SENSITIVE_NODES = new Set(['add', 'sub', 'mul', 'div', 'round', 'days_between', 'epoch_ms', 'date_add', 'date_part', 'month_last_day', 'aggregate'])
 const SENSITIVE_CONSTRAINTS = new Set(['E2', 'E8', 'E10', 'E9'])

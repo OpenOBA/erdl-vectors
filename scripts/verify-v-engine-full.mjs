@@ -16,12 +16,12 @@
  */
 
 /**
- * verify-v-engine-full.mjs — V-ENGINE full 223-vector verifier
+ * verify-v-engine-full.mjs — V-ENGINE full 227-vector verifier
  *
  * Depends on @openoba/erdl (ERDL reference engine) to evaluate v-engine-vectors.json per vector and compare with expected.
  * This is the "reference verifier" (verifying engine-produced vectors with the engine), complementing scripts/verify-v-engine.mjs's
  * "independent second source" (57 semantic-sensitive, no engine import):
- *   - this file: full 223 coverage (34 nodes × 4 scenarios + E1-E12 constraints + Simple + gloss + projection)
+ *   - this file: full 227 coverage (34 nodes × 4 scenarios + E1-E12 constraints + Simple + gloss + projection)
  *   - verify-v-engine.mjs: 57 semantic-sensitive vectors independently recomputed (neutrality proof §48.2)
  */
 import {
@@ -135,6 +135,9 @@ function verify(v) {
 
 // ── main flow ──
 const data = JSON.parse(readFileSync(new URL('../v-engine-vectors.json', import.meta.url), 'utf8'));
+// Oracle isolation (ER9): the committed vectors carry no `expected`; re-attach from the gitignored answers file.
+const answers = JSON.parse(readFileSync(new URL('../v-engine-answers.json', import.meta.url), 'utf8'));
+for (const v of data.vectors) v.expected = answers[v.id];
 
 let pass = 0, fail = 0;
 const failed = [];
@@ -157,5 +160,5 @@ if (fail) {
   console.log('  failures:', failed.join(', '));
   process.exit(1);
 }
-console.log('  ✅ V-ENGINE 223 vectors full verification passed');
+console.log('  ✅ V-ENGINE 227 vectors full verification passed');
 process.exit(0);

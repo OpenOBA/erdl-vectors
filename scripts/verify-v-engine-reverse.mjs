@@ -69,6 +69,9 @@ function evalSerialize(tree, ctx) {
 }
 
 const data = JSON.parse(readFileSync(new URL('../v-engine-vectors.json', import.meta.url), 'utf8'));
+// Oracle isolation (ER9): the committed vectors carry no `expected`; re-attach from the gitignored answers file.
+const answers = JSON.parse(readFileSync(new URL('../v-engine-answers.json', import.meta.url), 'utf8'));
+for (const v of data.vectors) v.expected = answers[v.id];
 
 let detected = 0, unchanged = 0, skipped = 0;
 const unchangedIds = [];

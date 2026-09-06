@@ -624,7 +624,7 @@ export function generateProjVectors() {
     });
     return out;
 }
-/** Summary: V-ENGINE 201 + V-GLOSS/V-PROJ 22 = 223 */
+/** Summary: node 136 + constraint 39 + simple_compile 30 + gloss 12 + gloss_integrity 4 + projection 6 = 227 */
 export function generateAllVectors() {
     return [
         ...generateNodeVectors(),

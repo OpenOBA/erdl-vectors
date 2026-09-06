@@ -3,7 +3,7 @@
   "spec": "erdl-spec-v2.0",
   "vector_version": "v2.0.0",
   "category": "V-ENGINE + V-GLOSS/V-PROJ",
-  "generated": "2026-08-22",
+  "generated": "2026-09-05",
   "maintainer": "OpenOBA (https://openoba.com)",
   "total": 227,
   "breakdown": {
@@ -26,12 +26,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "value": 35,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -47,12 +41,6 @@
         "user": {
           "name": "John Doe"
         }
-      },
-      "expected": {
-        "value": "John Doe",
-        "value_type": "string",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -64,13 +52,7 @@
       "expr_tree": {
         "field": "missing"
       },
-      "context": {},
-      "expected": {
-        "value": "__undefined__",
-        "value_type": "undefined",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-field-003",
@@ -83,12 +65,6 @@
       },
       "context": {
         "a": 1
-      },
-      "expected": {
-        "value": "__undefined__",
-        "value_type": "undefined",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -102,12 +78,6 @@
       },
       "context": {
         "a": 1
-      },
-      "expected": {
-        "value": "{\"a\":1}",
-        "value_type": "object",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -123,12 +93,6 @@
         "user": {
           "name": "x"
         }
-      },
-      "expected": {
-        "value": "x",
-        "value_type": "string",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -140,13 +104,7 @@
       "expr_tree": {
         "var": "$.missing"
       },
-      "context": {},
-      "expected": {
-        "value": "__undefined__",
-        "value_type": "undefined",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-var-003",
@@ -159,12 +117,6 @@
       },
       "context": {
         "a": 1
-      },
-      "expected": {
-        "value": "__undefined__",
-        "value_type": "undefined",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -174,13 +126,7 @@
       "node": "literal",
       "scenario": "normal",
       "expr_tree": 42,
-      "context": {},
-      "expected": {
-        "value": 42,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-literal-002",
@@ -189,13 +135,7 @@
       "node": "literal",
       "scenario": "boundary",
       "expr_tree": 0,
-      "context": {},
-      "expected": {
-        "value": 0,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-literal-004",
@@ -204,13 +144,7 @@
       "node": "literal",
       "scenario": "null",
       "expr_tree": null,
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-literal-003",
@@ -219,13 +153,7 @@
       "node": "literal",
       "scenario": "error",
       "expr_tree": "é",
-      "context": {},
-      "expected": {
-        "value": "é",
-        "value_type": "string",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-and-001",
@@ -239,13 +167,7 @@
           true
         ]
       },
-      "context": {},
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-and-002",
@@ -259,13 +181,7 @@
           false
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-and-004",
@@ -279,13 +195,7 @@
           true
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-and-003",
@@ -304,15 +214,7 @@
           true
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "division_by_zero"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-or-001",
@@ -326,13 +228,7 @@
           true
         ]
       },
-      "context": {},
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-or-002",
@@ -346,13 +242,7 @@
           false
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-or-004",
@@ -366,13 +256,7 @@
           false
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-or-003",
@@ -391,15 +275,7 @@
           false
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "division_by_zero"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-not-001",
@@ -410,13 +286,7 @@
       "expr_tree": {
         "not": false
       },
-      "context": {},
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-not-002",
@@ -427,13 +297,7 @@
       "expr_tree": {
         "not": true
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-not-004",
@@ -446,13 +310,7 @@
           "field": "missing"
         }
       },
-      "context": {},
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-not-003",
@@ -468,15 +326,7 @@
           ]
         }
       },
-      "context": {},
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [
-          "division_by_zero"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-eq-001",
@@ -494,12 +344,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -518,12 +362,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -540,13 +378,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-eq-003",
@@ -565,15 +397,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-ne-001",
@@ -591,12 +415,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -615,12 +433,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -637,13 +449,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-ne-003",
@@ -662,15 +468,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-gt-001",
@@ -688,12 +486,6 @@
       },
       "context": {
         "age": 61
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -712,12 +504,6 @@
       },
       "context": {
         "age": 60
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -734,15 +520,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-gt-003",
@@ -760,14 +538,6 @@
       },
       "context": {
         "amount": "100"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -786,12 +556,6 @@
       },
       "context": {
         "age": 60
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -810,12 +574,6 @@
       },
       "context": {
         "age": 59
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -832,15 +590,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-gte-003",
@@ -858,14 +608,6 @@
       },
       "context": {
         "amount": "100"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -884,12 +626,6 @@
       },
       "context": {
         "age": 59
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -908,12 +644,6 @@
       },
       "context": {
         "age": 60
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -930,15 +660,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-lt-003",
@@ -956,14 +678,6 @@
       },
       "context": {
         "amount": "100"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -982,12 +696,6 @@
       },
       "context": {
         "age": 60
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1006,12 +714,6 @@
       },
       "context": {
         "age": 61
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1028,15 +730,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-lte-003",
@@ -1054,14 +748,6 @@
       },
       "context": {
         "amount": "100"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -1083,12 +769,6 @@
       },
       "context": {
         "cat": "rare"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1110,12 +790,6 @@
       },
       "context": {
         "cat": "c"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1134,13 +808,7 @@
           ]
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-in-003",
@@ -1158,14 +826,6 @@
       },
       "context": {
         "cat": "a"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -1184,12 +844,6 @@
       },
       "context": {
         "cmd": "rm -rf /"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1208,12 +862,6 @@
       },
       "context": {
         "cmd": "rm -rf /"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1230,15 +878,7 @@
           "x"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-contains-003",
@@ -1256,14 +896,6 @@
       },
       "context": {
         "cmd": "rm"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -1282,12 +914,6 @@
       },
       "context": {
         "cmd": "rm"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1306,12 +932,6 @@
       },
       "context": {
         "cmd": "sudo"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1328,13 +948,7 @@
           "x"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-match-003",
@@ -1352,14 +966,6 @@
       },
       "context": {
         "cmd": "aaaa"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "regex_re_dos"
-        ],
-        "errored": false
       }
     },
     {
@@ -1378,12 +984,6 @@
       },
       "context": {
         "name": "safe_read"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1402,12 +1002,6 @@
       },
       "context": {
         "name": "unsafe_read"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1424,13 +1018,7 @@
           "x"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-starts_with-003",
@@ -1448,14 +1036,6 @@
       },
       "context": {
         "name": "safe"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -1474,12 +1054,6 @@
       },
       "context": {
         "name": "sys.log"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1498,12 +1072,6 @@
       },
       "context": {
         "name": "sys.txt"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1520,13 +1088,7 @@
           ".x"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-ends_with-003",
@@ -1544,14 +1106,6 @@
       },
       "context": {
         "name": "x"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -1567,12 +1121,6 @@
       },
       "context": {
         "x": 1
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1586,13 +1134,7 @@
           "field": "x"
         }
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-exists-004",
@@ -1607,12 +1149,6 @@
       },
       "context": {
         "x": null
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1629,15 +1165,7 @@
           ]
         }
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "division_by_zero"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-length-001",
@@ -1652,12 +1180,6 @@
       },
       "context": {
         "s": "abc"
-      },
-      "expected": {
-        "value": 3,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1678,12 +1200,6 @@
           3,
           4
         ]
-      },
-      "expected": {
-        "value": 4,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1697,15 +1213,7 @@
           "field": "missing"
         }
       },
-      "context": {},
-      "expected": {
-        "value": 0,
-        "value_type": "number",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-length-003",
@@ -1720,14 +1228,6 @@
       },
       "context": {
         "n": 42
-      },
-      "expected": {
-        "value": 0,
-        "value_type": "number",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -1747,12 +1247,6 @@
       },
       "context": {
         "age": 30
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1772,12 +1266,6 @@
       },
       "context": {
         "age": 60
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1795,13 +1283,7 @@
           10
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-between-003",
@@ -1820,12 +1302,6 @@
       },
       "context": {
         "age": "30"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1856,12 +1332,6 @@
           2,
           3
         ]
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -1888,14 +1358,6 @@
       },
       "context": {
         "items": []
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "quantifier_empty"
-        ],
-        "errored": false
       }
     },
     {
@@ -1920,15 +1382,7 @@
           }
         }
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-all-003",
@@ -1954,14 +1408,6 @@
       },
       "context": {
         "items": "not-array"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -1992,12 +1438,6 @@
           2,
           3
         ]
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -2027,12 +1467,6 @@
           1,
           2
         ]
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -2059,14 +1493,6 @@
       },
       "context": {
         "items": []
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "quantifier_empty"
-        ],
-        "errored": false
       }
     },
     {
@@ -2093,14 +1519,6 @@
       },
       "context": {
         "items": 5
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -2131,12 +1549,6 @@
           2,
           3
         ]
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -2156,14 +1568,6 @@
       },
       "context": {
         "items": []
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "quantifier_empty"
-        ],
-        "errored": false
       }
     },
     {
@@ -2181,15 +1585,7 @@
           "predicate": true
         }
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-none-003",
@@ -2208,14 +1604,6 @@
       },
       "context": {
         "items": "x"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -2230,13 +1618,7 @@
           2
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "3",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-add-002",
@@ -2250,13 +1632,7 @@
           0.2
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "0.3",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-add-004",
@@ -2272,15 +1648,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-add-003",
@@ -2294,15 +1662,7 @@
           "x"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-sub-001",
@@ -2316,13 +1676,7 @@
           3
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "2",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-sub-002",
@@ -2336,13 +1690,7 @@
           0.1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "0.2",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-sub-004",
@@ -2358,15 +1706,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-sub-003",
@@ -2379,15 +1719,7 @@
           5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-mul-001",
@@ -2401,13 +1733,7 @@
           4
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "12",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-mul-002",
@@ -2421,13 +1747,7 @@
           0.2
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "0.02",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-mul-004",
@@ -2443,15 +1763,7 @@
           2
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-mul-003",
@@ -2465,15 +1777,7 @@
           "x"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-div-001",
@@ -2487,13 +1791,7 @@
           3
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "1.33333333333333",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-div-002",
@@ -2507,15 +1805,7 @@
           0
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "division_by_zero"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-div-004",
@@ -2531,15 +1821,7 @@
           2
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-div-003",
@@ -2554,15 +1836,7 @@
           5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-round-001",
@@ -2575,13 +1849,7 @@
           3.5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "4",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-round-002",
@@ -2594,13 +1862,7 @@
           4.5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "4",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-round-004",
@@ -2615,15 +1877,7 @@
           }
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-round-003",
@@ -2636,15 +1890,7 @@
           "x"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-days_between-001",
@@ -2658,13 +1904,7 @@
           "2026-01-11"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": 10,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-days_between-002",
@@ -2678,13 +1918,7 @@
           "2026-01-01"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": 0,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-days_between-004",
@@ -2700,15 +1934,7 @@
           "2026-01-11"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-days_between-003",
@@ -2722,15 +1948,7 @@
           "2026-01-11"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-epoch_ms-001",
@@ -2741,13 +1959,7 @@
       "expr_tree": {
         "epoch_ms": "2026-01-01"
       },
-      "context": {},
-      "expected": {
-        "value": 1767225600000,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-epoch_ms-002",
@@ -2758,13 +1970,7 @@
       "expr_tree": {
         "epoch_ms": "1970-01-01"
       },
-      "context": {},
-      "expected": {
-        "value": 0,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-epoch_ms-004",
@@ -2777,15 +1983,7 @@
           "field": "missing"
         }
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-epoch_ms-003",
@@ -2796,15 +1994,7 @@
       "expr_tree": {
         "epoch_ms": "not-a-date"
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-date_add-001",
@@ -2819,13 +2009,7 @@
           "amount": 2
         }
       },
-      "context": {},
-      "expected": {
-        "value": "2026-01-15T00:00:00.000Z",
-        "value_type": "date",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-date_add-002",
@@ -2840,13 +2024,7 @@
           "amount": 1
         }
       },
-      "context": {},
-      "expected": {
-        "value": "2024-02-29T00:00:00.000Z",
-        "value_type": "date",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-date_add-004",
@@ -2863,15 +2041,7 @@
           "amount": 1
         }
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-date_add-003",
@@ -2886,15 +2056,7 @@
           "amount": 1
         }
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-date_part-001",
@@ -2908,13 +2070,7 @@
           "arg": "2026-08-15"
         }
       },
-      "context": {},
-      "expected": {
-        "value": 2026,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-date_part-002",
@@ -2928,13 +2084,7 @@
           "arg": "2026-08-15"
         }
       },
-      "context": {},
-      "expected": {
-        "value": 6,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-date_part-004",
@@ -2950,15 +2100,7 @@
           }
         }
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-date_part-003",
@@ -2972,15 +2114,7 @@
           "arg": "not-a-date"
         }
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-month_last_day-001",
@@ -2991,13 +2125,7 @@
       "expr_tree": {
         "month_last_day": "2024-02-10"
       },
-      "context": {},
-      "expected": {
-        "value": "2024-02-29T00:00:00.000Z",
-        "value_type": "date",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-month_last_day-002",
@@ -3008,13 +2136,7 @@
       "expr_tree": {
         "month_last_day": "2026-01-10"
       },
-      "context": {},
-      "expected": {
-        "value": "2026-01-31T00:00:00.000Z",
-        "value_type": "date",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-month_last_day-004",
@@ -3027,15 +2149,7 @@
           "field": "missing"
         }
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-month_last_day-003",
@@ -3046,15 +2160,7 @@
       "expr_tree": {
         "month_last_day": "not-a-date"
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-aggregate-001",
@@ -3073,12 +2179,6 @@
           2,
           3
         ]
-      },
-      "expected": {
-        "value": 3,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -3098,12 +2198,6 @@
           0.2,
           0.3
         ]
-      },
-      "expected": {
-        "value": "0.6",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -3119,14 +2213,6 @@
       },
       "context": {
         "nums": []
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "aggregate_empty"
-        ],
-        "errored": false
       }
     },
     {
@@ -3146,14 +2232,6 @@
           "x",
           3
         ]
-      },
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -3168,13 +2246,7 @@
           2
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "3",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E1-002",
@@ -3193,13 +2265,7 @@
           0.3
         ]
       },
-      "context": {},
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E1-003",
@@ -3212,12 +2278,6 @@
       },
       "context": {
         "x": 1
-      },
-      "expected": {
-        "value": 1,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -3232,13 +2292,7 @@
           0.2
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "0.3",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E2-002",
@@ -3252,13 +2306,7 @@
           3
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "0.33333333333333",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E2-003",
@@ -3271,13 +2319,7 @@
           0.5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "0",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E2-004",
@@ -3290,13 +2332,7 @@
           1.5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "2",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E2-005",
@@ -3309,13 +2345,7 @@
           2.5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "2",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E2-006",
@@ -3328,13 +2358,7 @@
           3.5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "4",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E2-007",
@@ -3348,13 +2372,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "1000000000000000000001",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E2-008",
@@ -3368,13 +2386,7 @@
           3
         ]
       },
-      "context": {},
-      "expected": {
-        "value": "0.3",
-        "value_type": "rational",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E3-001",
@@ -3388,15 +2400,7 @@
           0
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "division_by_zero"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E3-002",
@@ -3414,14 +2418,6 @@
       },
       "context": {
         "amount": "100"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -3436,15 +2432,7 @@
           "2026-01-11"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "invalid_date"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E3-004",
@@ -3457,15 +2445,7 @@
           5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E3-005",
@@ -3480,15 +2460,7 @@
           5
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E3-006",
@@ -3506,14 +2478,6 @@
       },
       "context": {
         "cat": "a"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
       }
     },
     {
@@ -3591,14 +2555,7 @@
           true
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [],
-        "errored": false,
-        "threw": true
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E4-002",
@@ -3621,14 +2578,7 @@
           }
         }
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [],
-        "errored": false,
-        "threw": true
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E4-003",
@@ -3652,14 +2602,7 @@
           }
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [],
-        "errored": false,
-        "threw": true
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E4-004",
@@ -13679,13 +12622,6 @@
       },
       "context": {
         "x": 1
-      },
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [],
-        "errored": false,
-        "threw": true
       }
     },
     {
@@ -13715,13 +12651,6 @@
         "items": [
           1
         ]
-      },
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [],
-        "errored": false,
-        "threw": true
       }
     },
     {
@@ -13740,14 +12669,6 @@
       },
       "context": {
         "cmd": "aaaa"
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "regex_re_dos"
-        ],
-        "errored": false
       }
     },
     {
@@ -13769,13 +12690,7 @@
         "operator": "eq",
         "value": 1
       },
-      "context": {},
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E5-002",
@@ -13793,13 +12708,7 @@
           ]
         }
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E5-003",
@@ -13812,13 +12721,7 @@
         "operator": "eq",
         "value": 1
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E8-001",
@@ -13844,14 +12747,6 @@
       },
       "context": {
         "items": []
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "quantifier_empty"
-        ],
-        "errored": false
       }
     },
     {
@@ -13878,14 +12773,6 @@
       },
       "context": {
         "items": []
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "quantifier_empty"
-        ],
-        "errored": false
       }
     },
     {
@@ -13905,14 +12792,6 @@
       },
       "context": {
         "items": []
-      },
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [
-          "quantifier_empty"
-        ],
-        "errored": false
       }
     },
     {
@@ -13924,13 +12803,7 @@
       "expr_tree": {
         "epoch_ms": "2026-01-01T12:30:45"
       },
-      "context": {},
-      "expected": {
-        "value": 1767270645000,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E9-002",
@@ -13941,13 +12814,7 @@
       "expr_tree": {
         "epoch_ms": "2026-01-01T12:30:45Z"
       },
-      "context": {},
-      "expected": {
-        "value": 1767270645000,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E9-003",
@@ -13958,13 +12825,7 @@
       "expr_tree": {
         "epoch_ms": "2026-01-01T12:30:45+08:00"
       },
-      "context": {},
-      "expected": {
-        "value": 1767241845000,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E9-004",
@@ -13978,13 +12839,7 @@
           "2026-01-02T00:00:01"
         ]
       },
-      "context": {},
-      "expected": {
-        "value": 0,
-        "value_type": "number",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E10-001",
@@ -14002,12 +12857,6 @@
       },
       "context": {
         "s": "café"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14026,12 +12875,6 @@
       },
       "context": {
         "s": "café au lait"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14043,13 +12886,7 @@
       "expr_tree": {
         "field": "missing"
       },
-      "context": {},
-      "expected": {
-        "value": "__undefined__",
-        "value_type": "undefined",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E11-002",
@@ -14065,13 +12902,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E11-003",
@@ -14084,13 +12915,7 @@
           "field": "missing"
         }
       },
-      "context": {},
-      "expected": {
-        "value": false,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-E11-004",
@@ -14106,15 +12931,7 @@
           1
         ]
       },
-      "context": {},
-      "expected": {
-        "value": null,
-        "value_type": "null",
-        "warnings": [
-          "type_mismatch"
-        ],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-SIMPLE-eq-001",
@@ -14133,12 +12950,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14158,12 +12969,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14183,12 +12988,6 @@
       },
       "context": {
         "age": 61
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14208,12 +13007,6 @@
       },
       "context": {
         "age": 60
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14233,12 +13026,6 @@
       },
       "context": {
         "age": 59
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14258,12 +13045,6 @@
       },
       "context": {
         "age": 60
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14289,12 +13070,6 @@
       },
       "context": {
         "cat": "a"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14314,12 +13089,6 @@
       },
       "context": {
         "cmd": "rm -rf"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14339,12 +13108,6 @@
       },
       "context": {
         "cmd": "rm"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14364,12 +13127,6 @@
       },
       "context": {
         "name": "safe_read"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14389,12 +13146,6 @@
       },
       "context": {
         "name": "sys.log"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14410,12 +13161,6 @@
       },
       "context": {
         "x": 1
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14439,12 +13184,6 @@
       },
       "context": {
         "age": 30
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14481,12 +13220,6 @@
       },
       "context": {
         "cat": "c"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14517,12 +13250,6 @@
       },
       "context": {
         "cmd": "ls"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14553,12 +13280,6 @@
       },
       "context": {
         "name": "unsafe"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14589,12 +13310,6 @@
       },
       "context": {
         "name": "sys.txt"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14610,13 +13325,7 @@
           }
         }
       },
-      "context": {},
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
-      }
+      "context": {}
     },
     {
       "id": "V-ENGINE-SIMPLE-not_between-001",
@@ -14650,12 +13359,6 @@
       },
       "context": {
         "age": 70
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14686,12 +13389,6 @@
       },
       "context": {
         "s": "abc"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14722,12 +13419,6 @@
       },
       "context": {
         "s": "abc"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14758,12 +13449,6 @@
       },
       "context": {
         "s": "abc"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14794,12 +13479,6 @@
       },
       "context": {
         "s": "abc"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14830,12 +13509,6 @@
       },
       "context": {
         "s": "abc"
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14869,12 +13542,6 @@
           1,
           2
         ]
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14908,12 +13575,6 @@
           1,
           2
         ]
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14947,12 +13608,6 @@
           1,
           2
         ]
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -14986,12 +13641,6 @@
           1,
           2
         ]
-      },
-      "expected": {
-        "value": true,
-        "value_type": "boolean",
-        "warnings": [],
-        "errored": false
       }
     },
     {
@@ -15022,11 +13671,7 @@
           "maxCount": 3,
           "windowMs": 60000
         }
-      ],
-      "expected": {
-        "value": false,
-        "value_type": "boolean"
-      }
+      ]
     },
     {
       "id": "V-ENGINE-SIMPLE-within-001",
@@ -15044,11 +13689,7 @@
           "key": "within-k",
           "windowMs": 60000
         }
-      ],
-      "expected": {
-        "value": true,
-        "value_type": "boolean"
-      }
+      ]
     },
     {
       "id": "V-GLOSS-001",
@@ -15061,10 +13702,6 @@
           },
           35
         ]
-      },
-      "expected": {
-        "gloss_zh": "age 等于 35",
-        "gloss_en": "age equals 35"
       }
     },
     {
@@ -15090,10 +13727,6 @@
             ]
           }
         ]
-      },
-      "expected": {
-        "gloss_zh": "a 等于 1，b 等于 2",
-        "gloss_en": "a equals 1 and b equals 2"
       }
     },
     {
@@ -15119,10 +13752,6 @@
             ]
           }
         ]
-      },
-      "expected": {
-        "gloss_zh": "a 等于 1，或 b 等于 2",
-        "gloss_en": "a equals 1 or b equals 2"
       }
     },
     {
@@ -15138,10 +13767,6 @@
             35
           ]
         }
-      },
-      "expected": {
-        "gloss_zh": "age 不等于 35",
-        "gloss_en": "age does not equal 35"
       }
     },
     {
@@ -15158,10 +13783,6 @@
             "b"
           ]
         ]
-      },
-      "expected": {
-        "gloss_zh": "cat 在 [\"a\", \"b\"] 中",
-        "gloss_en": "cat in [\"a\", \"b\"]"
       }
     },
     {
@@ -15175,10 +13796,6 @@
           },
           "rm"
         ]
-      },
-      "expected": {
-        "gloss_zh": "cmd 包含 \"rm\"",
-        "gloss_en": "cmd contains \"rm\""
       }
     },
     {
@@ -15189,10 +13806,6 @@
         "exists": {
           "field": "is_active"
         }
-      },
-      "expected": {
-        "gloss_zh": "is_active 为\"是\"",
-        "gloss_en": "is_active is true"
       }
     },
     {
@@ -15207,10 +13820,6 @@
           16,
           60
         ]
-      },
-      "expected": {
-        "gloss_zh": "age 在闭区间 16 到 60（含两端）",
-        "gloss_en": "age is in the inclusive range 16 to 60"
       }
     },
     {
@@ -15232,10 +13841,6 @@
             ]
           }
         }
-      },
-      "expected": {
-        "gloss_zh": "items 中所有元素都满足「x 大于 0」",
-        "gloss_en": "all elements in items satisfy \"x is greater than 0\""
       }
     },
     {
@@ -15251,10 +13856,6 @@
             "field": "b"
           }
         ]
-      },
-      "expected": {
-        "gloss_zh": "(a 加 b)",
-        "gloss_en": "(a plus b)"
       }
     },
     {
@@ -15269,10 +13870,6 @@
           },
           "amount": 2
         }
-      },
-      "expected": {
-        "gloss_zh": "date 加 2年",
-        "gloss_en": "date plus 2 years"
       }
     },
     {
@@ -15283,10 +13880,6 @@
         "sum": {
           "field": "nums"
         }
-      },
-      "expected": {
-        "gloss_zh": "nums 的总和",
-        "gloss_en": "sum of nums"
       }
     },
     {
@@ -15309,12 +13902,6 @@
           },
           36
         ]
-      },
-      "expected": {
-        "gloss_zh": "age 等于 35",
-        "gloss_en": "age equals 35",
-        "tampered_gloss_zh": "age 等于 36",
-        "tampered_gloss_en": "age equals 36"
       }
     },
     {
@@ -15337,12 +13924,6 @@
           },
           35
         ]
-      },
-      "expected": {
-        "gloss_zh": "age 等于 35",
-        "gloss_en": "age equals 35",
-        "tampered_gloss_zh": "age 不等于 35",
-        "tampered_gloss_en": "age does not equal 35"
       }
     },
     {
@@ -15381,12 +13962,6 @@
             ]
           }
         ]
-      },
-      "expected": {
-        "gloss_zh": "a 等于 1，b 等于 2",
-        "gloss_en": "a equals 1 and b equals 2",
-        "tampered_gloss_zh": "a 等于 1",
-        "tampered_gloss_en": "a equals 1"
       }
     },
     {
@@ -15415,12 +13990,6 @@
             "c"
           ]
         ]
-      },
-      "expected": {
-        "gloss_zh": "cat 在 [\"a\", \"b\"] 中",
-        "gloss_en": "cat in [\"a\", \"b\"]",
-        "tampered_gloss_zh": "cat 在 [\"a\", \"c\"] 中",
-        "tampered_gloss_en": "cat in [\"a\", \"c\"]"
       }
     },
     {
@@ -15446,12 +14015,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "simple_value": true,
-        "simple_type": "boolean",
-        "expression_value": true,
-        "expression_type": "boolean"
       }
     },
     {
@@ -15483,12 +14046,6 @@
       },
       "context": {
         "cat": "a"
-      },
-      "expected": {
-        "simple_value": true,
-        "simple_type": "boolean",
-        "expression_value": true,
-        "expression_type": "boolean"
       }
     },
     {
@@ -15514,12 +14071,6 @@
       },
       "context": {
         "cmd": "rm -rf"
-      },
-      "expected": {
-        "simple_value": true,
-        "simple_type": "boolean",
-        "expression_value": true,
-        "expression_type": "boolean"
       }
     },
     {
@@ -15558,12 +14109,6 @@
       },
       "context": {
         "age": 35
-      },
-      "expected": {
-        "simple_value": true,
-        "simple_type": "boolean",
-        "decision_value": true,
-        "decision_type": "boolean"
       }
     },
     {
@@ -15602,12 +14147,6 @@
       },
       "context": {
         "status": "active"
-      },
-      "expected": {
-        "simple_value": true,
-        "simple_type": "boolean",
-        "decision_value": true,
-        "decision_type": "boolean"
       }
     },
     {
@@ -15646,12 +14185,6 @@
       },
       "context": {
         "level": 3
-      },
-      "expected": {
-        "simple_value": true,
-        "simple_type": "boolean",
-        "decision_value": true,
-        "decision_type": "boolean"
       }
     }
   ]

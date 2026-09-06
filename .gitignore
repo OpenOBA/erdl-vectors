@@ -3,4 +3,5 @@ spike/
 reply-*.md
 archive/v1.3/decision-object-answers-v1.3.json
 decision-object-answers-v1.5.json
+v-engine-answers.json
 .workbuddy/
