@@ -543,11 +543,25 @@ const GLOSS_DEFS = [
     { node: 'contains', tree: { contains: [{ field: 'cmd' }, 'rm'] } },
     { node: 'exists', tree: { exists: { field: 'is_active' } } },
     { node: 'between', tree: { between: [{ field: 'age' }, 16, 60] } },
-    { node: 'quantifier', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } } },
-    { node: 'arith', tree: { add: [{ field: 'a' }, { field: 'b' }] } },
+    { node: 'all', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } } },
+    { node: 'add', tree: { add: [{ field: 'a' }, { field: 'b' }] } },
     { node: 'date_add', tree: { date_add: { unit: 'years', base: { field: 'date' }, amount: 2 } } },
     { node: 'aggregate', tree: { sum: { field: 'nums' } } },
 ];
+/** node → node_group (10 groups, aligned with SPEC §5.3 / 附录 A) */
+function nodeGroupOf(node) {
+    if (['field', 'var', 'literal'].includes(node)) return 'value';
+    if (['and', 'or', 'not'].includes(node)) return 'logic';
+    if (['eq', 'ne', 'gt', 'gte', 'lt', 'lte'].includes(node)) return 'comparison';
+    if (node === 'in') return 'set';
+    if (['contains', 'match', 'starts_with', 'ends_with'].includes(node)) return 'string';
+    if (['exists', 'length', 'between'].includes(node)) return 'existence';
+    if (['all', 'any', 'none'].includes(node)) return 'quantifier';
+    if (['add', 'sub', 'mul', 'div', 'round'].includes(node)) return 'arithmetic';
+    if (['days_between', 'epoch_ms', 'date_add', 'date_part', 'month_last_day'].includes(node)) return 'time';
+    if (['aggregate', 'count', 'sum', 'avg', 'min', 'max'].includes(node)) return 'aggregate';
+    return null;
+}
 /** V-GLOSS 12: tree → expected gloss string (G1 deterministic rendering, consecutive numbering RFC-002 §9) */
 export function generateGlossVectors() {
     const out = [];
@@ -558,6 +572,7 @@ export function generateGlossVectors() {
         out.push({
             id: `V-GLOSS-${String(i + 1).padStart(3, '0')}`,
             category: 'V-GLOSS',
+            node_group: nodeGroupOf(def.node),
             node: def.node,
             expr_tree: def.tree,
             expected: { gloss_zh: glossZh, gloss_en: glossEn },
@@ -579,7 +594,7 @@ export function generateGlossIntegrityVectors() {
         const g1en = renderNode(fromSExpr(c.tree), 'en');
         const g2en = renderNode(fromSExpr(c.tampered), 'en');
         return {
-            id: c.id, category: 'V-GLOSS', node: c.node, scenario: c.scenario,
+            id: c.id, category: 'V-GLOSS', node_group: nodeGroupOf(c.node), node: c.node, scenario: c.scenario,
             expr_tree: c.tree, tampered_tree: c.tampered,
             // store raw material only; divergence recomputed by the verifier (no boolean conclusion stored in the expected value)
             expected: { gloss_zh: g1, gloss_en: g1en, tampered_gloss_zh: g2, tampered_gloss_en: g2en },

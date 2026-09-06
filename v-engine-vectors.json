@@ -13885,6 +13885,7 @@
     {
       "id": "V-GLOSS-001",
       "category": "V-GLOSS",
+      "node_group": "comparison",
       "node": "eq",
       "expr_tree": {
         "eq": [
@@ -13898,6 +13899,7 @@
     {
       "id": "V-GLOSS-002",
       "category": "V-GLOSS",
+      "node_group": "logic",
       "node": "and",
       "expr_tree": {
         "and": [
@@ -13923,6 +13925,7 @@
     {
       "id": "V-GLOSS-003",
       "category": "V-GLOSS",
+      "node_group": "logic",
       "node": "or",
       "expr_tree": {
         "or": [
@@ -13948,6 +13951,7 @@
     {
       "id": "V-GLOSS-004",
       "category": "V-GLOSS",
+      "node_group": "logic",
       "node": "not",
       "expr_tree": {
         "not": {
@@ -13963,6 +13967,7 @@
     {
       "id": "V-GLOSS-005",
       "category": "V-GLOSS",
+      "node_group": "set",
       "node": "in",
       "expr_tree": {
         "in": [
@@ -13979,6 +13984,7 @@
     {
       "id": "V-GLOSS-006",
       "category": "V-GLOSS",
+      "node_group": "string",
       "node": "contains",
       "expr_tree": {
         "contains": [
@@ -13992,6 +13998,7 @@
     {
       "id": "V-GLOSS-007",
       "category": "V-GLOSS",
+      "node_group": "existence",
       "node": "exists",
       "expr_tree": {
         "exists": {
@@ -14002,6 +14009,7 @@
     {
       "id": "V-GLOSS-008",
       "category": "V-GLOSS",
+      "node_group": "existence",
       "node": "between",
       "expr_tree": {
         "between": [
@@ -14016,7 +14024,8 @@
     {
       "id": "V-GLOSS-009",
       "category": "V-GLOSS",
-      "node": "quantifier",
+      "node_group": "quantifier",
+      "node": "all",
       "expr_tree": {
         "all": {
           "binding": "x",
@@ -14037,7 +14046,8 @@
     {
       "id": "V-GLOSS-010",
       "category": "V-GLOSS",
-      "node": "arith",
+      "node_group": "arithmetic",
+      "node": "add",
       "expr_tree": {
         "add": [
           {
@@ -14052,6 +14062,7 @@
     {
       "id": "V-GLOSS-011",
       "category": "V-GLOSS",
+      "node_group": "time",
       "node": "date_add",
       "expr_tree": {
         "date_add": {
@@ -14066,6 +14077,7 @@
     {
       "id": "V-GLOSS-012",
       "category": "V-GLOSS",
+      "node_group": "aggregate",
       "node": "aggregate",
       "expr_tree": {
         "sum": {
@@ -14076,6 +14088,7 @@
     {
       "id": "V-GLOSS-INTEGRITY-001",
       "category": "V-GLOSS",
+      "node_group": "comparison",
       "node": "eq",
       "scenario": "tree literal tamper → gloss change",
       "expr_tree": {
@@ -14098,6 +14111,7 @@
     {
       "id": "V-GLOSS-INTEGRITY-002",
       "category": "V-GLOSS",
+      "node_group": "comparison",
       "node": "eq",
       "scenario": "tree operator tamper eq→ne → gloss change",
       "expr_tree": {
@@ -14120,6 +14134,7 @@
     {
       "id": "V-GLOSS-INTEGRITY-003",
       "category": "V-GLOSS",
+      "node_group": "logic",
       "node": "and",
       "scenario": "logic child-node removal → gloss change",
       "expr_tree": {
@@ -14158,6 +14173,7 @@
     {
       "id": "V-GLOSS-INTEGRITY-004",
       "category": "V-GLOSS",
+      "node_group": "set",
       "node": "in",
       "scenario": "set literal tamper → gloss change",
       "expr_tree": {
