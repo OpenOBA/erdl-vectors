@@ -1,6 +1,6 @@
 {
   "$schema": "https://openoba.com/erdl/v-engine-vectors-v2.0/schema.json",
-  "spec": "erdl-spec-v2.0",
+  "spec": "erdl-spec-v2.1",
   "vector_version": "v2.0.0",
   "category": "V-ENGINE + V-GLOSS/V-PROJ",
   "generated": "2026-09-05",
