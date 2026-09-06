@@ -151,7 +151,7 @@ Check in order; return on hit:
 ```jsonc
 {
   "$schema": "...",
-  "spec": "SPEC v2.0",
+  "spec": "decision-object-v1.5",
   "preimage_version": "erdl-do-v1.5-hash-flat",
   "version": "v1.5.0",
   "created": "2026-08-22",
