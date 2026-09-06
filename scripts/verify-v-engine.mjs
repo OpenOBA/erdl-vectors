@@ -208,7 +208,9 @@ function evalSExpr(tree, ctx) {
           // E10: strict compare after string NFC normalization
           const ls = typeof l === 'string' ? nfc(l) : l
           const rs = typeof r === 'string' ? nfc(r) : r
-          const e = ls === rs; out = key === 'eq' ? e : !e
+          // §7.3(a): type-mismatched comparison folds false for BOTH eq and ne (no fail-open via !==)
+          if (typeof ls !== typeof rs) out = false
+          else { const e = ls === rs; out = key === 'eq' ? e : !e }
         } else out = false
         return { v: out }
       }

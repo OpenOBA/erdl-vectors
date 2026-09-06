@@ -5,10 +5,10 @@
   "category": "V-ENGINE + V-GLOSS/V-PROJ",
   "generated": "2026-09-05",
   "maintainer": "OpenOBA (https://openoba.com)",
-  "total": 233,
+  "total": 236,
   "breakdown": {
     "node": 136,
-    "constraint": 45,
+    "constraint": 48,
     "simple_compile": 30,
     "gloss": 12,
     "gloss_integrity": 4,
@@ -13027,6 +13027,48 @@
       "context": {
         "age": 35
       }
+    },
+    {
+      "id": "V-ENGINE-E11-008",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
+      "scenario": "ne bool vs number → false (no fail-open)",
+      "expr_tree": {
+        "ne": [
+          false,
+          100
+        ]
+      },
+      "context": {}
+    },
+    {
+      "id": "V-ENGINE-E11-009",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
+      "scenario": "eq bool vs number → false",
+      "expr_tree": {
+        "eq": [
+          false,
+          100
+        ]
+      },
+      "context": {}
+    },
+    {
+      "id": "V-ENGINE-E11-010",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
+      "scenario": "ne string vs number → false",
+      "expr_tree": {
+        "ne": [
+          "x",
+          100
+        ]
+      },
+      "context": {}
     },
     {
       "id": "V-ENGINE-SIMPLE-eq-001",

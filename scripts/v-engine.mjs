@@ -478,6 +478,10 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E11', scenario: 'eq field null → true when missing', tree: { eq: [{ field: 'missing' }, null] }, ctx: {} },
     { constraint: 'E11', scenario: 'ne field null → false when missing', tree: { ne: [{ field: 'missing' }, null] }, ctx: {} },
     { constraint: 'E11', scenario: 'eq field null → false when present', tree: { eq: [{ field: 'age' }, null] }, ctx: { age: 35 } },
+    // E11 type-mismatched comparison §7.3(a) (G4): boolean vs number folds false for BOTH eq and ne (fail-closed, no implicit conversion)
+    { constraint: 'E11', scenario: 'ne bool vs number → false (no fail-open)', tree: { ne: [false, 100] }, ctx: {} },
+    { constraint: 'E11', scenario: 'eq bool vs number → false', tree: { eq: [false, 100] }, ctx: {} },
+    { constraint: 'E11', scenario: 'ne string vs number → false', tree: { ne: ['x', 100] }, ctx: {} },
 ];
 /** Generate evaluation-constraint vectors (per-constraint numbering §47; E4 supports expectThrow, E5 uses checkExprExclusive) */
 export function generateConstraintVectors() {
@@ -633,7 +637,7 @@ export function generateProjVectors() {
     });
     return out;
 }
-/** Summary: node 136 + constraint 45 + simple_compile 30 + gloss 12 + gloss_integrity 4 + projection 6 = 233 */
+/** Summary: node 136 + constraint 48 + simple_compile 30 + gloss 12 + gloss_integrity 4 + projection 6 = 236 */
 export function generateAllVectors() {
     return [
         ...generateNodeVectors(),
