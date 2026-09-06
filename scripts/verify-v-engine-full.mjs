@@ -22,7 +22,7 @@
  * This is the "reference verifier" (verifying engine-produced vectors with the engine), complementing scripts/verify-v-engine.mjs's
  * "independent second source" (57 semantic-sensitive, no engine import):
  *   - this file: full 239 coverage (34 nodes × 4 scenarios + E1-E12 constraints + Simple + gloss + projection)
- *   - verify-v-engine.mjs: 57 semantic-sensitive vectors independently recomputed (neutrality proof §48.2)
+ *   - verify-v-engine.mjs: 57 semantic-sensitive vectors independently recomputed (neutrality proof RFC-002 §7)
  */
 import {
   ExprTreeEvaluator, objectContext, fromSExpr, toSExpr, compileSimpleCondition,

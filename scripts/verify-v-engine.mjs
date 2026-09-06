@@ -16,9 +16,9 @@
  */
 
 /**
- * verify-v-engine.mjs — independent reference implementation (second source, §48.2 dual-implementation generation)
+ * verify-v-engine.mjs — independent reference implementation (second source, RFC-002 §7 dual-implementation generation)
  *
- * Pure-JavaScript independent implementation of the SPEC v2.0 §10 "semantic-sensitive subset":
+ * Pure-JavaScript independent implementation of the SPEC §7 "semantic-sensitive subset":
  *   - E2 fixed-point decimal (scale=14 + half-even, BigInt rationals)
  *   - E8 quantifier safe-folding (all/any/none empty array → false)
  *   - time-node UTC calendar (days_between / epoch_ms / date_add / date_part / month_last_day)
@@ -28,7 +28,7 @@
  * ExprTreeEvaluator's produced expected field by field.
  *
  * Purpose: prove that the expected values of semantic-sensitive vectors (E2/E8/time) can be independently recomputed,
- *       eliminating the neutrality risk of "expected values first produced only by a single implementation (vendor)" (§48.2 MUST).
+ *       eliminating the neutrality risk of "expected values first produced only by a single implementation (vendor)" (RFC-002 §7 MUST).
  *
  * Run: node scripts/verify-v-engine.mjs
  * @license Apache-2.0
@@ -327,5 +327,5 @@ if (mismatches.length > 0) {
   }
   process.exit(1)
 }
-console.log('  ✅ all independently recomputed consistent — semantic-sensitive vector expected values independently reproducible (§48.2 dual-implementation evidence)')
+console.log('  ✅ all independently recomputed consistent — semantic-sensitive vector expected values independently reproducible (RFC-002 §7 dual-implementation evidence)')
 process.exit(0)

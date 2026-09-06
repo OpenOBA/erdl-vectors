@@ -15,7 +15,7 @@
  */
 
 /**
- * v-engine — V-ENGINE vector generator (SPEC v2.0 §44.1)
+ * v-engine — V-ENGINE vector generator (SPEC v2.0 RFC-002 §9)
  *
  * Generates the V-ENGINE 201 vectors:
  *   - node semantics 136 = 34 nodes × 4 scenarios (normal/boundary/error/null)
@@ -77,7 +77,7 @@ export function serializeValue(v) {
     }
     return { value: JSON.stringify(v), type: 'object' };
 }
-/** scenario → number suffix (§44.1 four scenarios: normal/boundary/error/null) */
+/** scenario → number suffix (RFC-002 §9 four scenarios: normal/boundary/error/null) */
 const SCENARIO_INDEX = { normal: '001', boundary: '002', error: '003', null: '004' };
 export const NODE_DEFS = [
     // ═══ value (3 nodes) ═══
@@ -397,7 +397,7 @@ export const NODE_DEFS = [
         ],
     },
 ];
-/** Generate V-ENGINE node-semantics vectors (34 nodes × 4 scenarios = 136, per-node numbering §47) */
+/** Generate V-ENGINE node-semantics vectors (34 nodes × 4 scenarios = 136, per-node numbering RFC-002 §9) */
 export function generateNodeVectors() {
     const ev = new ExprTreeEvaluator();
     const out = [];
@@ -488,7 +488,7 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E11', scenario: 'eq bool vs number → false', tree: { eq: [false, 100] }, ctx: {} },
     { constraint: 'E11', scenario: 'ne string vs number → false', tree: { ne: ['x', 100] }, ctx: {} },
 ];
-/** Generate evaluation-constraint vectors (per-constraint numbering §47; E4 supports expectThrow, E5 uses checkExprExclusive) */
+/** Generate evaluation-constraint vectors (per-constraint numbering RFC-002 §9; E4 supports expectThrow, E5 uses checkExprExclusive) */
 export function generateConstraintVectors() {
     const ev = new ExprTreeEvaluator();
     const out = [];
@@ -548,7 +548,7 @@ const GLOSS_DEFS = [
     { node: 'date_add', tree: { date_add: { unit: 'years', base: { field: 'date' }, amount: 2 } } },
     { node: 'aggregate', tree: { sum: { field: 'nums' } } },
 ];
-/** V-GLOSS 12: tree → expected gloss string (G1 deterministic rendering, consecutive numbering §46) */
+/** V-GLOSS 12: tree → expected gloss string (G1 deterministic rendering, consecutive numbering RFC-002 §9) */
 export function generateGlossVectors() {
     const out = [];
     GLOSS_DEFS.forEach((def, i) => {
