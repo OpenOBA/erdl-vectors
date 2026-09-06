@@ -5,10 +5,10 @@
   "category": "V-ENGINE + V-GLOSS/V-PROJ",
   "generated": "2026-09-05",
   "maintainer": "OpenOBA (https://openoba.com)",
-  "total": 236,
+  "total": 239,
   "breakdown": {
     "node": 136,
-    "constraint": 48,
+    "constraint": 51,
     "simple_compile": 30,
     "gloss": 12,
     "gloss_integrity": 4,
@@ -13033,6 +13033,60 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
+      "scenario": "ne field null → true when present",
+      "expr_tree": {
+        "ne": [
+          {
+            "field": "age"
+          },
+          null
+        ]
+      },
+      "context": {
+        "age": 35
+      }
+    },
+    {
+      "id": "V-ENGINE-E11-009",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
+      "scenario": "eq null field → false when present",
+      "expr_tree": {
+        "eq": [
+          null,
+          {
+            "field": "age"
+          }
+        ]
+      },
+      "context": {
+        "age": 35
+      }
+    },
+    {
+      "id": "V-ENGINE-E11-010",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
+      "scenario": "ne null field → false when present",
+      "expr_tree": {
+        "ne": [
+          null,
+          {
+            "field": "age"
+          }
+        ]
+      },
+      "context": {
+        "age": 35
+      }
+    },
+    {
+      "id": "V-ENGINE-E11-011",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
       "scenario": "ne bool vs number → false (no fail-open)",
       "expr_tree": {
         "ne": [
@@ -13043,7 +13097,7 @@
       "context": {}
     },
     {
-      "id": "V-ENGINE-E11-009",
+      "id": "V-ENGINE-E11-012",
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
@@ -13057,7 +13111,7 @@
       "context": {}
     },
     {
-      "id": "V-ENGINE-E11-010",
+      "id": "V-ENGINE-E11-013",
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",

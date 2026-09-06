@@ -16,12 +16,12 @@
  */
 
 /**
- * verify-v-engine-full.mjs — V-ENGINE full 236-vector verifier
+ * verify-v-engine-full.mjs — V-ENGINE full 239-vector verifier
  *
  * Depends on @openoba/erdl (ERDL reference engine) to evaluate v-engine-vectors.json per vector and compare with expected.
  * This is the "reference verifier" (verifying engine-produced vectors with the engine), complementing scripts/verify-v-engine.mjs's
  * "independent second source" (57 semantic-sensitive, no engine import):
- *   - this file: full 236 coverage (34 nodes × 4 scenarios + E1-E12 constraints + Simple + gloss + projection)
+ *   - this file: full 239 coverage (34 nodes × 4 scenarios + E1-E12 constraints + Simple + gloss + projection)
  *   - verify-v-engine.mjs: 57 semantic-sensitive vectors independently recomputed (neutrality proof §48.2)
  */
 import {
@@ -160,5 +160,5 @@ if (fail) {
   console.log('  failures:', failed.join(', '));
   process.exit(1);
 }
-console.log('  ✅ V-ENGINE 236 vectors full verification passed');
+console.log('  ✅ V-ENGINE 239 vectors full verification passed');
 process.exit(0);

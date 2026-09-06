@@ -198,6 +198,11 @@ function evalSExpr(tree, ctx) {
           else out = false // missing/null vs non-null: both eq and ne false
           return { v: out }
         }
+        // left present, right null/undefined → == null / != null presence check
+        if (r === undefined || r === null) {
+          out = key === 'ne' // ne null → true (present); eq null → false
+          return { v: out }
+        }
         const lr = toRat(l); const rr = toRat(r)
         if (lr !== null && rr !== null) {
           const c = cmp(lr, rr)

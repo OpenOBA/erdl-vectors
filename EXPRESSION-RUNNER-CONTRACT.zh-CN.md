@@ -1,6 +1,6 @@
 # EXPRESSION-RUNNER-CONTRACT.zh-CN.md — 表达层 Runner 一致性契约（中文补充版）
 
-> 本契约是表达层 runner「规范行为」的**权威定义**（RULE）。一个 conforming 表达层 runner 从 ERDL spec + 本契约**从第一性原理**实现表达内核，对 `v-engine-vectors.json` 的 236 条向量逐条重算——独立于参考实现、独立于本仓库的 `scripts/verify-v-engine.mjs`（那是参考实现的第二源，非第三方）。
+> 本契约是表达层 runner「规范行为」的**权威定义**（RULE）。一个 conforming 表达层 runner 从 ERDL spec + 本契约**从第一性原理**实现表达内核，对 `v-engine-vectors.json` 的 239 条向量逐条重算——独立于参考实现、独立于本仓库的 `scripts/verify-v-engine.mjs`（那是参考实现的第二源，非第三方）。
 
 > **与审计层契约的区别**：审计层契约（[`RUNNER_CONTRACT.md`](RUNNER_CONTRACT.md)，R1–R6）验证的是 **JCS + SHA-256 哈希**（字节级）；本契约验证的是**求值语义**（表达内核），产出是语义值（number / string / boolean），非字节哈希。
 
@@ -19,7 +19,7 @@
 
 ### ER1 — 从规范实现表达层
 
-MUST 实现完整 ERDL 表达层：**34 节点内核**（取值 3 / 逻辑 3 / 比较 6 / 集合 1 / 字符串 4 / 存在量纲 3 / 量词 3 / 算术 5 / 时间 5 / 聚合 1）**加 Simple 编译（30 运算符）、gloss（16）、投影面（6）**——合计 236 条向量的覆盖面。语义以 [erdl-spec](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md) §5 / §7 为**唯一规范源**。节点语义不属于本契约——本契约只规定「实现什么」与「怎么验收」，节点细节见 spec。
+MUST 实现完整 ERDL 表达层：**34 节点内核**（取值 3 / 逻辑 3 / 比较 6 / 集合 1 / 字符串 4 / 存在量纲 3 / 量词 3 / 算术 5 / 时间 5 / 聚合 1）**加 Simple 编译（30 运算符）、gloss（16）、投影面（6）**——合计 239 条向量的覆盖面。语义以 [erdl-spec](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md) §5 / §7 为**唯一规范源**。节点语义不属于本契约——本契约只规定「实现什么」与「怎么验收」，节点细节见 spec。
 
 ### ER2 — 独立实现
 
@@ -35,7 +35,7 @@ MUST 仅凭 spec 实现。MUST NOT 依赖 `@openoba/erdl`、`erdl-formal`、或�
 
 ### ER4 — 值级一致重算
 
-对 `v-engine-vectors.json` 全部 **236 条**向量逐条重算，`value` 与 `expected.value` **值级一致**（按 `value_type`）：
+对 `v-engine-vectors.json` 全部 **239 条**向量逐条重算，`value` 与 `expected.value` **值级一致**（按 `value_type`）：
 
 | `value_type` | 一致性判据 |
 |-------------|-----------|
@@ -72,7 +72,7 @@ MUST NOT 读取向量 `expected` 字段来「通过」验证（读取即绕过�
 一个 runner 满足 ER1–ER9 全部要求，即声明为 conforming 表达层 runner。判定方式：
 
 1. **自行实现**：从 spec + 本契约从第一性原理实现（禁依赖 ERDL SDK，禁读 `expected`）；
-2. **逐条验证**：对 `v-engine-vectors.json` 全部 236 条向量运行，`value` 值级一致（ER4）；
+2. **逐条验证**：对 `v-engine-vectors.json` 全部 239 条向量运行，`value` 值级一致（ER4）；
 3. **语义敏感向量全对**：61 条语义敏感向量（E2 / E8 / E10 + 算术 / 时间 / 聚合）必须全部一致（见 §3）；
 4. **自动记录**：CI 交叉验证通过后，登记进 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 表达层注册表（谁、哪天、通过多少条）——结果由验证运行本身产出，非手工背书；
 5. **提交注册（自动）**：PR 到 `submissions/<runner>/`；CI 交叉验证通过后，合并时自动登记（未通过的不登记）。
@@ -81,7 +81,7 @@ MUST NOT 读取向量 `expected` 字段来「通过」验证（读取即绕过�
 
 ## 3. 验收测试（语义哨兵）
 
-表达层没有哈希金丝雀（审计层 K01 那种「存储哈希被缺陷实现生成」的哨兵），其「诚实性哨兵」是**语义边界向量**——E2 / E8 / E10 / E9 / E11 约束 + 算术 / 时间 / 聚合节点（**74 条**，即本仓第二源独立重算的那批）。注意：这 74 条是*诚实性哨兵子集*，不是验收面——conformance 要求**全部 236 条**（ER4）；74 条只是最难的边界用例。
+表达层没有哈希金丝雀（审计层 K01 那种「存储哈希被缺陷实现生成」的哨兵），其「诚实性哨兵」是**语义边界向量**——E2 / E8 / E10 / E9 / E11 约束 + 算术 / 时间 / 聚合节点（**77 条**，即本仓第二源独立重算的那批）。注意：这 77 条是*诚实性哨兵子集*，不是验收面——conformance 要求**全部 239 条**（ER4）；77 条只是最难的边界用例。
 
 > 给定 E2（half-even 舍入）、E8（空数组折叠）、E11（叶子折叠）等边界向量，一个**语义略错的实现**必失配；而一个**硬编码答案**的假 runner 无法自证实现——它没有可在任意输入上重算的求值内核，代码评审 + 无法复现即被识破。
 

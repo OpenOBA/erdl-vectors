@@ -16,7 +16,7 @@
  */
 
 /**
- * generate-v-engine.mjs — V-ENGINE 236-vector generator (depends on the @openoba/erdl reference engine)
+ * generate-v-engine.mjs — V-ENGINE 239-vector generator (depends on the @openoba/erdl reference engine)
  *
  * Generates two artifacts (oracle isolation, mirroring the audit layer's answers-file separation):
  *   - v-engine-vectors.json  (committed): the vectors WITHOUT the `expected` field — the runner-visible surface
