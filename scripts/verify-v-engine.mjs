@@ -115,7 +115,10 @@ function daysBetween(from, to) {
 function epochMs(v) { const d = parseIso(v); return d === null ? null : d.getTime() }
 function dateAdd(unit, base, amount) {
   const d = toDate(base); if (d === null) return null
-  const n = Number(amount); const out = new Date(d)
+  const n = Number(amount)
+  // G3 §7.3(f): amount MUST be an integer (non-integer amount → type_mismatch → null)
+  if (!Number.isInteger(n)) return null
+  const out = new Date(d)
   switch (unit) {
     case 'years': {
       const targetMonth = d.getUTCMonth(); const targetDay = d.getUTCDate()
@@ -185,8 +188,17 @@ function evalSExpr(tree, ctx) {
       case 'round': { const a = toRat(evalSExpr(arg[0], ctx).v); if (a === null) return { v: null }; return { v: fromInt(toDecimalString(a, 0)) } }
       case 'eq': case 'ne': case 'gt': case 'gte': case 'lt': case 'lte': {
         const l = evalSExpr(arg[0], ctx).v; const r = evalSExpr(arg[1], ctx).v
-        const lr = toRat(l); const rr = toRat(r)
         let out
+        // E11 null propagation (§7.3(a), aligned with engine compare): when left is
+        // missing/null, == null / != null are the ONLY operators that sense presence;
+        // missing vs non-null is false for both eq and ne (fail-closed).
+        if (l === undefined || l === null) {
+          const isNullCheck = r === undefined || r === null
+          if (isNullCheck) out = key === 'eq' // eq null → true; ne null → false
+          else out = false // missing/null vs non-null: both eq and ne false
+          return { v: out }
+        }
+        const lr = toRat(l); const rr = toRat(r)
         if (lr !== null && rr !== null) {
           const c = cmp(lr, rr)
           if (key === 'eq') out = c === 0; else if (key === 'ne') out = c !== 0
@@ -200,6 +212,7 @@ function evalSExpr(tree, ctx) {
         } else out = false
         return { v: out }
       }
+      case 'exists': { const v = evalSExpr(arg, ctx).v; return { v: v !== undefined && v !== null } }
       case 'contains': {
         const l = evalSExpr(arg[0], ctx).v; const r = evalSExpr(arg[1], ctx).v
         if (typeof r !== 'string') return { v: false }
@@ -275,7 +288,7 @@ const answers = JSON.parse(readFileSync(new URL('../v-engine-answers.json', impo
 for (const v of data.vectors) v.expected = answers[v.id]
 
 const SENSITIVE_NODES = new Set(['add', 'sub', 'mul', 'div', 'round', 'days_between', 'epoch_ms', 'date_add', 'date_part', 'month_last_day', 'aggregate'])
-const SENSITIVE_CONSTRAINTS = new Set(['E2', 'E8', 'E10', 'E9'])
+const SENSITIVE_CONSTRAINTS = new Set(['E2', 'E8', 'E10', 'E9', 'E11'])
 
 let checked = 0, matched = 0
 const mismatches = []

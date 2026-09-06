@@ -456,11 +456,16 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E8', scenario: 'all(empty)=false', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
     { constraint: 'E8', scenario: 'any(empty)=false', tree: { any: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
     { constraint: 'E8', scenario: 'none(empty)=false', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: true } }, ctx: { items: [] } },
+    // E8 aggregate safe-folding §7.3(e): min/max over empty array fold to false (G2)
+    { constraint: 'E8', scenario: 'min(empty)=false', tree: { min: { field: 'nums' } }, ctx: { nums: [] } },
+    { constraint: 'E8', scenario: 'max(empty)=false', tree: { max: { field: 'nums' } }, ctx: { nums: [] } },
     // E9 time-node UTC semantics (4, added 2026-09-05 to lock §7.3(f) no-tz = UTC): no-timezone datetime parses as UTC, explicit Z/offset honored
     { constraint: 'E9', scenario: 'epoch_ms no-timezone datetime = UTC', tree: { epoch_ms: '2026-01-01T12:30:45' }, ctx: {} },
     { constraint: 'E9', scenario: 'epoch_ms Z suffix', tree: { epoch_ms: '2026-01-01T12:30:45Z' }, ctx: {} },
     { constraint: 'E9', scenario: 'epoch_ms +08:00 offset honored', tree: { epoch_ms: '2026-01-01T12:30:45+08:00' }, ctx: {} },
     { constraint: 'E9', scenario: 'days_between no-timezone datetime UTC floor', tree: { days_between: ['2026-01-01T23:59:59', '2026-01-02T00:00:01'] }, ctx: {} },
+    // E9 date_add amount MUST integer §7.3(f) (G3): non-integer amount → type_mismatch (null)
+    { constraint: 'E9', scenario: 'date_add non-integer amount rejected', tree: { date_add: { unit: 'months', base: '2024-01-15', amount: 1.5 } }, ctx: {} },
     // E10 NFC normalization (2, decomposed vs precomposed, verifies evaluation-layer NFC)
     { constraint: 'E10', scenario: 'NFC decomposed field value == precomposed literal', tree: { eq: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301' } },
     { constraint: 'E10', scenario: 'NFC decomposed field value contains precomposed', tree: { contains: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301 au lait' } },
@@ -469,6 +474,10 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E11', scenario: 'eq missing → false', tree: { eq: [{ field: 'missing' }, 1] }, ctx: {} },
     { constraint: 'E11', scenario: 'exists missing → false', tree: { exists: { field: 'missing' } }, ctx: {} },
     { constraint: 'E11', scenario: 'arith missing → type_mismatch', tree: { add: [{ field: 'missing' }, 1] }, ctx: {} },
+    // E11 null literal §7.3(a) (G1): == null / != null sense field presence (the sole comparison that sees absence)
+    { constraint: 'E11', scenario: 'eq field null → true when missing', tree: { eq: [{ field: 'missing' }, null] }, ctx: {} },
+    { constraint: 'E11', scenario: 'ne field null → false when missing', tree: { ne: [{ field: 'missing' }, null] }, ctx: {} },
+    { constraint: 'E11', scenario: 'eq field null → false when present', tree: { eq: [{ field: 'age' }, null] }, ctx: { age: 35 } },
 ];
 /** Generate evaluation-constraint vectors (per-constraint numbering §47; E4 supports expectThrow, E5 uses checkExprExclusive) */
 export function generateConstraintVectors() {
@@ -624,7 +633,7 @@ export function generateProjVectors() {
     });
     return out;
 }
-/** Summary: node 136 + constraint 39 + simple_compile 30 + gloss 12 + gloss_integrity 4 + projection 6 = 227 */
+/** Summary: node 136 + constraint 45 + simple_compile 30 + gloss 12 + gloss_integrity 4 + projection 6 = 233 */
 export function generateAllVectors() {
     return [
         ...generateNodeVectors(),

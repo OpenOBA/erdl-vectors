@@ -5,10 +5,10 @@
   "category": "V-ENGINE + V-GLOSS/V-PROJ",
   "generated": "2026-09-05",
   "maintainer": "OpenOBA (https://openoba.com)",
-  "total": 227,
+  "total": 233,
   "breakdown": {
     "node": 136,
-    "constraint": 39,
+    "constraint": 45,
     "simple_compile": 30,
     "gloss": 12,
     "gloss_integrity": 4,
@@ -12795,6 +12795,36 @@
       }
     },
     {
+      "id": "V-ENGINE-E8-004",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E8",
+      "scenario": "min(empty)=false",
+      "expr_tree": {
+        "min": {
+          "field": "nums"
+        }
+      },
+      "context": {
+        "nums": []
+      }
+    },
+    {
+      "id": "V-ENGINE-E8-005",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E8",
+      "scenario": "max(empty)=false",
+      "expr_tree": {
+        "max": {
+          "field": "nums"
+        }
+      },
+      "context": {
+        "nums": []
+      }
+    },
+    {
       "id": "V-ENGINE-E9-001",
       "category": "V-ENGINE",
       "subcategory": "constraint",
@@ -12838,6 +12868,21 @@
           "2026-01-01T23:59:59",
           "2026-01-02T00:00:01"
         ]
+      },
+      "context": {}
+    },
+    {
+      "id": "V-ENGINE-E9-005",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E9",
+      "scenario": "date_add non-integer amount rejected",
+      "expr_tree": {
+        "date_add": {
+          "unit": "months",
+          "base": "2024-01-15",
+          "amount": 1.5
+        }
       },
       "context": {}
     },
@@ -12932,6 +12977,56 @@
         ]
       },
       "context": {}
+    },
+    {
+      "id": "V-ENGINE-E11-005",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
+      "scenario": "eq field null → true when missing",
+      "expr_tree": {
+        "eq": [
+          {
+            "field": "missing"
+          },
+          null
+        ]
+      },
+      "context": {}
+    },
+    {
+      "id": "V-ENGINE-E11-006",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
+      "scenario": "ne field null → false when missing",
+      "expr_tree": {
+        "ne": [
+          {
+            "field": "missing"
+          },
+          null
+        ]
+      },
+      "context": {}
+    },
+    {
+      "id": "V-ENGINE-E11-007",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E11",
+      "scenario": "eq field null → false when present",
+      "expr_tree": {
+        "eq": [
+          {
+            "field": "age"
+          },
+          null
+        ]
+      },
+      "context": {
+        "age": 35
+      }
     },
     {
       "id": "V-ENGINE-SIMPLE-eq-001",
