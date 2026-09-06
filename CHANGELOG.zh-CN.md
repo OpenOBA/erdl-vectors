@@ -6,7 +6,19 @@
 >
 > **License split (2026-09-04)**: two-tier license — test vectors + spec docs → CC0-1.0; code → Apache-2.0.
 
-## v1.5.0（现行）
+## v1.5.1（现行）- 2026-09-06
+
+### Added
+- null 非对称向量（表达层 236 → 239）：锁定 `== null`/`!= null` 字段存在感知语义。
+
+### Fixed
+- V-GLOSS 向量 `node` 字段归一化为具体节点名（补 `node_group`）。
+
+### Changed
+- spec 字段 `erdl-spec-v2.0` → `v2.1`；修复死链；RFC-002 交叉引用映射。
+- 补徽章、POC 欢迎提示与 support 邮箱。
+
+## v1.5.0
 
 Decision Object v1.5 扁平哈希链跨实现测试向量集。
 

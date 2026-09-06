@@ -1,6 +1,6 @@
 {
   "name": "erdl-vectors",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "ERDL Decision Object (v1.5) Cross-Implementation Test Vectors v1.5.0 — deterministic, tamper-evident audit vectors (V-DO-v15 audit layer + V-ENGINE expression core).",
   "keywords": [
     "erdl",

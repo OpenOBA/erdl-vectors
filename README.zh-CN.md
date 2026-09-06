@@ -1,13 +1,13 @@
 # ERDL Decision Object · 跨实现验证向量 v1.5
 
-[![Version](https://img.shields.io/badge/version-v1.5.0-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-239-blueviolet)]()
+[![Version](https://img.shields.io/badge/version-v1.5.1-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-239-blueviolet)]()
 
 > 🚀 **欢迎 POC** —— 欢迎你在自己的环境中试用本项目概念验证。需要技术支持？随时联系 [support@openoba.com](mailto:support@openoba.com)。
 
 > Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · 向量与规范 CC0-1.0 · 代码 Apache-2.0（见 LICENSE / LICENSE-CC0）
 
 > **规范依据**：ERDL-DOBJ-RFC-002 — Decision Object v1.5 扁平哈希链（[`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)）
-> **向量版本**：v1.5.0 · Core 向量 317 条（审计层 78 + 表达层 239）
+> **向量版本**：v1.5.1 · Core 向量 317 条（审计层 78 + 表达层 239）
 > **基于 ERDL 设计**：[ERDL（Entity-Rule Definition Language）](https://github.com/OpenOBA/erdl-landing) —— 声明式规则执行协议；Decision Object 即其决策的审计记录，数据模型见 [ERDL 规范 v2.1](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md)
 
 AI 治理的跨实现验证基准：一套不属于任何单一实现的中性测试向量。任何语言、任何技术栈的 runner，都可以仅凭规范从第一性原理独立实现 JCS（RFC 8785）+ SHA-256，逐字节重算 Decision Object 哈希并比对。

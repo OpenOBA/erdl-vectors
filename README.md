@@ -1,13 +1,13 @@
 # ERDL Decision Object · Cross-Implementation Verification Vectors v1.5
 
-[![Version](https://img.shields.io/badge/version-v1.5.0-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-239-blueviolet)]()
+[![Version](https://img.shields.io/badge/version-v1.5.1-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-239-blueviolet)]()
 
 > 🚀 **POC welcome** — we encourage you to try this project as a proof of concept in your own environment. For technical support, contact us anytime at [support@openoba.com](mailto:support@openoba.com).
 
 > Copyright © 2026 Shenzhen Miaojing Technology Co., Ltd. · Vectors & spec CC0-1.0 · Code Apache-2.0 (see LICENSE / LICENSE-CC0)
 
 > **Spec basis**: ERDL-DOBJ-RFC-002 — Decision Object v1.5 flat-hash chain ([`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md))
-> **Vector version**: v1.5.0 · Core vectors 317 (audit layer 78 + expression layer 239)
+> **Vector version**: v1.5.1 · Core vectors 317 (audit layer 78 + expression layer 239)
 > **Based on the ERDL design**: [ERDL (Entity-Rule Definition Language)](https://github.com/OpenOBA/erdl-landing) — a declarative rule-execution protocol; the Decision Object is the audit record of its decisions; for the data model see [ERDL spec v2.1](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md)
 
 A cross-implementation verification benchmark for AI governance: a set of neutral test vectors that belong to no single implementation. Any runner, in any language and any tech stack, can implement JCS (RFC 8785) + SHA-256 independently from first principles on the spec alone, recompute Decision Object hashes byte by byte, and compare.

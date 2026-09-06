@@ -6,7 +6,19 @@
 >
 > **License split (2026-09-04)**: two-tier license — test vectors + spec docs → CC0-1.0; code → Apache-2.0.
 
-## v1.5.0 (current)
+## v1.5.1 (current) - 2026-09-06
+
+### Added
+- Null-check asymmetry vectors (expression layer 236 → 239): lock `== null`/`!= null` field-presence sensing semantics.
+
+### Fixed
+- V-GLOSS vector `node` field normalized to concrete node names (added `node_group`).
+
+### Changed
+- Spec field `erdl-spec-v2.0` → `v2.1`; stale spec link fixed; RFC-002 cross-refs mapped.
+- Added badges, POC-welcome note and support contact.
+
+## v1.5.0
 
 Decision Object v1.5 flat hash-chain cross-implementation test vectors.
 
