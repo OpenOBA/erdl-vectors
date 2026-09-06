@@ -69,5 +69,16 @@ jobs:
             echo "No runner submissions to cross-verify (only README.md present)."
           fi
 
+      - name: Generate V-ENGINE vectors + answers (oracle isolation)
+        run: npm run generate:vengine
+
+      - name: V-ENGINE determinism check
+        run: |
+          if ! git diff --exit-code v-engine-vectors.json; then
+            echo "FAIL: V-ENGINE regeneration produced different vectors (non-deterministic)"
+            exit 1
+          fi
+          echo "PASS: V-ENGINE byte-identical deterministic regeneration"
+
       - name: Run tests (vitest)
         run: npm test
