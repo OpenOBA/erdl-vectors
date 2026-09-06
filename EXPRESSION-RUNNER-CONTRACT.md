@@ -6,7 +6,7 @@
 
 > **Contract, oracle, reference implementation — three-way separation**:
 > - **This contract** = the rules (normative behavior spec);
-> - **The vector `expected` field** = the semantic oracle (not the rules themselves);
+> - **The answer oracle** (`v-engine-answers.json`, gitignored) = the semantic oracle (not the rules themselves);
 > - **`scripts/verify-v-engine.mjs`** = a second source of the reference implementation (an instance of a conforming runner, not the norm).
 
 ---
@@ -61,7 +61,7 @@ Evaluation errors (division by zero, non-array aggregate) MUST fold per E12 (tie
 
 ### ER9 — Do not read the oracle (neutrality)
 
-MUST NOT read the vector `expected` field to "pass" (reading bypasses independent verification, violating the neutrality commitment). `expected` is a post-hoc cross-check only, provided outside the verification flow.
+MUST NOT read the answer oracle (`v-engine-answers.json`, gitignored) to "pass" (reading bypasses independent verification, violating the neutrality commitment). The answer oracle is a post-hoc cross-check only, provided outside the verification flow.
 
 ---
 
@@ -87,11 +87,11 @@ The semantic sentinel verifies not "whether it independently implements" but "wh
 
 ---
 
-## 4. Diagnostic oracle (expected field)
+## 4. Diagnostic oracle (answer file)
 
-The vector `expected` field is the **semantic oracle**, separate from the contract:
+The answer oracle (`v-engine-answers.json`, gitignored) is the **semantic oracle**, separate from the contract:
 
-- Stores each vector's `value` / `value_type` / `errored` / `warnings`;
+- Stores each vector's `value` / `value_type` / `errored` / `warnings` (keyed by vector id);
 - Purpose: CI cross-comparison, catching "right algorithm, wrong node semantics" drift;
 - Not the rules themselves — conformance is defined by the contract, not by "matching the oracle".
 

@@ -17,7 +17,7 @@ describe('V-ENGINE generator (scripts/generate-v-engine.mjs)', () => {
       { encoding: 'utf8', timeout: 120000 },
     );
     expect(r.status, 'stderr: ' + (r.stderr || '')).toBe(0);
-    expect(r.stdout).toContain('227');
+    expect(r.stdout).toContain('239');
     // after the generator's atomic write-back, the artifact must match the committed version (deterministic generation)
     const regenerated = fs.readFileSync(path.join(__dirname, '..', 'v-engine-vectors.json'), 'utf8');
     expect(regenerated).toBe(committed);

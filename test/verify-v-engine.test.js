@@ -8,13 +8,13 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 
 describe('V-ENGINE independent verifier (scripts/verify-v-engine.mjs)', () => {
-  it('61 semantic-sensitive vectors independently recomputed consistent (exit 0)', () => {
+  it('77 semantic-sensitive vectors independently recomputed consistent (exit 0)', () => {
     const r = spawnSync(
       process.execPath,
       [path.join(__dirname, '..', 'scripts', 'verify-v-engine.mjs')],
       { encoding: 'utf8', timeout: 60000 },
     );
     expect(r.status, 'stderr: ' + (r.stderr || '')).toBe(0);
-    expect(r.stdout).toContain('61');
+    expect(r.stdout).toContain('77');
   });
 });

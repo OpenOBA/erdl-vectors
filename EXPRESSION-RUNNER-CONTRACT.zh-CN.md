@@ -6,7 +6,7 @@
 
 > **契约、预言、参考实现三者分离**：
 > - **本契约** = 规则（normative behavior spec）；
-> - **向量 `expected` 字段** = 语义预言（oracle，非规则本身）；
+> - **答案预言**（`v-engine-answers.json`，gitignored）= 语义预言（oracle，非规则本身）；
 > - **`scripts/verify-v-engine.mjs`** = 参考实现的第二源（一个 conforming runner 的实例，非规范）。
 
 > 英文为权威版本，本中文版仅为辅助阅读；二者冲突时以英文版为准。
@@ -63,7 +63,7 @@ MUST 仅凭 spec 实现。MUST NOT 依赖 `@openoba/erdl`、`erdl-formal`、或�
 
 ### ER9 — 不读预言（中立性）
 
-MUST NOT 读取向量 `expected` 字段来「通过」验证（读取即绕过独立验证，违反中立承诺）。`expected` 仅作为 CI 的**事后交叉比对**，由验证流程之外提供。
+MUST NOT 读取答案预言（`v-engine-answers.json`，gitignored）来「通过」验证（读取即绕过独立验证，违反中立承诺）。答案预言仅作为 CI 的**事后交叉比对**，由验证流程之外提供。
 
 ---
 
@@ -89,11 +89,11 @@ MUST NOT 读取向量 `expected` 字段来「通过」验证（读取即绕过�
 
 ---
 
-## 4. 诊断预言（expected 字段）
+## 4. 诊断预言（答案文件）
 
-向量 `expected` 字段是**语义预言**，与契约分离：
+答案预言（`v-engine-answers.json`，gitignored）是**语义预言**，与契约分离：
 
-- 存每条向量的 `value` / `value_type` / `errored` / `warnings`；
+- 存每条向量的 `value` / `value_type` / `errored` / `warnings`（按向量 id 索引）；
 - 用途：CI 交叉比对，抓「算法对但某节点语义错」的漂移；
 - 非规则本身——conforming 由契约定义，不由「匹配预言」定义。
 
