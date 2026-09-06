@@ -6,10 +6,10 @@
 >
 > **文档名称**：ERDL Decision Object v1.5 — 扁平哈希链与表达式树字段规范
 >
-> **版本语义**：本文档描述的 Decision Object 数据模型版本为 **v1.5**（preimage_version 常量 `"erdl-do-v1.5-hash-flat"`，FREEZE-1 冻结）；「SPEC v2.0」为上位规范文档版本。二者为**正交版本线**——SPEC 文档版本（v2.0）与 DO 数据模型版本（v1.5）独立演进，不可混同。
+> **版本语义**：本文档描述的 Decision Object 数据模型版本为 **v1.5**（preimage_version 常量 `"erdl-do-v1.5-hash-flat"`，FREEZE-1 冻结）；「SPEC v2.1」为上位规范文档版本。二者为**正交版本线**——SPEC 文档版本（v2.1）与 DO 数据模型版本（v1.5）独立演进，不可混同。
 > **作者**：唐启鑫
 > **维护方**：OpenOBA（代为管理与维护）
-> **上位规范**：ERDL SPEC v2.0
+> **上位规范**：ERDL SPEC v2.1
 > **前序文档**：ERDL-RFC-001（v1.3，哈希管线基座）
 >
 > **继承自 RFC-001（v1.3，已归档）**：本文档为 v1.5 增量，以下内容仍以 RFC-001 为权威、本文档不重复——设计哲学（通用事实证据容器）、生态兼容性（MCP/A2A/OpenTelemetry/OCSF/IETF AAT）、隐私与数据最小化（GDPR/LGPD/DPDP）、法规版本化与升级路径、长期维护与字段治理（只增不删 Append-Only）、威胁模型。
@@ -98,7 +98,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 ### 2.1 定义
 
-`evaluation.matched_rules[].canonical_tree`：每条命中规则的 when 条件编译后的**规范化表达式树（JSON 嵌套对象形态，非 S-expression 字符串）**（SPEC v2.0 §10.3 正则形式）。**它是 DO 的普通字段**，随全 DO 一起进扁平哈希，无特殊处理。树结构直接作为 JSON 嵌套对象进 JCS（对象键序由 JCS 排序、数组序语义固定），逐字节确定。
+`evaluation.matched_rules[].canonical_tree`：每条命中规则的 when 条件编译后的**规范化表达式树（JSON 嵌套对象形态，非 S-expression 字符串）**（SPEC v2.1 §8.2 规范化树）。**它是 DO 的普通字段**，随全 DO 一起进扁平哈希，无特殊处理。树结构直接作为 JSON 嵌套对象进 JCS（对象键序由 JCS 排序、数组序语义固定），逐字节确定。
 
 ### 2.2 规范化规则（引擎构造时一次性冻结）
 
@@ -135,7 +135,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 > **字段激活归类**：`temporal_state` 属「条件激活」字段（§5.3）——仅当本次决策命中了含 within/rate 的规则时才产生（Omit over Null：无有状态算子命中时物理删除键）；其存在性由 V-TEMPORAL 向量覆盖，不纳入 V-COMP 字段存在性检查（V-COMP 验的是法域/框架要求的合规字段，temporal_state 属业务判定输入，非合规字段）。
 >
-> **preimage_version 影响判定**：`temporal_state` 为 v1.5 字段集的**增量条件激活字段**（可选、随事实产生），不改变哈希算法、不改变 CORE 14 字段结构、不改变唯一删除点（`audit.hash`）语义。因此 `preimage_version` 常量 **保持 `"erdl-do-v1.5-hash-flat"` 不变**，不触发版本号递增——字段集增量直接并入 v1.5，无需 bump 到 v1.6。此判定与「SPEC 文档版本（v2.0）与 DO 数据模型版本（v1.5）为正交版本线」一致：字段集在 DO 模型内增量演进，不牵动 SPEC 文档版本。
+> **preimage_version 影响判定**：`temporal_state` 为 v1.5 字段集的**增量条件激活字段**（可选、随事实产生），不改变哈希算法、不改变 CORE 14 字段结构、不改变唯一删除点（`audit.hash`）语义。因此 `preimage_version` 常量 **保持 `"erdl-do-v1.5-hash-flat"` 不变**，不触发版本号递增——字段集增量直接并入 v1.5，无需 bump 到 v1.6。此判定与「SPEC 文档版本（v2.1）与 DO 数据模型版本（v1.5）为正交版本线」一致：字段集在 DO 模型内增量演进，不牵动 SPEC 文档版本。
 
 ## 3. gloss 与可重渲染文本：不进 DO，走渲染校验
 
@@ -167,7 +167,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 ### 5.1 合规画像锚定
 
-`compliance_profile.profile_hash`（画像本体 JCS+SHA-256）随扁平哈希——堵“偷换法域声明”攻击（V-COMP-F02）。画像变更不溯及既往（grandfathering，SPEC v2.0）。
+`compliance_profile.profile_hash`（画像本体 JCS+SHA-256）随扁平哈希——堵“偷换法域声明”攻击（V-COMP-F02）。画像变更不溯及既往（grandfathering，SPEC v2.1）。
 
 ### 5.2 三层激活维度（14 框架全覆盖）
 

@@ -6,10 +6,10 @@
 >
 > **Document title**: ERDL Decision Object v1.5 — Flat-Hash Chain and Expression-Tree Field Specification
 >
-> **Version semantics**: the Decision Object data-model version described by this document is **v1.5** (preimage_version constant `"erdl-do-v1.5-hash-flat"`, frozen FREEZE-1); "SPEC v2.0" is the version of the higher-level specification document. The two are **orthogonal version lines** — the SPEC document version (v2.0) and the DO data-model version (v1.5) evolve independently and MUST NOT be conflated.
+> **Version semantics**: the Decision Object data-model version described by this document is **v1.5** (preimage_version constant `"erdl-do-v1.5-hash-flat"`, frozen FREEZE-1); "SPEC v2.1" is the version of the higher-level specification document. The two are **orthogonal version lines** — the SPEC document version (v2.1) and the DO data-model version (v1.5) evolve independently and MUST NOT be conflated.
 > **Author**: Tang Qixin
 > **Maintainer**: OpenOBA (managed and maintained on its behalf)
-> **Higher-level spec**: ERDL SPEC v2.0
+> **Higher-level spec**: ERDL SPEC v2.1
 > **Predecessor**: ERDL-RFC-001 (v1.3, the hash-pipeline foundation)
 >
 > **Inherited from RFC-001 (v1.3, archived)**: this document is a v1.5 increment; the following content remains authoritative in RFC-001 and is not repeated here — design philosophy (universal fact container), ecosystem compatibility (MCP/A2A/OpenTelemetry/OCSF/IETF AAT), privacy & data minimization (GDPR/LGPD/DPDP), regulatory versioning & upgrade paths, long-term maintenance & field governance (append-only), and threat model.
@@ -99,7 +99,7 @@ Reference: `scripts/verify-producer.mjs` (a single-path producer is fully consis
 
 ### 2.1 Definition
 
-`evaluation.matched_rules[].canonical_tree`: the **canonicalized expression tree (JSON nested-object form, not an S-expression string)** of each matched rule's compiled when condition (SPEC v2.0 §10.3 canonical form). **It is an ordinary DO field**, enters the flat hash together with the whole DO, with no special handling. The tree structure enters JCS directly as a JSON nested object (object key order sorted by JCS, array order semantically fixed), byte-deterministic.
+`evaluation.matched_rules[].canonical_tree`: the **canonicalized expression tree (JSON nested-object form, not an S-expression string)** of each matched rule's compiled when condition (SPEC v2.1 §8.2 canonical form). **It is an ordinary DO field**, enters the flat hash together with the whole DO, with no special handling. The tree structure enters JCS directly as a JSON nested object (object key order sorted by JCS, array order semantically fixed), byte-deterministic.
 
 ### 2.2 Canonicalization Rules (frozen once at engine construction)
 
@@ -168,7 +168,7 @@ All enter the flat hash as ordinary fields. `content_unresolvable` (cold-storage
 
 ### 5.1 Compliance-Profile Anchoring
 
-`compliance_profile.profile_hash` (the profile body's JCS+SHA-256) enters the flat hash — blocking the "swap the jurisdiction declaration" attack (V-COMP-F02). Profile changes are non-retroactive (grandfathering, SPEC v2.0).
+`compliance_profile.profile_hash` (the profile body's JCS+SHA-256) enters the flat hash — blocking the "swap the jurisdiction declaration" attack (V-COMP-F02). Profile changes are non-retroactive (grandfathering, SPEC v2.1).
 
 ### 5.2 Three-Layer Activation Dimensions (14-framework full coverage)
 

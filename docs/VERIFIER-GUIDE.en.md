@@ -2,7 +2,7 @@
 
 > Aimed at independent Runners (third-party verifiers). This document is **self-contained** — without reading the full RFC-002 and SPEC, one can independently implement a verifier and verify `decision-object-vectors-v1.5.json` vector by vector.
 >
-> The **normative contract** is in [RUNNER_CONTRACT.md](../RUNNER_CONTRACT.md) (rules R1–R6, the authoritative definition of conforming); this document is the **implementation guide** (HOW); the contract is the **rules** (RULE). Authoritative basis: `docs/OPENOBA-DOBJ-RFC-002-CN.md` (hash/chain/vector system) + ERDL spec v2.0 (data model/semantics).
+> The **normative contract** is in [RUNNER_CONTRACT.md](../RUNNER_CONTRACT.md) (rules R1–R6, the authoritative definition of conforming); this document is the **implementation guide** (HOW); the contract is the **rules** (RULE). Authoritative basis: `docs/OPENOBA-DOBJ-RFC-002-CN.md` (hash/chain/vector system) + ERDL spec v2.1 (data model/semantics).
 
 ---
 

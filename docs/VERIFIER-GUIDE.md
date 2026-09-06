@@ -2,7 +2,7 @@
 
 > 面向独立 Runner（第三方验证者）。本文档**自洽**——不依赖阅读完整 RFC-002 与 SPEC，即可独立实现一个验证器，对 `decision-object-vectors-v1.5.json` 逐条验证。
 >
-> **规范性契约**见 [RUNNER_CONTRACT.md](../RUNNER_CONTRACT.md)（规则 R1–R6，conforming 的权威定义）；本文档是**实现指南**（HOW），契约是**规则**（RULE）。权威依据：`docs/OPENOBA-DOBJ-RFC-002-CN.md`（哈希/链/向量体系）+ ERDL 规范 v2.0（数据模型/语义）。
+> **规范性契约**见 [RUNNER_CONTRACT.md](../RUNNER_CONTRACT.md)（规则 R1–R6，conforming 的权威定义）；本文档是**实现指南**（HOW），契约是**规则**（RULE）。权威依据：`docs/OPENOBA-DOBJ-RFC-002-CN.md`（哈希/链/向量体系）+ ERDL 规范 v2.1（数据模型/语义）。
 
 ---
 
