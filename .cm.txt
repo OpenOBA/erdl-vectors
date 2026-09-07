@@ -1,8 +1,0 @@
-docs: credit RavindraAnnam in acknowledgments
-
-Add RavindraAnnam (github.com/RavindraAnnam) for his review of the
-evaluator (the temporal_state evidence gap on stateful operators and the
-total_evaluated count drift) and for the four runtime-authority invariants
-he proposed in A2A Discussion #2031 that grew into the INV-01–INV-05
-delegation-authority security note and underpin the multi-agent governance
-direction. README (EN/CN) + RFC-002 (EN/CN).
