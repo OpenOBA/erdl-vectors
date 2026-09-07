@@ -46,6 +46,12 @@ Decision Object 是 ERDL 规则引擎一次决策的审计记录——基于 [ER
 
 逐字节重算一致，即证明这份标准在你的实现下成立。v1.5 的 78 条哈希层向量现已有两个独立第三方 Runner 逐字节验证（Go / norviq-go，2026-09-01；Python / concordia-python，2026-09-02），各 107/107 canonical bytes——见 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表。
 
+### §7.1 裁决语义 — Runner 征集中（开放）
+
+在哈希层与表达式层之外，**§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）同样开放征集独立 Runner。这是一种不同类型的缺口：裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致（ANP2 Network 指出的独立性问题）。决定性的修复，是一个仅凭 SPEC 文本独立重推导 §7.1 的第三方实现。
+
+§7.1 裁决向量集**尚未生成**（不同于 78 条哈希层与 239 条表达式层向量）；其产出是本征集的一部分。若你能仅凭 §7.1 文本重推导 ring/override/catch-all 并与 fold 交叉核验，欢迎联系——见 [submissions/README.md](submissions/README.md)。
+
 ## A2A 发展语境
 
 A2A（Agent-to-Agent）协议生态正在快速生长。当 Agent 之间开始互相委托决策、互相审批、交换证据时，跨实现的信任不能靠双边背书，而必须建立在可独立验证的基础之上——一方 Agent 产出的决策记录，必须能被另一方的独立实现逐字节核验。

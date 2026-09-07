@@ -46,6 +46,12 @@ The 78 audit-layer vectors are a neutral benchmark: they presuppose no language,
 
 Byte-identical recomputation proves that this standard holds under your implementation. The v1.5 78 hash-layer vectors are now byte-verified by two independent third-party runners (Go / norviq-go, 2026-09-01; Python / concordia-python, 2026-09-02), each at 107/107 canonical bytes — see the [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) registry.
 
+### §7.1 resolution semantics — runner call (open)
+
+Beyond the hash layer and the expression layer, the **§7.1 resolution semantics** (ring order 0→3, `override` direction, catch-all inertness) are also open for independent Runners. This is a different kind of gap: the resolution fold and its hand-written reference are proven and mutation-tested in `erdl-formal`, but both encodings descend from the **same reading of SPEC §7.1**, so they can agree on the same mis-reading (the independence critique ANP2 Network raised). The deterministic fix is a third-party implementation that re-derives §7.1 from the SPEC text alone.
+
+A §7.1 resolution vector set is **not yet generated** (unlike the 78 hash-layer and 239 expression-layer vectors); its production is part of this call. If you can re-derive ring/override/catch-all from §7.1 and cross-check the fold, reach out — see [submissions/README.md](submissions/README.md).
+
 ## A2A context
 
 The A2A (Agent-to-Agent) protocol ecosystem is growing rapidly. When agents begin to delegate decisions to one another, approve one another, and exchange evidence, cross-implementation trust cannot rest on bilateral endorsements; it must be built on a foundation that is independently verifiable — the decision record produced by one agent must be byte-verifiable by the other side's independent implementation.

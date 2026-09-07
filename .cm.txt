@@ -1,0 +1,6 @@
+docs: add 7.1 resolution-semantics runner call
+
+Sync the open third-party runner call for the 7.1 ring/override/catch-all
+resolution semantics (no independent implementation yet, no vector set yet)
+from erdl-formal's obligation-map into erdl-vectors — the runner registry
+home. Phrase it as an active call, not a defect.
