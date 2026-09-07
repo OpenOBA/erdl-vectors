@@ -558,6 +558,7 @@ signature(n) = ECDSA_P256_Sign( private_key,
 - **Christopher Hopley（chopmob-cloud / AlgoVoi）**：独立技术审阅者。RFC-001 审查中发现自引用哈希排除规则缺位、字符串小数跨引擎不一致、分层完整性缺口，推动扁平哈希架构确立；v1.3 审计中以洁净室 RFC 8785 JCS 检查器报告 4 个技术发现（C1–C4）+ 3 个安全问题（S1–S3），推动安全加固。
 - **Erik Newton（Concordia）**：首个独立 Runner 实现者，「中立性不是宣称的，是测出来的」原则提出者；以独立 Python 规范化器逐字节验证审计向量（12 逐字节一致 + AV-013 金丝雀正确失败），发现 E1–E3 关键问题，推动 audit 结构修复、AV-013 金丝雀、答案文件分离架构。
 - **Santosh Kumar Puppala（norviq-dev）**：提出 record-emission fidelity 缺口（附录 A P-05）及 PEP/缓存命中路径的真实事故案例；提出 P6 可解析集语义歧义；将 decision_divergence 界定为「bound 非 closure」——三者驱动 §1.4/§1.5/§1.6、P-05 残余风险与 P6 澄清。
+- **RavindraAnnam**：独立技术审阅者，直指「确定性内核」宣称中最难坚守的边界——**有状态算子**（`within`/`rate`）。他对求值器的 review 揭示了状态突变的 `temporal_state` 证据缺口与 `total_evaluated` 计数漂移，现均已修复并由一致性向量覆盖。此外，他在 A2A Discussion #2031 中提出的四条运行时权威不变式（权威不放大、溯源连续、窄化继承、传递撤销）演化成了 INV-01~INV-05 委托权威安全备忘，并成为 OpenOBA 多 Agent 治理方向的基础。
 - **OpenOBA 参考实现团队**：ERDL 规则引擎参考实现，测试向量生成与验证的基准。
 
 独立验证的意义在于「不信任被测方」：用与被测实现不同的技术栈独立重算，消除「必须信任厂商」的风险。他们的贡献，我们如实记录并感谢。
