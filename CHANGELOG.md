@@ -12,7 +12,7 @@
 - **Expression layer 239 → 240 vectors** (Core 317 → 318): added an E10 in-membership NFC vector.
 - **ER3 result-object format** (`value`/`value_type` ∈ number/string/boolean): fold internal types (rational/date/undefined/null/object) to ER3; numbers serialized as decimal strings (RFC 8785 §3.1); `errored` semantics specified (E3 evaluation errors → `true`).
 - **gloss/projection expected values English-only** (spec §5.5 English canonical); GLOSS / INTEGRITY / PROJ expected now ER3 `value`/`value_type`.
-- **warning semantics unified**: comparison / string type-mismatch → silent false; quantifier over a missing field → silent false (E11).
+- **warning semantics unified**: comparison / between type-mismatch → silent false (no warning); string / in / length / aggregate type-mismatch → `type_mismatch` warning + `errored: false`; quantifier over a missing field → silent false (E11).
 
 ### Added
 - **expression-layer submission pipeline**: `verify-v-engine-submission.mjs` (ER3 envelope cross-verification) + `update-expression-registry.cjs` + expression-layer registry in IMPLEMENTATIONS.md + CI (layer-dispatched cross-verify + auto-record).
