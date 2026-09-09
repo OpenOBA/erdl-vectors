@@ -464,9 +464,10 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E9', scenario: 'days_between no-timezone datetime UTC floor', tree: { days_between: ['2026-01-01T23:59:59', '2026-01-02T00:00:01'] }, ctx: {} },
     // E9 date_add amount MUST integer §7.3(f) (G3): non-integer amount → type_mismatch (null)
     { constraint: 'E9', scenario: 'date_add non-integer amount rejected', tree: { date_add: { unit: 'months', base: '2024-01-15', amount: 1.5 } }, ctx: {} },
-    // E10 NFC normalization (2, decomposed vs precomposed, verifies evaluation-layer NFC)
+    // E10 NFC normalization (3, decomposed vs precomposed, verifies evaluation-layer NFC)
     { constraint: 'E10', scenario: 'NFC decomposed field value == precomposed literal', tree: { eq: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301' } },
     { constraint: 'E10', scenario: 'NFC decomposed field value contains precomposed', tree: { contains: [{ field: 's' }, 'café'] }, ctx: { s: 'cafe\u0301 au lait' } },
+    { constraint: 'E10', scenario: 'NFC decomposed field value in precomposed list', tree: { in: [{ field: 's' }, ['café', 'tea']] }, ctx: { s: 'cafe\u0301' } },
     // E11 undefined sentinel (4)
     { constraint: 'E11', scenario: 'missing field → undefined', tree: { field: 'missing' }, ctx: {} },
     { constraint: 'E11', scenario: 'eq missing → false', tree: { eq: [{ field: 'missing' }, 1] }, ctx: {} },
