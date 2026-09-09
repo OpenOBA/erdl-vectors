@@ -33,7 +33,7 @@ MUST 仅凭 spec 实现。MUST NOT 依赖 `@openoba/erdl`、`erdl-formal`、或�
 { "value": <number|string|boolean>, "value_type": "number"|"string"|"boolean", "errored": false, "warnings": [] }
 ```
 
-**Number 编码**：`value_type: "number"` 的 `value` 是 JSON number（十进制），由 scale-14 定点值渲染、尾零裁剪（ER5）——**不是**十进制字符串。十进制字符串形态（spec §8.2）只管 `canonical_tree` 字面量，不管结果对象。`"1e21 + 1"` 报告为 `1000000000000000000001`（JSON number），绝不是 `1e+21`。
+**Number 编码**：`value_type: "number"` 的 `value` 是**十进制字符串**（RFC 8785 §3.1），由 scale-14 定点值渲染、尾零裁剪（ER5）——**不是** JSON number。十进制字符串形态规避了 IEEE 754 双精度在大整数上的精度损失；`"1e21 + 1"` 报告为 `"1000000000000000000001"`（十进制字符串），绝不是 `1e+21`。
 
 ### ER4 — 值级一致重算
 

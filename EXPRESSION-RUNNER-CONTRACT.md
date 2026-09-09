@@ -31,7 +31,7 @@ For each vector, produce a result object matching the vector's `expected` schema
 { "value": <number|string|boolean>, "value_type": "number"|"string"|"boolean", "errored": false, "warnings": [] }
 ```
 
-**Number encoding**: `value` with `value_type: "number"` is a JSON number (decimal), rendered from the scale-14 fixed-point value with trailing zeros trimmed (ER5) — **not** a decimal string. The decimal-string form (spec §8.2) governs `canonical_tree` literals only, not the result object. `"1e21 + 1"` reports `1000000000000000000001` (a JSON number), never `1e+21`.
+**Number encoding**: `value` with `value_type: "number"` is a **decimal string** (RFC 8785 §3.1), rendered from the scale-14 fixed-point value with trailing zeros trimmed (ER5) — **not** a JSON number. The decimal-string form sidesteps IEEE 754 double precision loss on large integers; `"1e21 + 1"` reports `"1000000000000000000001"` (a decimal string), never `1e+21`.
 
 ### ER4 — Value-identical recomputation
 
