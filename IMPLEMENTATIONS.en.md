@@ -33,6 +33,15 @@ Inclusion in this table does not imply endorsement by OpenOBA — it records onl
 
 > For third-party Runner submissions see [submissions/README.md](submissions/README.md); after CI cross-verification passes, automatically registered in the table above on merge.
 
+### Expression-Layer Registry (V-ENGINE 240 vectors)
+
+<!-- expression-registry:auto-begin -->
+| Implementor | Method | Result | Date | Artifact |
+|------------|--------|:-------:|------|---------|
+| **OpenOBA (reference)** | Node.js, @openoba/erdl | 240/240 | 2026-09-09 | [v-engine.mjs](scripts/v-engine.mjs) |<!-- expression-registry:auto-end -->
+
+> For third-party expression-layer Runner submissions see [EXPRESSION-RUNNER-CONTRACT.md](EXPRESSION-RUNNER-CONTRACT.md) (ER3 envelope, `submissions/<runner>-output.json`); after CI cross-verification passes, automatically registered in the table above on merge.
+
 ### v1.3 historical archive (Decision Object v1.3, AV numbering)
 
 Third-party verification records from the v1.3 era (13 AV vectors); kept in archive, numbering not reused:

@@ -5,10 +5,10 @@
   "category": "V-ENGINE + V-GLOSS/V-PROJ",
   "generated": "2026-09-05",
   "maintainer": "OpenOBA (https://openoba.com)",
-  "total": 239,
+  "total": 240,
   "breakdown": {
     "node": 136,
-    "constraint": 51,
+    "constraint": 52,
     "simple_compile": 30,
     "gloss": 12,
     "gloss_integrity": 4,
@@ -12920,6 +12920,27 @@
       },
       "context": {
         "s": "café au lait"
+      }
+    },
+    {
+      "id": "V-ENGINE-E10-003",
+      "category": "V-ENGINE",
+      "subcategory": "constraint",
+      "constraint": "E10",
+      "scenario": "NFC decomposed field value in precomposed list",
+      "expr_tree": {
+        "in": [
+          {
+            "field": "s"
+          },
+          [
+            "café",
+            "tea"
+          ]
+        ]
+      },
+      "context": {
+        "s": "café"
       }
     },
     {
