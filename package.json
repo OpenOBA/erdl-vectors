@@ -22,7 +22,7 @@
     "url": "https://github.com/OpenOBA/erdl-vectors"
   },
   "dependencies": {
-    "@openoba/erdl": "^2.1.0-alpha.5",
+    "@openoba/erdl": "^2.1.0-alpha.7",
     "json-canonicalize": "2.0.0"
   },
   "devDependencies": {
