@@ -49,8 +49,8 @@ function main() {
   for (const f of fs.readdirSync(SUBMISSIONS_DIR).sort()) {
     if (!f.endsWith('.json')) continue;
     const sub = JSON.parse(fs.readFileSync(path.join(SUBMISSIONS_DIR, f), 'utf8'));
-    // Only expression-layer ER3 envelopes belong in this registry.
-    if (sub.layer && sub.layer !== 'expression') continue;
+    // Only expression-layer ER3 envelopes belong in this registry (they carry an explicit `layer: "expression"`).
+    if (sub.layer !== 'expression') continue;
     if (!sub.results || typeof sub.results !== 'object') {
       skipped.push(f + ' (no ER3 results map)');
       continue;

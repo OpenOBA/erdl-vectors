@@ -69,6 +69,8 @@ function main() {
   for (const f of fs.readdirSync(SUBMISSIONS_DIR).sort()) {
     if (!f.endsWith('.json')) continue;
     const sub = JSON.parse(fs.readFileSync(path.join(SUBMISSIONS_DIR, f), 'utf8'));
+    // Expression-layer ER3 envelopes are handled by update-expression-registry.cjs, not this hash-layer registry.
+    if (sub.layer === 'expression') continue;
     const result = crossVerify(sub, refMap);
     if (result.failed !== 0) {
       skipped.push(f + ' (' + result.errors.join('; ') + ')');
