@@ -28,29 +28,25 @@ import {
   ExprTreeEvaluator, objectContext, fromSExpr, toSExpr, compileSimpleCondition,
   renderNode, GuardStateManager, VirtualClock, toDecimalString,
 } from '@openoba/erdl';
-import { canonicalize } from 'json-canonicalize';
 import { readFileSync } from 'fs';
 
 const AS_OF = new Date('2026-08-15T00:00:00Z');
 const ev = new ExprTreeEvaluator();
 
-/** Strictly isomorphic with the generator v-engine.ts serializeValue: value → {value, type} */
+/** Strictly isomorphic with the generator v-engine.mjs serializeValue: value → {value, type} (ER3: number/string/boolean) */
 function serializeValue(v) {
-  if (v === undefined) return { value: '__undefined__', type: 'undefined' };
-  if (v === null) return { value: null, type: 'null' };
+  if (v === undefined) return { value: false, type: 'boolean' };
+  if (v === null) return { value: false, type: 'boolean' };
   if (typeof v === 'boolean') return { value: v, type: 'boolean' };
-  if (typeof v === 'number') return { value: v, type: 'number' };
+  if (typeof v === 'number') return { value: String(v), type: 'number' };
   if (typeof v === 'string') return { value: v, type: 'string' };
-  if (Array.isArray(v)) return { value: v, type: 'array' };
-  if (v instanceof Date) return { value: v.toISOString(), type: 'date' };
+  if (Array.isArray(v)) return { value: false, type: 'boolean' };
+  if (v instanceof Date) return { value: v.toISOString(), type: 'string' };
   if (typeof v === 'object' && v !== null && typeof v.num === 'bigint' && typeof v.den === 'bigint') {
-    if (v.den === 1n) return { value: v.num.toString(), type: 'rational' };
-    return { value: toDecimalString(v, 14), type: 'rational' };
+    if (v.den === 1n) return { value: v.num.toString(), type: 'number' };
+    return { value: toDecimalString(v, 14), type: 'number' };
   }
-  if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
-    return { value: canonicalize(v), type: 'object' };
-  }
-  return { value: JSON.stringify(v), type: 'object' };
+  return { value: false, type: 'boolean' };
 }
 
 /** E5 (§10.2): expr (Expression projection) and field/operator/value (Simple projection) are mutually exclusive */

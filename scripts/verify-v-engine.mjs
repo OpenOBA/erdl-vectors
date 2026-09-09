@@ -272,18 +272,18 @@ function evalPred(pred, ctx) {
 // 4. serialization (aligned with reference-engine serializeValue minimal canonical representation)
 // ═══════════════════════════════════════════════
 function serializeValue(v) {
-  if (v === undefined) return { value: '__undefined__', type: 'undefined' }
-  if (v === null) return { value: null, type: 'null' }
+  if (v === undefined) return { value: false, type: 'boolean' }
+  if (v === null) return { value: false, type: 'boolean' }
   if (typeof v === 'boolean') return { value: v, type: 'boolean' }
-  if (typeof v === 'number') return { value: v, type: 'number' }
+  if (typeof v === 'number') return { value: String(v), type: 'number' }
   if (typeof v === 'string') return { value: v, type: 'string' }
-  if (Array.isArray(v)) return { value: v, type: 'array' }
-  if (v instanceof Date) return { value: v.toISOString(), type: 'date' }
+  if (Array.isArray(v)) return { value: false, type: 'boolean' }
+  if (v instanceof Date) return { value: v.toISOString(), type: 'string' }
   if (v && typeof v === 'object' && typeof v.num === 'bigint' && typeof v.den === 'bigint') {
-    if (v.den === 1n) return { value: v.num.toString(), type: 'rational' }
-    return { value: toDecimalString(v, 14), type: 'rational' }
+    if (v.den === 1n) return { value: v.num.toString(), type: 'number' }
+    return { value: toDecimalString(v, 14), type: 'number' }
   }
-  return { value: JSON.stringify(v), type: 'object' }
+  return { value: false, type: 'boolean' }
 }
 
 // ═══════════════════════════════════════════════

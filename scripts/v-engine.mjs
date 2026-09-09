@@ -35,7 +35,6 @@ import { compileDecisionTable } from '@openoba/erdl';
 import { GuardStateManager } from '@openoba/erdl';
 import { VirtualClock } from '@openoba/erdl';
 import { renderNode } from '@openoba/erdl';
-import { canonicalize } from 'json-canonicalize';
 
 /** E5 (§10.2): expr (Expression projection) and field/operator/value (Simple projection) are mutually exclusive */
 function checkExprExclusive(cond) {
@@ -48,34 +47,33 @@ function checkExprExclusive(cond) {
 }
 
 const AS_OF = new Date('2026-08-15T00:00:00Z');
-/** Serialize an evaluation result into cross-implementation-comparable { value, type } */
+/** Serialize an evaluation result into cross-implementation-comparable { value, type } (ER3: number/string/boolean) */
 export function serializeValue(v) {
+    // ER3 (contract): value_type ∈ {number, string, boolean}. number is a decimal string —
+    // RFC 8785 §3.1 RECOMMENDS JSON strings for numbers beyond IEEE 754 double precision; spec E2 mandates "string serialization".
     if (v === undefined)
-        return { value: '__undefined__', type: 'undefined' };
+        return { value: false, type: 'boolean' };
     if (v === null)
-        return { value: null, type: 'null' };
+        return { value: false, type: 'boolean' };
     if (typeof v === 'boolean')
         return { value: v, type: 'boolean' };
     if (typeof v === 'number')
-        return { value: v, type: 'number' };
+        return { value: String(v), type: 'number' };
     if (typeof v === 'string')
         return { value: v, type: 'string' };
     if (Array.isArray(v))
-        return { value: v, type: 'array' };
+        return { value: false, type: 'boolean' };
     if (v instanceof Date)
-        return { value: v.toISOString(), type: 'date' };
-    // Rational (bigint num/den) → fixed-point decimal string (integer without decimal point, non-integer trailing-zero trimmed)
+        return { value: v.toISOString(), type: 'string' };
+    // Rational (bigint num/den) → decimal string (integer without decimal point, non-integer trailing-zero trimmed)
     if (typeof v === 'object' && v !== null && typeof v.num === 'bigint' && typeof v.den === 'bigint') {
         const r = v;
         if (r.den === 1n)
-            return { value: r.num.toString(), type: 'rational' };
-        return { value: toDecimalString(r, 14), type: 'rational' };
+            return { value: r.num.toString(), type: 'number' };
+        return { value: toDecimalString(r, 14), type: 'number' };
     }
-    // plain object: JCS lexicographic (key sort + recursion), cross-implementation byte-identical (RFC-002 §1.3)
-    if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
-        return { value: canonicalize(v), type: 'object' };
-    }
-    return { value: JSON.stringify(v), type: 'object' };
+    // non-scalar (plain object / other) folds to false (ER3 admits only number/string/boolean)
+    return { value: false, type: 'boolean' };
 }
 /** scenario → number suffix (RFC-002 §9 four scenarios: normal/boundary/error/null) */
 const SCENARIO_INDEX = { normal: '001', boundary: '002', error: '003', null: '004' };
