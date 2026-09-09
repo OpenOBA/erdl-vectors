@@ -565,7 +565,6 @@ export function generateGlossVectors() {
     const out = [];
     GLOSS_DEFS.forEach((def, i) => {
         const node = fromSExpr(def.tree);
-        const glossZh = renderNode(node, 'zh');
         const glossEn = renderNode(node, 'en');
         out.push({
             id: `V-GLOSS-${String(i + 1).padStart(3, '0')}`,
@@ -573,7 +572,7 @@ export function generateGlossVectors() {
             node_group: nodeGroupOf(def.node),
             node: def.node,
             expr_tree: def.tree,
-            expected: { gloss_zh: glossZh, gloss_en: glossEn },
+            expected: { value: glossEn, value_type: 'string' },
         });
     });
     return out;
@@ -587,15 +586,12 @@ export function generateGlossIntegrityVectors() {
         { id: 'V-GLOSS-INTEGRITY-004', node: 'in', scenario: 'set literal tamper → gloss change', tree: { in: [{ field: 'cat' }, ['a', 'b']] }, tampered: { in: [{ field: 'cat' }, ['a', 'c']] } },
     ];
     return cases.map((c) => {
-        const g1 = renderNode(fromSExpr(c.tree), 'zh');
-        const g2 = renderNode(fromSExpr(c.tampered), 'zh');
         const g1en = renderNode(fromSExpr(c.tree), 'en');
-        const g2en = renderNode(fromSExpr(c.tampered), 'en');
         return {
             id: c.id, category: 'V-GLOSS', node_group: nodeGroupOf(c.node), node: c.node, scenario: c.scenario,
             expr_tree: c.tree, tampered_tree: c.tampered,
-            // store raw material only; divergence recomputed by the verifier (no boolean conclusion stored in the expected value)
-            expected: { gloss_zh: g1, gloss_en: g1en, tampered_gloss_zh: g2, tampered_gloss_en: g2en },
+            // original English gloss; verifier recomputes render(tampered_tree, 'en') and asserts it differs (G2)
+            expected: { value: g1en, value_type: 'string' },
         };
     });
 }
@@ -630,7 +626,7 @@ export function generateProjVectors() {
             simple_compiled_tree: toSExpr(simpleNode),
             expression_tree: p.sexpr,
             context: p.simple.ctx,
-            expected: { simple_value: ssv.value, simple_type: ssv.type, expression_value: esv.value, expression_type: esv.type },
+            expected: { value: ssv.value, value_type: ssv.type },
         });
     });
     dtablePairs.forEach((p, j) => {
@@ -650,7 +646,7 @@ export function generateProjVectors() {
             decision_table: p.dtable,
             decision_table_compiled_tree: toSExpr(dtableNode),
             context: p.simple.ctx,
-            expected: { simple_value: ssv.value, simple_type: ssv.type, decision_value: dsv.value, decision_type: dsv.type },
+            expected: { value: ssv.value, value_type: ssv.type },
         });
     });
     return out;

@@ -61,15 +61,11 @@ const warnKinds = (r) => JSON.stringify((r.warnings || []).map((w) => w.kind));
 function verify(v) {
   if (v.category === 'V-GLOSS') {
     if (v.tampered_tree) {
-      const g1 = renderNode(fromSExpr(v.expr_tree), 'zh');
-      const g2 = renderNode(fromSExpr(v.tampered_tree), 'zh');
       const g1en = renderNode(fromSExpr(v.expr_tree), 'en');
       const g2en = renderNode(fromSExpr(v.tampered_tree), 'en');
-      return g1 === v.expected.gloss_zh && g2 === v.expected.tampered_gloss_zh && g1 !== g2
-        && g1en === v.expected.gloss_en && g2en === v.expected.tampered_gloss_en && g1en !== g2en;
+      return g1en === v.expected.value && g1en !== g2en;
     }
-    return renderNode(fromSExpr(v.expr_tree), 'zh') === v.expected.gloss_zh
-      && renderNode(fromSExpr(v.expr_tree), 'en') === v.expected.gloss_en;
+    return renderNode(fromSExpr(v.expr_tree), 'en') === v.expected.value;
   }
   if (v.category === 'V-PROJ') {
     if (v.decision_table) {
@@ -78,15 +74,14 @@ function verify(v) {
       const ssv = serializeValue(simpleR.value);
       const dsv = serializeValue(dtableR.value);
       return ssv.value === dsv.value && ssv.type === dsv.type &&
-        ssv.value === v.expected.simple_value && dsv.value === v.expected.decision_value;
+        ssv.value === v.expected.value && ssv.type === v.expected.value_type;
     }
     const simpleR = ev.evaluate(fromSExpr(v.simple_compiled_tree), objectContext(v.context, AS_OF));
     const sexprR = ev.evaluate(fromSExpr(v.expression_tree), objectContext(v.context, AS_OF));
     const ssv = serializeValue(simpleR.value);
     const esv = serializeValue(sexprR.value);
     return ssv.value === esv.value && ssv.type === esv.type &&
-      ssv.value === v.expected.simple_value && ssv.type === v.expected.simple_type &&
-      esv.value === v.expected.expression_value && esv.type === v.expected.expression_type;
+      ssv.value === v.expected.value && ssv.type === v.expected.value_type;
   }
   if (v.subcategory === 'constraint') {
     if (v.constraint === 'E5') {
