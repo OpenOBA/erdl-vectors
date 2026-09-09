@@ -226,6 +226,12 @@ function evalSExpr(tree, ctx) {
         const ls = typeof l === 'string' ? nfc(l) : String(l ?? '')
         return { v: ls.includes(nfc(r)) }
       }
+      case 'in': {
+        const l = evalSExpr(arg[0], ctx).v; const r = evalSExpr(arg[1], ctx).v
+        if (!Array.isArray(r)) return { v: false }
+        // E10 NFC: membership comparison normalizes strings like eq/ne (decomposed == precomposed)
+        return { v: r.some((el) => (typeof l === 'string' && typeof el === 'string') ? nfc(l) === nfc(el) : l === el) }
+      }
       case 'all': case 'any': case 'none': {
         const over = evalSExpr(arg.over, ctx).v
         if (!Array.isArray(over)) return { v: false }
