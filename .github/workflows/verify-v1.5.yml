@@ -58,6 +58,9 @@ jobs:
           fi
           echo "PASS: CONFORMANCE.md is current"
 
+      - name: Generate V-ENGINE vectors + answers (oracle isolation)
+        run: npm run generate:vengine
+
       - name: Cross-verify runner submissions (hash-layer + expression-layer)
         run: |
           if ls submissions/*.json >/dev/null 2>&1; then
@@ -74,9 +77,6 @@ jobs:
           else
             echo "No runner submissions to cross-verify (only README.md present)."
           fi
-
-      - name: Generate V-ENGINE vectors + answers (oracle isolation)
-        run: npm run generate:vengine
 
       - name: V-ENGINE determinism check
         run: |
