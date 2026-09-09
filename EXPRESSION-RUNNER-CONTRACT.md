@@ -1,6 +1,6 @@
 # EXPRESSION-RUNNER-CONTRACT.md — Expression-Layer Runner Conformance Contract
 
-> This contract is the **authoritative definition** of "normative behavior" for an expression-layer runner. A conforming runner implements the ERDL expression kernel from first principles (spec + this contract) and recomputes the 239 `v-engine-vectors.json` vectors — independent of the reference implementation and of this repo's `scripts/verify-v-engine.mjs` (which is a second source of the reference implementation, not a third party).
+> This contract is the **authoritative definition** of "normative behavior" for an expression-layer runner. A conforming runner implements the ERDL expression kernel from first principles (spec + this contract) and recomputes the 240 `v-engine-vectors.json` vectors — independent of the reference implementation and of this repo's `scripts/verify-v-engine.mjs` (which is a second source of the reference implementation, not a third party).
 
 > **Difference from the audit-layer contract**: the audit-layer contract ([`RUNNER_CONTRACT.md`](RUNNER_CONTRACT.md), R1–R6) verifies **JCS + SHA-256 hashes** (byte-level); this contract verifies **evaluation semantics** (the expression kernel), whose output is a semantic value (number / string / boolean), not a byte hash.
 
@@ -17,7 +17,7 @@ A conforming expression-layer runner MUST satisfy all of the following. Each is 
 
 ### ER1 — Implement the expression layer from the spec
 
-MUST implement the full ERDL expression layer: the **34-node kernel** (value 3 / logic 3 / comparison 6 / set 1 / string 4 / existence 3 / quantifier 3 / arithmetic 5 / time 5 / aggregate 1) **plus Simple compilation (30 operators), gloss (16), and projection facets (6)** — together the 239-vector surface. Semantics per [erdl-spec](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md) §5 / §7 as the **sole normative source**. Node semantics are not restated here — this contract specifies *what* to implement and *how* to accept, not the node details (see the spec).
+MUST implement the full ERDL expression layer: the **34-node kernel** (value 3 / logic 3 / comparison 6 / set 1 / string 4 / existence 3 / quantifier 3 / arithmetic 5 / time 5 / aggregate 1) **plus Simple compilation (30 operators), gloss (16), and projection facets (6)** — together the 240-vector surface. Semantics per [erdl-spec](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md) §5 / §7 as the **sole normative source**. Node semantics are not restated here — this contract specifies *what* to implement and *how* to accept, not the node details (see the spec).
 
 ### ER2 — Independent implementation
 

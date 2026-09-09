@@ -652,7 +652,7 @@ export function generateProjVectors() {
     });
     return out;
 }
-/** Summary: node 136 + constraint 51 + simple_compile 30 + gloss 12 + gloss_integrity 4 + projection 6 = 239 */
+/** Summary: node 136 + constraint 52 + simple_compile 30 + gloss 12 + gloss_integrity 4 + projection 6 = 240 */
 export function generateAllVectors() {
     return [
         ...generateNodeVectors(),

@@ -2,7 +2,7 @@
 //
 // Re-derives each DO's decision from its own stored context + rules, then asserts
 // result.decision coherence. Uses @openoba/erdl's deterministic Evaluator (the same
-// evaluation core pinned by the 239 V-ENGINE vectors) — so the re-derivation is
+// evaluation core pinned by the 240 V-ENGINE vectors) — so the re-derivation is
 // cross-implementation: any independent runner can reproduce it byte-for-byte.
 //
 // This is a "bound, not a closure" (RFC-002 §1.5 / VERIFIER-GUIDE §4.4): it catches an internally

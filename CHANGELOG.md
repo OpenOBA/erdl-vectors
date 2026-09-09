@@ -6,6 +6,21 @@
 >
 > **License split (2026-09-04)**: two-tier license — test vectors + spec docs → CC0-1.0; code → Apache-2.0.
 
+## v1.6.0 (current) - 2026-09-09
+
+### Changed
+- **Expression layer 239 → 240 vectors** (Core 317 → 318): added an E10 in-membership NFC vector.
+- **ER3 result-object format** (`value`/`value_type` ∈ number/string/boolean): fold internal types (rational/date/undefined/null/object) to ER3; numbers serialized as decimal strings (RFC 8785 §3.1); `errored` semantics specified (E3 evaluation errors → `true`).
+- **gloss/projection expected values English-only** (spec §5.5 English canonical); GLOSS / INTEGRITY / PROJ expected now ER3 `value`/`value_type`.
+- **warning semantics unified**: comparison / string type-mismatch → silent false; quantifier over a missing field → silent false (E11).
+
+### Added
+- **expression-layer submission pipeline**: `verify-v-engine-submission.mjs` (ER3 envelope cross-verification) + `update-expression-registry.cjs` + expression-layer registry in IMPLEMENTATIONS.md + CI (layer-dispatched cross-verify + auto-record).
+
+### Fixed
+- **rate modifier truth value inverted** (SPEC §5.2: over-limit → true).
+- **`in` membership comparison NFC-normalized** (E10).
+
 ## v1.5.1 (current) - 2026-09-06
 
 ### Added

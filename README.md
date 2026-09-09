@@ -1,13 +1,13 @@
 # ERDL Decision Object · Cross-Implementation Verification Vectors v1.5
 
-[![Version](https://img.shields.io/badge/version-v1.5.1-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-239-blueviolet)]()
+[![Version](https://img.shields.io/badge/version-v1.5.1-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-318-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-240-blueviolet)]()
 
 > 🚀 **POC welcome** — we encourage you to try this project as a proof of concept in your own environment. For technical support, contact us anytime at [support@openoba.com](mailto:support@openoba.com).
 
 > Copyright © 2026 Shenzhen Miaojing Technology Co., Ltd. · Vectors & spec CC0-1.0 · Code Apache-2.0 (see LICENSE / LICENSE-CC0)
 
 > **Spec basis**: ERDL-DOBJ-RFC-002 — Decision Object v1.5 flat-hash chain ([`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md))
-> **Vector version**: v1.5.1 · Core vectors 317 (audit layer 78 + expression layer 239)
+> **Vector version**: v1.5.1 · Core vectors 318 (audit layer 78 + expression layer 240)
 > **Based on the ERDL design**: [ERDL (Entity-Rule Definition Language)](https://github.com/OpenOBA/erdl-landing) — a declarative rule-execution protocol; the Decision Object is the audit record of its decisions; for the data model see [ERDL spec v2.1](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md)
 
 A cross-implementation verification benchmark for AI governance: a set of neutral test vectors that belong to no single implementation. Any runner, in any language and any tech stack, can implement JCS (RFC 8785) + SHA-256 independently from first principles on the spec alone, recompute Decision Object hashes byte by byte, and compare.
@@ -50,7 +50,7 @@ Byte-identical recomputation proves that this standard holds under your implemen
 
 Beyond the hash layer and the expression layer, the **§7.1 resolution semantics** (ring order 0→3, `override` direction, catch-all inertness) are also open for independent Runners. This is a different kind of gap: the resolution fold and its hand-written reference are proven and mutation-tested in `erdl-formal`, but both encodings descend from the **same reading of SPEC §7.1**, so they can agree on the same mis-reading (the independence critique ANP2 Network raised). The deterministic fix is a third-party implementation that re-derives §7.1 from the SPEC text alone.
 
-A §7.1 resolution vector set is **not yet generated** (unlike the 78 hash-layer and 239 expression-layer vectors); its production is part of this call. If you can re-derive ring/override/catch-all from §7.1 and cross-check the fold, reach out — see [submissions/README.md](submissions/README.md).
+A §7.1 resolution vector set is **not yet generated** (unlike the 78 hash-layer and 240 expression-layer vectors); its production is part of this call. If you can re-derive ring/override/catch-all from §7.1 and cross-check the fold, reach out — see [submissions/README.md](submissions/README.md).
 
 ## A2A context
 
@@ -64,25 +64,25 @@ Every independent runner is both a verification of this spec and one brick added
 
 ## Vector system
 
-Core total **317** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 239.
+Core total **318** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 240.
 
 ### Coverage overview
 
 | Verification layer | Category | Coverage object | Count | Status |
 |--------|------|---------|:---:|------|
 | Audit layer | V-DO-v15 | Decision types 13 / chain attacks 8 / anchoring 10 / canary 1 / conclusion 14 / jurisdiction 32 | 78 | ✅ Verified (third-party ×2) |
-| Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 51 + Simple compilation 30 | 217 | Unverified (reference only) |
+| Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 51 + Simple compilation 30 | 218 | Unverified (reference only) |
 | Expression layer | V-GLOSS / V-PROJ | gloss 16 (render 12 + completeness 4) + projection facets 6 | 22 | Unverified (reference only) |
-| **Total** | | **Core** | **317** | **Partial (78/317)** |
+| **Total** | | **Core** | **318** | **Partial (78/318)** |
 
 **Verification status (binary)**:
 
 - **Verified**: the audit layer V-DO-v15 78 hash-layer vectors, byte-verified by two independent third-party runners — norviq-go (Go, 2026-09-01) and concordia-python (Python, Erik Newton, 2026-09-02), each at 107/107 canonical bytes; the historical v1.3 13 AV vectors (Erik Newton, 2026-07-30) are superseded by v1.5;
-- **Unverified**: the expression layer 239 vectors (V-ENGINE 217 + V-GLOSS / V-PROJ 22), passed only by the reference implementation, awaiting verification by independent third-party Runners.
+- **Unverified**: the expression layer 240 vectors (V-ENGINE 218 + V-GLOSS / V-PROJ 22), passed only by the reference implementation, awaiting verification by independent third-party Runners.
 
 **Planned, not generated (not counted)**: signature V-SIGN 5 + time anchoring TSA 3 + state verification V-TEMPORAL 4.
 
-> **Vector files**: `decision-object-vectors-v1.5.json` (V-DO-v15 audit layer, 78 vectors) + `v-engine-vectors.json` (V-ENGINE expression layer, 239 vectors).
+> **Vector files**: `decision-object-vectors-v1.5.json` (V-DO-v15 audit layer, 78 vectors) + `v-engine-vectors.json` (V-ENGINE expression layer, 240 vectors).
 
 ### V-DO-v15 audit layer (78 vectors)
 
@@ -98,13 +98,13 @@ Core total **317** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 239.
 
 Planned, not generated, not counted: time anchoring V-DO-v15-T01..T03 (3 vectors), signature chain V-SIGN-001..005 (5 vectors), to be added after the signature layer is implemented.
 
-### V-ENGINE expression layer (239 vectors)
+### V-ENGINE expression layer (240 vectors)
 
 Node semantics 136 (34 nodes × 4 scenarios) + evaluation constraints 51 (the E1–E12 vectorizable subset) + Simple compilation 30 (operators) + gloss 16 (render 12 + completeness 4) + projection-facet compilation 6.
 
-### Semantic re-derivation and producer-side conformance (added 2026-09-02, not in Core 317)
+### Semantic re-derivation and producer-side conformance (added 2026-09-02, not in Core 318)
 
-On top of Core 317, two new verification objects cover "decision-rule coherence" and "record-emission fidelity" — two dimensions that hash/field checks (V-DO, V-ENGINE) cannot reach:
+On top of Core 318, two new verification objects cover "decision-rule coherence" and "record-emission fidelity" — two dimensions that hash/field checks (V-DO, V-ENGINE) cannot reach:
 
 | Verification object | Series | Count | Content |
 |---------|------|:---:|------|
@@ -130,10 +130,10 @@ On top of Core 317, two new verification objects cover "decision-rule coherence"
 ```bash
 npm install             # install dependencies (json-canonicalize is used only by the reference pipeline for deterministic comparison, vitest for tests; runners themselves MUST NOT depend on it)
 npm run generate          # generate the 78 V-DO vectors + answers file (canonical_hex physically isolated, .gitignore)
-npm run generate:vengine  # generate the 239 V-ENGINE vectors (@openoba/erdl reference engine)
+npm run generate:vengine  # generate the 240 V-ENGINE vectors (@openoba/erdl reference engine)
 npm run verify            # V-DO Five-Step Verification Step 0–6 + semantic breach detection
 npm run verify:vengine    # V-ENGINE expression-layer independent verification (77 semantics-sensitive vectors)
-npm run verify:vengine:full  # V-ENGINE full 239 vectors
+npm run verify:vengine:full  # V-ENGINE full 240 vectors
 npm run verify:decision  # decision_divergence cross-layer semantic re-derivation (requires @openoba/erdl)
 npm run verify:producer  # V-PRODUCER producer-side conformance
 npm run conformance       # auto-generate conformance/CONFORMANCE.md (Check 1/2 + K01 + R1–R6 conformance report)
