@@ -6,6 +6,21 @@
 >
 > **License split (2026-09-04)**: two-tier license — test vectors + spec docs → CC0-1.0; code → Apache-2.0.
 
+## v1.6.0（现行）- 2026-09-09
+
+### Changed
+- **表达层 239 → 240 向量**（Core 317 → 318）：新增 E10 in-membership NFC 向量。
+- **ER3 结果对象格式**（`value`/`value_type` ∈ number/string/boolean）：内部类型（rational/date/undefined/null/object）折叠为 ER3；number 序列化为定点字符串（RFC 8785 §3.1）；`errored` 语义明确（E3 求值错误 → `true`）。
+- **gloss/projection 期望值英文单语**（spec §5.5 英文 canonical）；GLOSS / INTEGRITY / PROJ 期望值改为 ER3 `value`/`value_type`。
+- **warning 语义统一**：比较/字符串类型不匹配 → 静默 false；quantifier over 缺失字段 → 静默 false（E11）。
+
+### Added
+- **expression-layer 提交管线**：`verify-v-engine-submission.mjs`（ER3 envelope 交叉验证）+ `update-expression-registry.cjs` + IMPLEMENTATIONS.md 的 expression-layer registry + CI（按 layer 分派交叉验证 + 自动记录）。
+
+### Fixed
+- **rate 修饰符真值反转修正**（SPEC §5.2：超限 → true）。
+- **`in` 成员比较 NFC 归一**（E10）。
+
 ## v1.5.1（现行）- 2026-09-06
 
 ### Added

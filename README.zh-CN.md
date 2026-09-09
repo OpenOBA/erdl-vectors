@@ -1,13 +1,13 @@
 # ERDL Decision Object · 跨实现验证向量 v1.5
 
-[![Version](https://img.shields.io/badge/version-v1.5.1-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-317-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-239-blueviolet)]()
+[![Version](https://img.shields.io/badge/version-v1.5.1-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-318-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-240-blueviolet)]()
 
 > 🚀 **欢迎 POC** —— 欢迎你在自己的环境中试用本项目概念验证。需要技术支持？随时联系 [support@openoba.com](mailto:support@openoba.com)。
 
 > Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · 向量与规范 CC0-1.0 · 代码 Apache-2.0（见 LICENSE / LICENSE-CC0）
 
 > **规范依据**：ERDL-DOBJ-RFC-002 — Decision Object v1.5 扁平哈希链（[`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)）
-> **向量版本**：v1.5.1 · Core 向量 317 条（审计层 78 + 表达层 239）
+> **向量版本**：v1.5.1 · Core 向量 318 条（审计层 78 + 表达层 240）
 > **基于 ERDL 设计**：[ERDL（Entity-Rule Definition Language）](https://github.com/OpenOBA/erdl-landing) —— 声明式规则执行协议；Decision Object 即其决策的审计记录，数据模型见 [ERDL 规范 v2.1](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md)
 
 AI 治理的跨实现验证基准：一套不属于任何单一实现的中性测试向量。任何语言、任何技术栈的 runner，都可以仅凭规范从第一性原理独立实现 JCS（RFC 8785）+ SHA-256，逐字节重算 Decision Object 哈希并比对。
@@ -50,7 +50,7 @@ Decision Object 是 ERDL 规则引擎一次决策的审计记录——基于 [ER
 
 在哈希层与表达式层之外，**§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）同样开放征集独立 Runner。这是一种不同类型的缺口：裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致（ANP2 Network 指出的独立性问题）。决定性的修复，是一个仅凭 SPEC 文本独立重推导 §7.1 的第三方实现。
 
-§7.1 裁决向量集**尚未生成**（不同于 78 条哈希层与 239 条表达式层向量）；其产出是本征集的一部分。若你能仅凭 §7.1 文本重推导 ring/override/catch-all 并与 fold 交叉核验，欢迎联系——见 [submissions/README.md](submissions/README.md)。
+§7.1 裁决向量集**尚未生成**（不同于 78 条哈希层与 240 条表达式层向量）；其产出是本征集的一部分。若你能仅凭 §7.1 文本重推导 ring/override/catch-all 并与 fold 交叉核验，欢迎联系——见 [submissions/README.md](submissions/README.md)。
 
 ## A2A 发展语境
 
@@ -64,25 +64,25 @@ Decision Object 的验证体系遵循的正是这条标准化路径（Erik Newto
 
 ## 向量体系
 
-Core 合计 **317 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 239。
+Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 
 ### 覆盖总览
 
 | 验证层 | 类别 | 覆盖对象 | 数量 | 状态 |
 |--------|------|---------|:---:|------|
 | 审计层 | V-DO-v15 | 决策类型 13 / 链攻击 8 / 锚定 10 / 金丝雀 1 / 结论 14 / 法域 32 | 78 | ✅ 已验证（第三方 ×2） |
-| 表达层 | V-ENGINE | 节点语义 136 + 求值约束 51 + Simple 编译 30 | 217 | 未验证（仅参考） |
+| 表达层 | V-ENGINE | 节点语义 136 + 求值约束 51 + Simple 编译 30 | 218 | 未验证（仅参考） |
 | 表达层 | V-GLOSS / V-PROJ | gloss 16（渲染 12 + 完整性 4）+ 投影面 6 | 22 | 未验证（仅参考） |
-| **合计** | | **Core** | **317** | **部分验证（78/317）** |
+| **合计** | | **Core** | **318** | **部分验证（78/318）** |
 
 **验证状态（二元）**：
 
 - **已验证**：审计层 V-DO-v15 78 条哈希层向量，由两个独立第三方 Runner 逐字节验证——norviq-go（Go，2026-09-01）、concordia-python（Python，Erik Newton，2026-09-02），各 107/107 canonical bytes；历史 v1.3 的 13 条 AV（Erik Newton，2026-07-30）已由 v1.5 取代；
-- **未验证**：表达层 239 条（V-ENGINE 217 + V-GLOSS / V-PROJ 22），仅参考实现通过，待独立第三方 Runner 验证。
+- **未验证**：表达层 240 条（V-ENGINE 218 + V-GLOSS / V-PROJ 22），仅参考实现通过，待独立第三方 Runner 验证。
 
 **规划未生成（不计数）**：签名 V-SIGN 5 + 时间锚定 TSA 3 + 状态验证 V-TEMPORAL 4。
 
-> **向量文件**：`decision-object-vectors-v1.5.json`（V-DO-v15 审计层 78 条）+ `v-engine-vectors.json`（V-ENGINE 表达层 239 条）。
+> **向量文件**：`decision-object-vectors-v1.5.json`（V-DO-v15 审计层 78 条）+ `v-engine-vectors.json`（V-ENGINE 表达层 240 条）。
 
 ### V-DO-v15 审计层（78 条）
 
@@ -98,13 +98,13 @@ Core 合计 **317 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 239。
 
 规划、未生成、不计数：时间锚定 V-DO-v15-T01..T03（3 条）、签名链 V-SIGN-001..005（5 条），随签名层实现后补入。
 
-### V-ENGINE 表达层（239 条）
+### V-ENGINE 表达层（240 条）
 
 节点语义 136（34 节点 × 4 场景）+ 求值约束 51（E1–E12 可向量化子集）+ Simple 编译 30（运算符）+ gloss 16（渲染 12 + 完整性 4）+ 投影面编译 6。
 
-### 语义重推与生产侧一致性（2026-09-02 新增，非 Core 317）
+### 语义重推与生产侧一致性（2026-09-02 新增，非 Core 318）
 
-在 Core 317 之上，新增两类验证对象，覆盖「决策-规则一致性」与「记录-执行保真度」——这是哈希/字段检查（V-DO、V-ENGINE）够不到的两个维度：
+在 Core 318 之上，新增两类验证对象，覆盖「决策-规则一致性」与「记录-执行保真度」——这是哈希/字段检查（V-DO、V-ENGINE）够不到的两个维度：
 
 | 验证对象 | 系列 | 数量 | 内容 |
 |---------|------|:---:|------|
@@ -130,10 +130,10 @@ Core 合计 **317 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 239。
 ```bash
 npm install             # 安装依赖（json-canonicalize 仅供参考管线做确定性比对，vitest 用于测试；runner 自身 MUST NOT 依赖它）
 npm run generate          # 生成 V-DO 78 条向量 + 答案文件（canonical_hex 物理隔离，.gitignore）
-npm run generate:vengine  # 生成 V-ENGINE 239 条向量（@openoba/erdl 参考引擎）
+npm run generate:vengine  # 生成 V-ENGINE 240 条向量（@openoba/erdl 参考引擎）
 npm run verify            # V-DO 五步验证法 Step 0–6 + 语义 breach 检测
 npm run verify:vengine    # V-ENGINE 表达层独立验证（77 条语义敏感向量）
-npm run verify:vengine:full  # V-ENGINE 全量 239 条
+npm run verify:vengine:full  # V-ENGINE 全量 240 条
 npm run verify:decision  # decision_divergence 跨层语义重推（需 @openoba/erdl）
 npm run verify:producer  # V-PRODUCER producer-side 一致性
 npm run conformance       # 自动生成 conformance/CONFORMANCE.md（Check 1/2 + K01 + R1–R6 合规报告）
