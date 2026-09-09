@@ -31,6 +31,8 @@ For each vector, produce a result object matching the vector's `expected` schema
 { "value": <number|string|boolean>, "value_type": "number"|"string"|"boolean", "errored": false, "warnings": [] }
 ```
 
+**Number encoding**: `value` with `value_type: "number"` is a JSON number (decimal), rendered from the scale-14 fixed-point value with trailing zeros trimmed (ER5) — **not** a decimal string. The decimal-string form (spec §8.2) governs `canonical_tree` literals only, not the result object. `"1e21 + 1"` reports `1000000000000000000001` (a JSON number), never `1e+21`.
+
 ### ER4 — Value-identical recomputation
 
 For all **239** `v-engine-vectors.json` vectors, recompute and produce a `value` **value-identical** to `expected.value` (per `value_type`):
@@ -42,6 +44,10 @@ For all **239** `v-engine-vectors.json` vectors, recompute and produce a `value`
 | `boolean` | equal |
 
 `errored` must match `expected.errored`.
+
+**errored semantics** (spec E3): `errored: true` marks an evaluation **error** — division by zero, invalid date, arity violation, or a type-mismatched **arithmetic** operand (spec §7.3(a) "EvaluationError"). It stays `true` even though E12 folds the value to `false`. A type-mismatched **comparison** and null/missing-field propagation (E11) are normal `false` results, not errors — `errored: false`.
+
+**Constraint vectors (E4/E5)**: the E4 resource-limit vectors (`expectThrow`) and E5 load-time-exclusivity vectors are **constraint-verification vectors**, not evaluation vectors — their `expected` records whether the constraint was correctly detected/triggered (E4 `threw: true`; E5 `value: true` = violation detected), not an evaluation result. The E12 fold and `errored` rules above apply to **evaluation** vectors only.
 
 ### ER5 — Fixed-point arithmetic (E2)
 
