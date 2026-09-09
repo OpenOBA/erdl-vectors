@@ -58,12 +58,18 @@ jobs:
           fi
           echo "PASS: CONFORMANCE.md is current"
 
-      - name: Cross-verify runner submissions
+      - name: Cross-verify runner submissions (hash-layer + expression-layer)
         run: |
           if ls submissions/*.json >/dev/null 2>&1; then
             for f in submissions/*.json; do
-              echo "=== Cross-verifying $f ==="
-              node scripts/verify-submission.cjs --submission "$f" || exit 1
+              layer=$(node -e "const s=require('./' + process.argv[1]); process.stdout.write(s.layer || 'audit')" "$f")
+              if [ "$layer" = "expression" ]; then
+                echo "=== Cross-verifying expression-layer $f ==="
+                node scripts/verify-v-engine-submission.mjs --submission "$f" || exit 1
+              else
+                echo "=== Cross-verifying hash-layer $f ==="
+                node scripts/verify-submission.cjs --submission "$f" || exit 1
+              fi
             done
           else
             echo "No runner submissions to cross-verify (only README.md present)."

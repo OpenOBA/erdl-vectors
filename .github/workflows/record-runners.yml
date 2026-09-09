@@ -33,7 +33,10 @@ jobs:
           node-version: 20
 
       - name: Regenerate registry from submissions (cross-verify each)
-        run: node scripts/update-registry.cjs
+        run: |
+          npm run generate:vengine
+          node scripts/update-registry.cjs
+          node scripts/update-expression-registry.cjs
 
       - name: Auto-commit registry update
         run: |
