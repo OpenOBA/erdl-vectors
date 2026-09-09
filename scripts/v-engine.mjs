@@ -737,7 +737,11 @@ export function generateSimpleVectors() {
             category: 'V-ENGINE', subcategory: 'simple-modifier', modifier: 'rate',
             scenario: 'rate over-limit detection (checkRate over-limit after record×3)',
             state_ops: stateOps,
-            expected: { value: rateResult, value_type: 'boolean' },
+            // SPEC §5.2 真值语义：计数达阈值 → 条件成立（true）。但 GuardStateManager.checkRate
+            // 返回「是否未超限」（true=放行、false=超限），与 spec「达阈值=true（触发）」相反，
+            // 故取反：rate 条件真值 = !checkRate。checkWithin 返回「是否有历史」（true=触发），
+            // 与 spec 一致，within 无需取反。
+            expected: { value: !rateResult, value_type: 'boolean' },
         });
     }
     {

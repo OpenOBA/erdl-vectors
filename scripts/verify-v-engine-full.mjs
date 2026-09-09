@@ -124,6 +124,9 @@ function verify(v) {
       else if (o.op === 'recordWithin') gsm.recordWithin(o.key);
       else if (o.op === 'checkWithin' && typeof o.windowMs === 'number') result = gsm.checkWithin(o.key, o.windowMs);
     }
+    // SPEC §5.2: rate 条件真值 = 达阈值 → true（触发）；checkRate 返回「未超限=true（放行）」，故 rate 取反。
+    // within 的 checkWithin 返回「有历史=true（触发）」，与 spec 一致，无需取反。
+    if (v.modifier === 'rate') result = !result;
     return result === v.expected.value;
   }
   // node-semantics vectors
