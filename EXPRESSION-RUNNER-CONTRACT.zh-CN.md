@@ -35,6 +35,8 @@ MUST 仅凭 spec 实现。MUST NOT 依赖 `@openoba/erdl`、`erdl-formal`、或�
 
 约束验证向量（E4）额外携带 `"threw": true`，其 `value: null` / `value_type: "null"`——见 ER4。`value_type` 枚举为 `number` | `string` | `boolean` | `null`（末者仅用于 E4 的 throw 结果）。
 
+> **`value_type` 始终是字符串**，绝不是 JSON 值：它是 `"number"`、`"string"`、`"boolean"`，或（E4 throw 结果）字面量 `"null"`（不是 JSON `null`）。这与 number 编码同理：`value_type` 是*标签*，标签拼作字符串，即使它命名的是 null 类型。
+
 **Number 编码**：`value_type: "number"` 的 `value` 是**十进制字符串**（spec E2 定点字符串序列化），由 scale-14 定点值渲染、尾零裁剪（ER5）——**不是** JSON number。十进制字符串形态规避了 IEEE 754 双精度在大整数上的精度损失；`"1e21 + 1"` 报告为 `"1000000000000000000001"`（十进制字符串），绝不是 `1e+21`。
 
 > **为何用字符串而非 JSON number**：JSON number 在 JavaScript（`JSON.parse`）中是 IEEE 754 double，大整数会精度损失（`1000000000000000000001` → `1e+21`），改变比较结果、破坏跨语言确定性；而字符串在任何语言都逐字节精确。字符串是*编码*，不是比较单位——number 按 **scale-14 定点精度**（数值相等、尾零不敏感，见 ER4）比较，绝不按字符串字节比较。
