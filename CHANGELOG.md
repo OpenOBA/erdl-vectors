@@ -6,6 +6,13 @@
 >
 > **License split (2026-09-04)**: two-tier license — test vectors + spec docs → CC0-1.0; code → Apache-2.0.
 
+## [Unreleased] - 2026-09-10
+
+### Changed
+- **Contract ER3**: `value_type` enumeration extended to include `null` (E4 throw results); constraint-verification vectors (E4) documented to carry `threw: true`.
+- **Contract ER4**: added the closed warning vocabulary (six values: `type_mismatch` / `invalid_date` / `division_by_zero` / `quantifier_empty` / `aggregate_empty` / `regex_re_dos`); documented that gloss vectors (V-GLOSS incl. V-GLOSS-INTEGRITY) report the gloss **string** (not a boolean), with `tampered_tree` as integrity evidence only.
+- **Contract ER3**: corrected the number-encoding citation — the decimal-string form is spec E2 fixed-point string serialization, **not** RFC 8785 §3.1 (RFC 8785 §3.1 is "Creation of Input Data"; JCS §3.2.2.3 serializes numbers as IEEE 754 double, the precision-loss source the decimal-string form exists to avoid).
+
 ## v1.6.0 (current) - 2026-09-09
 
 ### Changed

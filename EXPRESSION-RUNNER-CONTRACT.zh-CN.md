@@ -30,10 +30,12 @@ MUST 仅凭 spec 实现。MUST NOT 依赖 `@openoba/erdl`、`erdl-formal`、或�
 对每条向量，产出结果对象，schema 与向量 `expected` 一致：
 
 ```
-{ "value": <number|string|boolean>, "value_type": "number"|"string"|"boolean", "errored": false, "warnings": [] }
+{ "value": <number|string|boolean|null>, "value_type": "number"|"string"|"boolean"|"null", "errored": false, "warnings": [] }
 ```
 
-**Number 编码**：`value_type: "number"` 的 `value` 是**十进制字符串**（RFC 8785 §3.1），由 scale-14 定点值渲染、尾零裁剪（ER5）——**不是** JSON number。十进制字符串形态规避了 IEEE 754 双精度在大整数上的精度损失；`"1e21 + 1"` 报告为 `"1000000000000000000001"`（十进制字符串），绝不是 `1e+21`。
+约束验证向量（E4）额外携带 `"threw": true`，其 `value: null` / `value_type: "null"`——见 ER4。`value_type` 枚举为 `number` | `string` | `boolean` | `null`（末者仅用于 E4 的 throw 结果）。
+
+**Number 编码**：`value_type: "number"` 的 `value` 是**十进制字符串**（spec E2 定点字符串序列化），由 scale-14 定点值渲染、尾零裁剪（ER5）——**不是** JSON number。十进制字符串形态规避了 IEEE 754 双精度在大整数上的精度损失；`"1e21 + 1"` 报告为 `"1000000000000000000001"`（十进制字符串），绝不是 `1e+21`。
 
 ### ER4 — 值级一致重算
 
@@ -50,6 +52,10 @@ MUST 仅凭 spec 实现。MUST NOT 依赖 `@openoba/erdl`、`erdl-formal`、或�
 **errored 语义**（spec E3）：`errored: true` 标记求值**错误**——除零、非法日期、元数错误、或类型不匹配的**算术**操作数（spec §7.3(a) "EvaluationError"）。即便 E12 把值折叠为 `false`，`errored` 仍为 `true`。类型不匹配的**比较**与 null/缺失字段传播（E11）是正常 `false` 结果，非错误——`errored: false`。
 
 **约束向量（E4/E5）**：E4 资源限制向量（`expectThrow`）与 E5 加载互斥向量是**约束验证向量**，非求值向量——其 `expected` 记录「约束是否被正确检测/触发」（E4 `threw: true`；E5 `value: true` = 检测到违规），非求值结果。上述 E12 折叠与 `errored` 规则只适用于**求值**向量。
+
+**warning 词表**：`warnings` 是封闭的六值词表——`type_mismatch`、`invalid_date`、`division_by_zero`、`quantifier_empty`、`aggregate_empty`、`regex_re_dos`。不得自造 warning 名（`not_an_array`、`regex_unsafe`、`resource_limit`、`schema_violation` 均**不在**词表内）。warning 用于审计记录，但交叉验证**不比对** warning（ER4 只比对 `value` + `value_type` + `errored`）；不过为跨实现可复现，仍需匹配 spec 的 warning 不对称表（§7.3(a)）。
+
+**gloss 向量（V-GLOSS，含 V-GLOSS-INTEGRITY）**：其 `value` 是从向量 `expr_tree` 渲染出的 **gloss 字符串**（按 spec §5.5 模板），而非布尔值。`V-GLOSS-INTEGRITY-*` 向量额外携带 `tampered_tree` 字段，它仅是**完整性证据**——runner 仍渲染并报告**原始** `expr_tree` 的 gloss；`tampered_tree` 用于证明「篡改树会改变 gloss」（它不被求值）。
 
 ### ER5 — 定点小数（E2）
 

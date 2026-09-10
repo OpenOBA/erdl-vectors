@@ -28,10 +28,12 @@ MUST implement from the spec alone. MUST NOT depend on `@openoba/erdl`, `erdl-fo
 For each vector, produce a result object matching the vector's `expected` schema:
 
 ```
-{ "value": <number|string|boolean>, "value_type": "number"|"string"|"boolean", "errored": false, "warnings": [] }
+{ "value": <number|string|boolean|null>, "value_type": "number"|"string"|"boolean"|"null", "errored": false, "warnings": [] }
 ```
 
-**Number encoding**: `value` with `value_type: "number"` is a **decimal string** (RFC 8785 §3.1), rendered from the scale-14 fixed-point value with trailing zeros trimmed (ER5) — **not** a JSON number. The decimal-string form sidesteps IEEE 754 double precision loss on large integers; `"1e21 + 1"` reports `"1000000000000000000001"` (a decimal string), never `1e+21`.
+Constraint-verification vectors (E4) additionally carry `"threw": true` with `value: null` / `value_type: "null"` — see ER4. The `value_type` enumeration is `number` | `string` | `boolean` | `null` (the last only for E4 throw results).
+
+**Number encoding**: `value` with `value_type: "number"` is a **decimal string** (spec E2 fixed-point string serialization), rendered from the scale-14 fixed-point value with trailing zeros trimmed (ER5) — **not** a JSON number. The decimal-string form sidesteps IEEE 754 double precision loss on large integers; `"1e21 + 1"` reports `"1000000000000000000001"` (a decimal string), never `1e+21`.
 
 ### ER4 — Value-identical recomputation
 
@@ -48,6 +50,10 @@ For all **240** `v-engine-vectors.json` vectors, recompute and produce a `value`
 **errored semantics** (spec E3): `errored: true` marks an evaluation **error** — division by zero, invalid date, arity violation, or a type-mismatched **arithmetic** operand (spec §7.3(a) "EvaluationError"). It stays `true` even though E12 folds the value to `false`. A type-mismatched **comparison** and null/missing-field propagation (E11) are normal `false` results, not errors — `errored: false`.
 
 **Constraint vectors (E4/E5)**: the E4 resource-limit vectors (`expectThrow`) and E5 load-time-exclusivity vectors are **constraint-verification vectors**, not evaluation vectors — their `expected` records whether the constraint was correctly detected/triggered (E4 `threw: true`; E5 `value: true` = violation detected), not an evaluation result. The E12 fold and `errored` rules above apply to **evaluation** vectors only.
+
+**Warning vocabulary**: `warnings` is a closed vocabulary of six values — `type_mismatch`, `invalid_date`, `division_by_zero`, `quantifier_empty`, `aggregate_empty`, `regex_re_dos`. Do not invent warning names (`not_an_array`, `regex_unsafe`, `resource_limit`, `schema_violation` are NOT in the vocabulary). Warnings are recorded for audit but are **not** compared in cross-verification (ER4 compares `value` + `value_type` + `errored` only); they must still match the spec's warning-asymmetry table (§7.3(a)) for cross-implementation reproducibility.
+
+**gloss vectors (V-GLOSS, incl. V-GLOSS-INTEGRITY)**: the `value` is the **gloss string** rendered from the vector's `expr_tree` (per spec §5.5 templates), not a boolean. `V-GLOSS-INTEGRITY-*` vectors carry an extra `tampered_tree` field that is **integrity evidence only** — the runner still renders and reports the **original** `expr_tree` gloss; the `tampered_tree` exists to prove a tampered tree would change the gloss (it is not evaluated).
 
 ### ER5 — Fixed-point arithmetic (E2)
 

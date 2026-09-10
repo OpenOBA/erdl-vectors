@@ -6,6 +6,13 @@
 >
 > **License split (2026-09-04)**: two-tier license — test vectors + spec docs → CC0-1.0; code → Apache-2.0.
 
+## [Unreleased] - 2026-09-10
+
+### Changed
+- **契约 ER3**：`value_type` 枚举补入 `null`（E4 throw 结果）；约束验证向量（E4）补注携带 `threw: true`。
+- **契约 ER4**：新增封闭 warning 词表（六值：`type_mismatch` / `invalid_date` / `division_by_zero` / `quantifier_empty` / `aggregate_empty` / `regex_re_dos`）；明确 gloss 向量（V-GLOSS 含 V-GLOSS-INTEGRITY）报告的是 gloss **字符串**（非布尔值），`tampered_tree` 仅是完整性证据。
+- **契约 ER3**：修正 number 编码引用——十进制字符串是 spec E2 定点字符串序列化，**而非** RFC 8785 §3.1（RFC 8785 §3.1 是「输入数据创建」；JCS §3.2.2.3 将数字序列化为 IEEE 754 double，正是十进制字符串存在要避免的精度损失来源）。
+
 ## v1.6.0（现行）- 2026-09-09
 
 ### Changed
