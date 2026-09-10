@@ -50,7 +50,7 @@ const AS_OF = new Date('2026-08-15T00:00:00Z');
 /** Serialize an evaluation result into cross-implementation-comparable { value, type } (ER3: number/string/boolean) */
 export function serializeValue(v) {
     // ER3 (contract): value_type ∈ {number, string, boolean}. number is a decimal string —
-    // RFC 8785 §3.1 RECOMMENDS JSON strings for numbers beyond IEEE 754 double precision; spec E2 mandates "string serialization".
+    // RFC 8785 Appendix D RECOMMENDS JSON strings for numbers beyond IEEE 754 double precision; spec E2 mandates "string serialization".
     if (v === undefined)
         return { value: false, type: 'boolean' };
     if (v === null)
