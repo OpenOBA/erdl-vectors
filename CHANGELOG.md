@@ -15,6 +15,7 @@
 - **Contract ER3**: corrected the number-encoding citation — the decimal-string form is spec E2 fixed-point string serialization, **not** RFC 8785 §3.1 (RFC 8785 §3.1 is "Creation of Input Data"; JCS §3.2.2.3 serializes numbers as IEEE 754 double, the precision-loss source the decimal-string form exists to avoid).
 - **Contract ER3/ER4**: number conformance is now **numerically equal** at scale-14 fixed-point precision (trailing-zero insensitive), not string-byte equal; documented why the decimal string (not a JSON number) — cross-language determinism (JSON numbers are IEEE 754 doubles in JS).
 - **Contract ER4**: E4 constraint-verification vectors must also match `threw` (`true`) — the field was in the contract, but the comparison only asserted it now.
+- **Contract ER8**: removed "non-array aggregate" from the evaluation-error list — it folds to `false` with a `type_mismatch` warning + `errored: false` (spec §7.3(e)), matching the §7.3(a) warning asymmetry.
 - **verify-v-engine-submission.mjs + update-expression-registry.cjs**: comparison hardened per ER4 — numbers at scale-14 fixed-point precision (trailing-zero insensitive, `BigInt`-based), strings NFC-normalized before byte equality, and E4 constraint vectors compare `threw` (`true`).
 
 ## v1.6.0 (current) - 2026-09-09

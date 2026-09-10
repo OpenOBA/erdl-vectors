@@ -73,7 +73,7 @@ Missing fields collapse to **false** at comparison leaves (not Kleene propagatio
 
 ### ER8 — Evaluation errors (E12)
 
-Evaluation errors (division by zero, non-array aggregate) MUST fold per E12 (tier 3–5 fold to false / `Missing`).
+Evaluation errors (division by zero, invalid date, arity violation, type-mismatched arithmetic operand) MUST fold per E12 (tier 3–5 fold to false / `Missing`). A non-array `aggregate` is **not** an evaluation error — it folds to `false` with a `type_mismatch` warning and `errored: false` (spec §7.3(e)).
 
 ### ER9 — Do not read the oracle (neutrality)
 

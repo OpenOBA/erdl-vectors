@@ -75,7 +75,7 @@ MUST 仅凭 spec 实现。MUST NOT 依赖 `@openoba/erdl`、`erdl-formal`、或�
 
 ### ER8 — 求值错误（E12）
 
-除零、非数组 aggregate 等求值错误 MUST 按 E12 折叠（tier 3–5 折叠为 false / `Missing`）。
+除零、非法日期、元数错误、类型不匹配的算术操作数等求值错误 MUST 按 E12 折叠（tier 3–5 折叠为 false / `Missing`）。非数组 `aggregate` **不是**求值错误——它折叠为 `false` + `type_mismatch` warning 且 `errored: false`（spec §7.3(e)）。
 
 ### ER9 — 不读预言（中立性）
 

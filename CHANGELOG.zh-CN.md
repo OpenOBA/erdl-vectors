@@ -15,6 +15,7 @@
 - **契约 ER3**：修正 number 编码引用——十进制字符串是 spec E2 定点字符串序列化，**而非** RFC 8785 §3.1（RFC 8785 §3.1 是「输入数据创建」；JCS §3.2.2.3 将数字序列化为 IEEE 754 double，正是十进制字符串存在要避免的精度损失来源）。
 - **契约 ER3/ER4**：number 一致性改为 scale-14 定点精度上的**数值相等**（尾零不敏感），非字符串字节相等；补「为何用字符串而非 JSON number」——跨语言确定性（JSON number 在 JS 中是 IEEE 754 double）。
 - **契约 ER4**：E4 约束验证向量还需匹配 `threw`（须为 `true`）——该字段一直在契约里，但比对此前未断言。
+- **契约 ER8**：从求值错误列表移除「非数组 aggregate」——它折叠为 `false` + `type_mismatch` warning + `errored: false`（spec §7.3(e)），与 §7.3(a) 的 warning 不对称一致。
 - **verify-v-engine-submission.mjs + update-expression-registry.cjs**：按 ER4 收紧比对——number 用 scale-14 定点精度（尾零不敏感，基于 `BigInt`）、string 先 NFC 归一化再字节相等、E4 约束向量补比 `threw`（须为 `true`）。
 
 ## v1.6.0（现行）- 2026-09-09
