@@ -38,7 +38,8 @@ Inclusion in this table does not imply endorsement by OpenOBA — it records onl
 <!-- expression-registry:auto-begin -->
 | Implementor | Method | Result | Date | Artifact |
 |------------|--------|:-------:|------|---------|
-| **OpenOBA (reference)** | Node.js, @openoba/erdl | 240/240 | 2026-09-09 | [v-engine.mjs](scripts/v-engine.mjs) |<!-- expression-registry:auto-end -->
+| **OpenOBA (reference)** | Node.js, @openoba/erdl | 240/240 | 2026-09-09 | [v-engine.mjs](scripts/v-engine.mjs) |
+| **concordia-python-expression** | Python, spec-and-contract-only | 240/240 | 2026-09-10 | [concordia-protocol](https://github.com/eriknewton/concordia-protocol/tree/main/conformance/erdl-expression-v1) |<!-- expression-registry:auto-end -->
 
 > For third-party expression-layer Runner submissions see [EXPRESSION-RUNNER-CONTRACT.md](EXPRESSION-RUNNER-CONTRACT.md) (ER3 envelope, `submissions/<runner>-output.json`); after CI cross-verification passes, automatically registered in the table above on merge.
 

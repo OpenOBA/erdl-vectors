@@ -41,7 +41,8 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 <!-- expression-registry:auto-begin -->
 | Implementor | Method | Result | Date | Artifact |
 |------------|--------|:-------:|------|---------|
-| **OpenOBA (reference)** | Node.js, @openoba/erdl | 240/240 | 2026-09-09 | [v-engine.mjs](scripts/v-engine.mjs) |<!-- expression-registry:auto-end -->
+| **OpenOBA (reference)** | Node.js, @openoba/erdl | 240/240 | 2026-09-09 | [v-engine.mjs](scripts/v-engine.mjs) |
+| **concordia-python-expression** | Python, spec-and-contract-only | 240/240 | 2026-09-10 | [concordia-protocol](https://github.com/eriknewton/concordia-protocol/tree/main/conformance/erdl-expression-v1) |<!-- expression-registry:auto-end -->
 
 > 第三方 expression-layer Runner 提交见 [EXPRESSION-RUNNER-CONTRACT.md](EXPRESSION-RUNNER-CONTRACT.md)（ER3 envelope，`submissions/<runner>-output.json`）；CI 交叉验证（`verify-v-engine-submission.mjs`）通过后，合并时自动登记于上表。
 
