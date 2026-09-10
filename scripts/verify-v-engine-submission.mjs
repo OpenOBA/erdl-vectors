@@ -24,8 +24,8 @@
  * `{ value, value_type, errored, warnings }`.
  *
  * This verifier compares the submission against the answer oracle (v-engine-answers.json, gitignored) per ER4:
- *   value value-identical (per value_type) + value_type equal + errored equal.
- * Warnings are NOT compared (ER4 compares value + errored only).
+ *   value value-equal (number at scale-14 fixed-point / string NFC-normalized / boolean exact) + value_type equal + errored equal + (E4) threw equal.
+ * Warnings are NOT compared.
  *
  * Usage:
  *   node scripts/verify-v-engine-submission.mjs --submission submissions/<runner>-output.json
