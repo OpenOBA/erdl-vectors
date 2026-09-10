@@ -37,17 +37,19 @@ MUST 仅凭 spec 实现。MUST NOT 依赖 `@openoba/erdl`、`erdl-formal`、或�
 
 **Number 编码**：`value_type: "number"` 的 `value` 是**十进制字符串**（spec E2 定点字符串序列化），由 scale-14 定点值渲染、尾零裁剪（ER5）——**不是** JSON number。十进制字符串形态规避了 IEEE 754 双精度在大整数上的精度损失；`"1e21 + 1"` 报告为 `"1000000000000000000001"`（十进制字符串），绝不是 `1e+21`。
 
+> **为何用字符串而非 JSON number**：JSON number 在 JavaScript（`JSON.parse`）中是 IEEE 754 double，大整数会精度损失（`1000000000000000000001` → `1e+21`），改变比较结果、破坏跨语言确定性；而字符串在任何语言都逐字节精确。字符串是*编码*，不是比较单位——number 按 **scale-14 定点精度**（数值相等、尾零不敏感，见 ER4）比较，绝不按字符串字节比较。
+
 ### ER4 — 值级一致重算
 
 对 `v-engine-vectors.json` 全部 **240 条**向量逐条重算，`value` 与 `expected.value` **值级一致**（按 `value_type`）：
 
 | `value_type` | 一致性判据 |
 |-------------|-----------|
-| `number` | scale-14 定点整数**逐位相等**（ER5） |
+| `number` | scale-14 定点值**数值相等**（ER5）；十进制字符串编码可尾零差异（`"35"` ≡ `"35.0"`） |
 | `string` | 字节级相等（NFC 规范化后） |
 | `boolean` | 相等 |
 
-`errored` 必须与 `expected.errored` 一致。
+`errored` 必须与 `expected.errored` 一致。E4 约束验证向量还需匹配 `threw`（`threw: true`）。
 
 **errored 语义**（spec E3）：`errored: true` 标记求值**错误**——除零、非法日期、元数错误、或类型不匹配的**算术**操作数（spec §7.3(a) "EvaluationError"）。即便 E12 把值折叠为 `false`，`errored` 仍为 `true`。类型不匹配的**比较**与 null/缺失字段传播（E11）是正常 `false` 结果，非错误——`errored: false`。
 

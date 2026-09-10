@@ -46,6 +46,32 @@ function main() {
   const rows = [];
   const skipped = [];
 
+  // Number values are decimal strings (ER3); compare at scale-14 fixed-point precision
+  // (numerically equal, trailing-zero insensitive), not by string bytes.
+  function parseScale14(s) {
+    if (typeof s !== 'string') return null;
+    const neg = s.startsWith('-');
+    const abs = neg ? s.slice(1) : s;
+    const [intPart, fracPart = ''] = abs.split('.');
+    if (!/^\d+$/.test(intPart) || (fracPart !== '' && !/^\d+$/.test(fracPart))) return null;
+    if (fracPart.length > 14) return null;
+    const frac = fracPart.padEnd(14, '0');
+    const v = BigInt(intPart) * 100000000000000n + BigInt(frac || '0');
+    return neg ? -v : v;
+  }
+  function valueEqual(actual, expected, valueType) {
+    if (valueType === 'number') {
+      const a = parseScale14(actual);
+      const b = parseScale14(expected);
+      return a !== null && b !== null && a === b;
+    }
+    if (valueType === 'string') {
+      if (typeof actual !== 'string' || typeof expected !== 'string') return false;
+      return actual.normalize('NFC') === expected.normalize('NFC');
+    }
+    return JSON.stringify(actual) === JSON.stringify(expected);
+  }
+
   for (const f of fs.readdirSync(SUBMISSIONS_DIR).sort()) {
     if (!f.endsWith('.json')) continue;
     const sub = JSON.parse(fs.readFileSync(path.join(SUBMISSIONS_DIR, f), 'utf8'));
@@ -65,10 +91,11 @@ function main() {
         fail++;
         continue;
       }
-      const valueMatch = JSON.stringify(actual.value) === JSON.stringify(expected.value);
+      const valueMatch = valueEqual(actual.value, expected.value, expected.value_type);
       const typeMatch = actual.value_type === expected.value_type;
       const erroredMatch = !!actual.errored === !!expected.errored;
-      if (valueMatch && typeMatch && erroredMatch) pass++;
+      const threwMatch = expected.threw === undefined || !!actual.threw === !!expected.threw;
+      if (valueMatch && typeMatch && erroredMatch && threwMatch) pass++;
       else fail++;
     }
     if (fail !== 0) {

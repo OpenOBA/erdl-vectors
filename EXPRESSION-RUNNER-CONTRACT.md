@@ -35,17 +35,19 @@ Constraint-verification vectors (E4) additionally carry `"threw": true` with `va
 
 **Number encoding**: `value` with `value_type: "number"` is a **decimal string** (spec E2 fixed-point string serialization), rendered from the scale-14 fixed-point value with trailing zeros trimmed (ER5) — **not** a JSON number. The decimal-string form sidesteps IEEE 754 double precision loss on large integers; `"1e21 + 1"` reports `"1000000000000000000001"` (a decimal string), never `1e+21`.
 
+> **Why a string, not a JSON number**: JSON numbers are IEEE 754 doubles in JavaScript (`JSON.parse`), so large integers lose precision (`1000000000000000000001` → `1e+21`), which would change comparison results and break cross-language determinism. A decimal string is byte-exact in every language. The string is an *encoding*, not the comparison unit — numbers are compared at **scale-14 fixed-point precision** (numerically equal, trailing-zero insensitive; see ER4), never by string bytes.
+
 ### ER4 — Value-identical recomputation
 
 For all **240** `v-engine-vectors.json` vectors, recompute and produce a `value` **value-identical** to `expected.value` (per `value_type`):
 
 | `value_type` | Equality criterion |
 |-------------|-------------------|
-| `number` | scale-14 fixed-point integers, bit-equal (ER5) |
+| `number` | scale-14 fixed-point value, **numerically equal** (ER5); the decimal-string encoding may differ in trailing zeros (`"35"` ≡ `"35.0"`) |
 | `string` | byte-equal (after NFC normalization) |
 | `boolean` | equal |
 
-`errored` must match `expected.errored`.
+`errored` must match `expected.errored`. For E4 constraint-verification vectors, `threw` must also match (`threw: true`).
 
 **errored semantics** (spec E3): `errored: true` marks an evaluation **error** — division by zero, invalid date, arity violation, or a type-mismatched **arithmetic** operand (spec §7.3(a) "EvaluationError"). It stays `true` even though E12 folds the value to `false`. A type-mismatched **comparison** and null/missing-field propagation (E11) are normal `false` results, not errors — `errored: false`.
 

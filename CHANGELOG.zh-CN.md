@@ -12,6 +12,8 @@
 - **契约 ER3**：`value_type` 枚举补入 `null`（E4 throw 结果）；约束验证向量（E4）补注携带 `threw: true`。
 - **契约 ER4**：新增封闭 warning 词表（六值：`type_mismatch` / `invalid_date` / `division_by_zero` / `quantifier_empty` / `aggregate_empty` / `regex_re_dos`）；明确 gloss 向量（V-GLOSS 含 V-GLOSS-INTEGRITY）报告的是 gloss **字符串**（非布尔值），`tampered_tree` 仅是完整性证据。
 - **契约 ER3**：修正 number 编码引用——十进制字符串是 spec E2 定点字符串序列化，**而非** RFC 8785 §3.1（RFC 8785 §3.1 是「输入数据创建」；JCS §3.2.2.3 将数字序列化为 IEEE 754 double，正是十进制字符串存在要避免的精度损失来源）。
+- **契约 ER3/ER4**：number 一致性改为 scale-14 定点精度上的**数值相等**（尾零不敏感），非字符串字节相等；补「为何用字符串而非 JSON number」——跨语言确定性（JSON number 在 JS 中是 IEEE 754 double）。
+- **verify-v-engine-submission.mjs + update-expression-registry.cjs**：按 ER4 收紧比对——number 用 scale-14 定点精度（尾零不敏感，基于 `BigInt`）、string 先 NFC 归一化再字节相等、E4 约束向量补比 `threw`（须为 `true`）。
 
 ## v1.6.0（现行）- 2026-09-09
 

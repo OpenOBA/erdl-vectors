@@ -12,6 +12,8 @@
 - **Contract ER3**: `value_type` enumeration extended to include `null` (E4 throw results); constraint-verification vectors (E4) documented to carry `threw: true`.
 - **Contract ER4**: added the closed warning vocabulary (six values: `type_mismatch` / `invalid_date` / `division_by_zero` / `quantifier_empty` / `aggregate_empty` / `regex_re_dos`); documented that gloss vectors (V-GLOSS incl. V-GLOSS-INTEGRITY) report the gloss **string** (not a boolean), with `tampered_tree` as integrity evidence only.
 - **Contract ER3**: corrected the number-encoding citation — the decimal-string form is spec E2 fixed-point string serialization, **not** RFC 8785 §3.1 (RFC 8785 §3.1 is "Creation of Input Data"; JCS §3.2.2.3 serializes numbers as IEEE 754 double, the precision-loss source the decimal-string form exists to avoid).
+- **Contract ER3/ER4**: number conformance is now **numerically equal** at scale-14 fixed-point precision (trailing-zero insensitive), not string-byte equal; documented why the decimal string (not a JSON number) — cross-language determinism (JSON numbers are IEEE 754 doubles in JS).
+- **verify-v-engine-submission.mjs + update-expression-registry.cjs**: comparison hardened per ER4 — numbers at scale-14 fixed-point precision (trailing-zero insensitive, `BigInt`-based), strings NFC-normalized before byte equality, and E4 constraint vectors compare `threw` (`true`).
 
 ## v1.6.0 (current) - 2026-09-09
 
