@@ -71,14 +71,13 @@ Core total **318** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 240.
 | Verification layer | Category | Coverage object | Count | Status |
 |--------|------|---------|:---:|------|
 | Audit layer | V-DO-v15 | Decision types 13 / chain attacks 8 / anchoring 10 / canary 1 / conclusion 14 / jurisdiction 32 | 78 | ✅ Verified (third-party ×2) |
-| Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 51 + Simple compilation 30 | 218 | Unverified (reference only) |
-| Expression layer | V-GLOSS / V-PROJ | gloss 16 (render 12 + completeness 4) + projection facets 6 | 22 | Unverified (reference only) |
-| **Total** | | **Core** | **318** | **Partial (78/318)** |
+| Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 51 + Simple compilation 30 | 218 | ✅ Verified (concordia-python-expression) |
+| Expression layer | V-GLOSS / V-PROJ | gloss 16 (render 12 + completeness 4) + projection facets 6 | 22 | ✅ Verified (concordia-python-expression) |
+| **Total** | | **Core** | **318** | **Verified (318/318)** |
 
-**Verification status (binary)**:
+**Verification status**:
 
-- **Verified**: the audit layer V-DO-v15 78 hash-layer vectors, byte-verified by two independent third-party runners — norviq-go (Go, 2026-09-01) and concordia-python (Python, Erik Newton, 2026-09-02), each at 107/107 canonical bytes; the historical v1.3 13 AV vectors (Erik Newton, 2026-07-30) are superseded by v1.5;
-- **Unverified**: the expression layer 240 vectors (V-ENGINE 218 + V-GLOSS / V-PROJ 22), passed only by the reference implementation, awaiting verification by independent third-party Runners.
+- **Verified (318/318)**: the audit layer V-DO-v15 78 hash-layer vectors, byte-verified by two independent third-party runners — norviq-go (Go, 2026-09-01) and concordia-python (Python, Erik Newton, 2026-09-02), each at 107/107 canonical bytes; and the expression layer 240 vectors (V-ENGINE 218 + V-GLOSS / V-PROJ 22), independently recomputed by concordia-python-expression (Python, Erik Newton, 2026-09-10) at 240/240. The historical v1.3 13 AV vectors (Erik Newton, 2026-07-30) are superseded by v1.5.
 
 **Planned, not generated (not counted)**: signature V-SIGN 5 + time anchoring TSA 3 + state verification V-TEMPORAL 4.
 

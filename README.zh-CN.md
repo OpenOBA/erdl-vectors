@@ -71,14 +71,13 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 | 验证层 | 类别 | 覆盖对象 | 数量 | 状态 |
 |--------|------|---------|:---:|------|
 | 审计层 | V-DO-v15 | 决策类型 13 / 链攻击 8 / 锚定 10 / 金丝雀 1 / 结论 14 / 法域 32 | 78 | ✅ 已验证（第三方 ×2） |
-| 表达层 | V-ENGINE | 节点语义 136 + 求值约束 51 + Simple 编译 30 | 218 | 未验证（仅参考） |
-| 表达层 | V-GLOSS / V-PROJ | gloss 16（渲染 12 + 完整性 4）+ 投影面 6 | 22 | 未验证（仅参考） |
-| **合计** | | **Core** | **318** | **部分验证（78/318）** |
+| 表达层 | V-ENGINE | 节点语义 136 + 求值约束 51 + Simple 编译 30 | 218 | ✅ 已验证（concordia-python-expression） |
+| 表达层 | V-GLOSS / V-PROJ | gloss 16（渲染 12 + 完整性 4）+ 投影面 6 | 22 | ✅ 已验证（concordia-python-expression） |
+| **合计** | | **Core** | **318** | **已验证（318/318）** |
 
-**验证状态（二元）**：
+**验证状态**：
 
-- **已验证**：审计层 V-DO-v15 78 条哈希层向量，由两个独立第三方 Runner 逐字节验证——norviq-go（Go，2026-09-01）、concordia-python（Python，Erik Newton，2026-09-02），各 107/107 canonical bytes；历史 v1.3 的 13 条 AV（Erik Newton，2026-07-30）已由 v1.5 取代；
-- **未验证**：表达层 240 条（V-ENGINE 218 + V-GLOSS / V-PROJ 22），仅参考实现通过，待独立第三方 Runner 验证。
+- **已验证（318/318）**：审计层 V-DO-v15 78 条哈希层向量，由两个独立第三方 Runner 逐字节验证——norviq-go（Go，2026-09-01）、concordia-python（Python，Erik Newton，2026-09-02），各 107/107 canonical bytes；表达层 240 条（V-ENGINE 218 + V-GLOSS / V-PROJ 22）由 concordia-python-expression（Python，Erik Newton，2026-09-10）独立重算，240/240。历史 v1.3 的 13 条 AV（Erik Newton，2026-07-30）已由 v1.5 取代。
 
 **规划未生成（不计数）**：签名 V-SIGN 5 + 时间锚定 TSA 3 + 状态验证 V-TEMPORAL 4。
 
