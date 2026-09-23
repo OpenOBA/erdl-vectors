@@ -8,7 +8,7 @@
 
 > **Spec basis**: ERDL-DOBJ-RFC-002 — Decision Object v1.5 flat-hash chain ([`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md))
 > **Vector version**: v1.5.1 · Core vectors 318 (audit layer 78 + expression layer 240)
-> **Based on the ERDL design**: [ERDL (Entity-Rule Definition Language)](https://github.com/OpenOBA/erdl-landing) — a declarative rule-execution protocol; the Decision Object is the audit record of its decisions; for the data model see [ERDL spec v2.1](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md)
+> **Based on the ERDL design**: [ERDL (Entity-Rule Definition Language)](https://github.com/OpenOBA/erdl-landing) — a declarative rule-execution protocol; the Decision Object is the audit record of its decisions; for the data model see [ERDL spec v2.2](https://github.com/OpenOBA/erdl-landing/blob/7ba1e64/erdl-language-spec-v2.1.md)
 
 A cross-implementation verification benchmark for AI governance: a set of neutral test vectors that belong to no single implementation. Any runner, in any language and any tech stack, can implement JCS (RFC 8785) + SHA-256 independently from first principles on the spec alone, recompute Decision Object hashes byte by byte, and compare.
 

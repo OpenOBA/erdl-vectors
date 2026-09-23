@@ -19,7 +19,7 @@
 
 ### ER1 — 从规范实现表达层
 
-MUST 实现完整 ERDL 表达层：**34 节点内核**（取值 3 / 逻辑 3 / 比较 6 / 集合 1 / 字符串 4 / 存在量纲 3 / 量词 3 / 算术 5 / 时间 5 / 聚合 1）**加 Simple 编译（30 运算符）、gloss（16）、投影面（6）**——合计 240 条向量的覆盖面。语义以 [erdl-spec](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md) §5 / §7 为**唯一规范源**。节点语义不属于本契约——本契约只规定「实现什么」与「怎么验收」，节点细节见 spec。
+MUST 实现完整 ERDL 表达层：**34 节点内核**（取值 3 / 逻辑 3 / 比较 6 / 集合 1 / 字符串 4 / 存在量纲 3 / 量词 3 / 算术 5 / 时间 5 / 聚合 1）**加 Simple 编译（30 运算符）、gloss（16）、投影面（6）**——合计 240 条向量的覆盖面。语义以 [erdl-spec](https://github.com/OpenOBA/erdl-landing/blob/7ba1e64/erdl-language-spec-v2.1.md) §5 / §7 为**唯一规范源**。节点语义不属于本契约——本契约只规定「实现什么」与「怎么验收」，节点细节见 spec。
 
 ### ER2 — 独立实现
 

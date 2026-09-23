@@ -17,7 +17,7 @@ A conforming expression-layer runner MUST satisfy all of the following. Each is 
 
 ### ER1 — Implement the expression layer from the spec
 
-MUST implement the full ERDL expression layer: the **34-node kernel** (value 3 / logic 3 / comparison 6 / set 1 / string 4 / existence 3 / quantifier 3 / arithmetic 5 / time 5 / aggregate 1) **plus Simple compilation (30 operators), gloss (16), and projection facets (6)** — together the 240-vector surface. Semantics per [erdl-spec](https://github.com/OpenOBA/erdl-landing/blob/main/erdl-spec.md) §5 / §7 as the **sole normative source**. Node semantics are not restated here — this contract specifies *what* to implement and *how* to accept, not the node details (see the spec).
+MUST implement the full ERDL expression layer: the **34-node kernel** (value 3 / logic 3 / comparison 6 / set 1 / string 4 / existence 3 / quantifier 3 / arithmetic 5 / time 5 / aggregate 1) **plus Simple compilation (30 operators), gloss (16), and projection facets (6)** — together the 240-vector surface. Semantics per [erdl-spec](https://github.com/OpenOBA/erdl-landing/blob/7ba1e64/erdl-language-spec-v2.1.md) §5 / §7 as the **sole normative source**. Node semantics are not restated here — this contract specifies *what* to implement and *how* to accept, not the node details (see the spec).
 
 ### ER2 — Independent implementation
 
