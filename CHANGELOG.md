@@ -17,6 +17,8 @@
 - **Contract ER4**: E4 constraint-verification vectors must also match `threw` (`true`) — the field was in the contract, but the comparison only asserted it now.
 - **Contract ER8**: removed "non-array aggregate" from the evaluation-error list — it folds to `false` with a `type_mismatch` warning + `errored: false` (spec §7.3(e)), matching the §7.3(a) warning asymmetry.
 - **verify-v-engine-submission.mjs + update-expression-registry.cjs**: comparison hardened per ER4 — numbers at scale-14 fixed-point precision (trailing-zero insensitive, `BigInt`-based), strings NFC-normalized before byte equality, and E4 constraint vectors compare `threw` (`true`).
+- **Spec provenance pinned**: README / contracts' spec link changed from the broken `erdl-spec.md` (floating `main`) to `erdl-language-spec-v2.1.md` @ `7ba1e64` (ERDL v2.2); version labels v2.1 → v2.2 (commit `08cb062`).
+- **Vector `spec` field aligned**: `v-engine-vectors.json` + `scripts/generate-v-engine.mjs` `spec` field changed from `erdl-spec-v2.1` to `erdl-language-spec-v2.1.md`, matching the pinned spec (commit `9fa6b5c`).
 
 ## v1.6.0 (current) - 2026-09-09
 

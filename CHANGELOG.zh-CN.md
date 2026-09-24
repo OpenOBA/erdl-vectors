@@ -17,6 +17,8 @@
 - **契约 ER4**：E4 约束验证向量还需匹配 `threw`（须为 `true`）——该字段一直在契约里，但比对此前未断言。
 - **契约 ER8**：从求值错误列表移除「非数组 aggregate」——它折叠为 `false` + `type_mismatch` warning + `errored: false`（spec §7.3(e)），与 §7.3(a) 的 warning 不对称一致。
 - **verify-v-engine-submission.mjs + update-expression-registry.cjs**：按 ER4 收紧比对——number 用 scale-14 定点精度（尾零不敏感，基于 `BigInt`）、string 先 NFC 归一化再字节相等、E4 约束向量补比 `threw`（须为 `true`）。
+- **规范出处 pin 定**：README / 契约的 spec 链接从失效的 `erdl-spec.md`（浮动 `main`）改为 `erdl-language-spec-v2.1.md` @ `7ba1e64`（ERDL v2.2）；版本标注 v2.1 → v2.2（commit `08cb062`）。
+- **向量 `spec` 字段对齐**：`v-engine-vectors.json` + `scripts/generate-v-engine.mjs` 的 `spec` 字段从 `erdl-spec-v2.1` 改为 `erdl-language-spec-v2.1.md`，与 pin 的规范一致（commit `9fa6b5c`）。
 
 ## v1.6.0（现行）- 2026-09-09
 
