@@ -9,6 +9,7 @@
 ## [Unreleased] - 2026-09-10
 
 ### Changed
+- **V-RESOLVE vectors + independent runner** (PR #5, RavindraAnnam): 13 neutral §7.1 resolution vectors (`resolution-vectors.json`) + a narrow independent runner (`scripts/run-v-resolve.mjs`) + an independent-review note (`docs/RESOLUTION-INDEPENDENT-REVIEW.md`). R08 (ring0 ALLOW + ring3 critical DENY) = DENY and R13 (same-ring override critical DENY) = DENY; cross-verified 13/13 against the erdl-landing / erdl-formal reference implementations.
 - **Contract ER3**: `value_type` enumeration extended to include `null` (E4 throw results); constraint-verification vectors (E4) documented to carry `threw: true`.
 - **Contract ER3**: clarified `value_type` is always a **string** tag (`"null"` is the literal string, not JSON `null`) — mirrors the number encoding (tag is a string, even when naming the null type).
 - **Contract ER4**: added the closed warning vocabulary (six values: `type_mismatch` / `invalid_date` / `division_by_zero` / `quantifier_empty` / `aggregate_empty` / `regex_re_dos`); documented that gloss vectors (V-GLOSS incl. V-GLOSS-INTEGRITY) report the gloss **string** (not a boolean), with `tampered_tree` as integrity evidence only.

@@ -9,6 +9,7 @@
 ## [Unreleased] - 2026-09-10
 
 ### Changed
+- **V-RESOLVE 向量 + 独立 runner**（PR #5，RavindraAnnam）：13 个 neutral §7.1 resolution 向量（`resolution-vectors.json`）+ 独立窄 runner（`scripts/run-v-resolve.mjs`）+ 独立 review 说明（`docs/RESOLUTION-INDEPENDENT-REVIEW.md`）。R08（ring0 ALLOW + ring3 critical DENY）= DENY、R13（same-ring override critical DENY）= DENY；与 erdl-landing / erdl-formal 参考实现交叉验证 13/13 一致。
 - **契约 ER3**：`value_type` 枚举补入 `null`（E4 throw 结果）；约束验证向量（E4）补注携带 `threw: true`。
 - **契约 ER3**：明确 `value_type` 始终是**字符串**标签（`"null"` 是字符串字面量，不是 JSON `null`）——与 number 编码同理（标签拼作字符串，即使命名 null 类型）。
 - **契约 ER4**：新增封闭 warning 词表（六值：`type_mismatch` / `invalid_date` / `division_by_zero` / `quantifier_empty` / `aggregate_empty` / `regex_re_dos`）；明确 gloss 向量（V-GLOSS 含 V-GLOSS-INTEGRITY）报告的是 gloss **字符串**（非布尔值），`tampered_tree` 仅是完整性证据。
