@@ -1,0 +1,685 @@
+{
+"spec": "erdl-language-spec-v2.1.md",
+  "spec_commit": "7ba1e64",
+  "category": "V-RESOLVE",
+  "description": "Neutral vectors for independent re-derivation of ERDL §7.0.2 and §7.1 resolution semantics.",
+  "vectors": [
+   {
+      "id": "V-RESOLVE-R01",
+  "scenario": "single explicit ALLOW, no catch-all, single ring",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "read_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-001-explicit-allow",
+        "description": "Explicit ALLOW rule for read_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "ALLOW"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R02",
+  "scenario": "single explicit DENY, no catch-all, single ring",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "delete_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-002-explicit-deny",
+        "description": "Explicit DENY rule for delete_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "DENY",
+        "message": "delete_file call denied"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R03",
+  "scenario": "no explicit matches, catch-all only after explicit pass",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "list_files"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-003-explicit-nonmatch",
+        "description": "Explicit rule that does not match the input fact",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "DENY",
+        "message": "delete_file call denied"
+      },
+      {
+        "name": "RES-004-catch-all-allow",
+        "description": "Catch-all ALLOW when no explicit rule matches",
+        "priority": 20,
+        "override": "normal",
+        "ring": 0,
+        "when": "true",
+        "gloss": "true",
+        "then": "ALLOW",
+"instruction": "Fallback advisory allowance"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R04",
+  "scenario": "explicit ALLOW matches with a hypothetical catch-all DENY",
+"validity": "hypothetical_invalid_config",
+"validity_note": "Catch-all DENY is prohibited at load time by §7.4; this case isolates §7.1 item 6 resolution behavior.",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "read_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-005-explicit-allow",
+        "description": "Explicit ALLOW rule matching read_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "ALLOW"
+      },
+      {
+        "name": "RES-006-catch-all-deny",
+        "description": "Catch-all DENY fallback",
+        "priority": 1,
+        "override": "critical",
+        "ring": 0,
+        "when": "true",
+        "gloss": "true",
+        "then": "DENY",
+        "message": "Fallback denial"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R05",
+  "scenario": "explicit DENY matches and catch-all would ALLOW; catch-all remains inert",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "delete_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-007-explicit-deny",
+        "description": "Explicit DENY rule matching delete_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "DENY",
+        "message": "delete_file call denied"
+      },
+      {
+        "name": "RES-008-catch-all-allow",
+        "description": "Catch-all ALLOW fallback",
+        "priority": 1,
+        "override": "critical",
+        "ring": 0,
+        "when": "true",
+        "gloss": "true",
+        "then": "ALLOW",
+"instruction": "Fallback advisory allowance"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R06",
+  "scenario": "explicit rules match in ring 0 and ring 3 with no qualifying override; earlier ring decision remains",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "delete_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-009-ring0-deny",
+        "description": "Ring 0 DENY rule matching delete_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "DENY",
+        "message": "delete_file call denied"
+      },
+      {
+        "name": "RES-010-ring3-allow",
+        "description": "Ring 3 ALLOW rule without qualifying cross-ring override",
+        "priority": 10,
+        "override": "normal",
+        "ring": 3,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "ALLOW"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R07",
+  "scenario": "ring 0 DENY followed by qualifying high ALLOW override in ring 3",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "delete_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-011-ring0-deny",
+        "description": "Ring 0 DENY rule matching delete_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "DENY",
+        "message": "delete_file call denied"
+      },
+      {
+        "name": "RES-012-ring3-high-allow",
+        "description": "Ring 3 high-override ALLOW rule matching delete_file",
+        "priority": 10,
+        "override": "high",
+        "ring": 3,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "ALLOW"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R08",
+  "scenario": "ring 0 ALLOW, then ring 3 critical DENY",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "read_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-013-ring0-allow",
+        "description": "Ring 0 ALLOW rule matching read_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "ALLOW"
+      },
+      {
+        "name": "RES-014-ring3-critical-deny",
+        "description": "Ring 3 critical DENY rule matching read_file",
+        "priority": 10,
+        "override": "critical",
+        "ring": 3,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "DENY",
+        "message": "read_file call denied"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R09",
+  "scenario": "ring 0 DENY followed by normal ALLOW in ring 3; non-qualifying override leaves DENY in effect",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "delete_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-015-ring0-deny",
+        "description": "Ring 0 DENY rule matching delete_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "DENY",
+        "message": "delete_file call denied"
+      },
+      {
+        "name": "RES-016-ring3-normal-allow",
+        "description": "Ring 3 normal ALLOW rule matching delete_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 3,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "ALLOW"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R10",
+  "scenario": "multiple explicit rules match with a hypothetical catch-all DENY",
+"validity": "hypothetical_invalid_config",
+"validity_note": "Catch-all DENY is prohibited at load time by §7.4; this case isolates §7.1 item 6 resolution behavior.",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "delete_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-017-explicit-deny",
+        "description": "Explicit DENY rule matching delete_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "DENY",
+        "message": "delete_file call denied"
+      },
+      {
+        "name": "RES-018-explicit-high-allow",
+        "description": "Explicit high-override ALLOW rule matching delete_file",
+        "priority": 20,
+        "override": "high",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "ALLOW"
+      },
+      {
+        "name": "RES-019-catch-all-deny",
+        "description": "Catch-all DENY fallback that must not participate after an explicit match",
+        "priority": 1,
+        "override": "critical",
+        "ring": 0,
+        "when": "true",
+        "gloss": "true",
+        "then": "DENY",
+        "message": "Fallback denial"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R11",
+  "scenario": "no explicit rules match; catch-all is evaluated in the second pass",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "list_files"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-020-explicit-nonmatch",
+        "description": "Explicit DENY rule that does not match list_files",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "delete_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"delete_file\"",
+        "then": "DENY",
+        "message": "delete_file call denied"
+      },
+      {
+        "name": "RES-021-catch-all-allow",
+        "description": "Catch-all ALLOW evaluated only after no explicit rule matches",
+        "priority": 1,
+        "override": "normal",
+        "ring": 0,
+        "when": "true",
+        "gloss": "true",
+        "then": "ALLOW",
+"instruction": "Fallback advisory allowance"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R12",
+  "scenario": "explicit rule matches before a hypothetical catch-all DENY pass",
+"validity": "hypothetical_invalid_config",
+"validity_note": "Catch-all DENY is prohibited at load time by §7.4; this case isolates §7.1 item 6 resolution behavior.",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "read_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-022-explicit-allow",
+        "description": "Explicit ALLOW rule matching read_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "ALLOW"
+      },
+      {
+        "name": "RES-023-catch-all-deny",
+        "description": "Catch-all DENY that must be skipped after the explicit match",
+        "priority": 1,
+        "override": "critical",
+        "ring": 0,
+        "when": "true",
+        "gloss": "true",
+        "then": "DENY",
+        "message": "Fallback denial"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+},
+{
+  "id": "V-RESOLVE-R13",
+  "scenario": "same-ring ALLOW followed by critical DENY; restrictive tightening does not require override",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "read_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-024-same-ring-allow",
+        "description": "Same-ring ALLOW rule matching read_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "ALLOW"
+      },
+      {
+        "name": "RES-025-same-ring-critical-deny",
+        "description": "Same-ring critical DENY matching read_file",
+        "priority": 20,
+        "override": "critical",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "DENY",
+        "message": "read_file call denied"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
+}
+]
+}
