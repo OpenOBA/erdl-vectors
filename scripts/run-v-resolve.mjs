@@ -41,12 +41,21 @@ export function resolve({ fact, rules }) {
       totalEvaluated++;
       if (!matches(rule, fact)) continue;
       matched.push(rule.name);
-      if (decision === null) decision = rule.then;
-      else if (decision === 'DENY' && rule.then === 'ALLOW' &&
-               (rule.override === 'high' || rule.override === 'critical')) {
-        // §7.1 item 5: this direction alone can cross rings.
-        decision = 'ALLOW';
-      }
+      if (decision === null) {
+  decision = rule.then;
+} else if (decision === 'ALLOW' && rule.then === 'DENY') {
+  // §7.1 item 5: tightening is the default.
+  // A restrictive DENY tightens an established ALLOW regardless of ring
+  // and does not require override; override on DENY is inert.
+  decision = 'DENY';
+} else if (
+  decision === 'DENY' &&
+  rule.then === 'ALLOW' &&
+  (rule.override === 'high' || rule.override === 'critical')
+) {
+  // §7.1 item 5: relaxing DENY -> ALLOW requires a qualifying override.
+  decision = 'ALLOW';
+}
       // A subsequent DENY does not use override to rewrite an ALLOW.
       if (rule.then === 'EMERGENCY_HALT' || rule.then === 'WORKFLOW') break;
     }
