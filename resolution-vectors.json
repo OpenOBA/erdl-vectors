@@ -623,6 +623,63 @@
     "matched_rules",
     "total_evaluated"
   ]
+},
+{
+  "id": "V-RESOLVE-R13",
+  "scenario": "same-ring ALLOW followed by critical DENY; restrictive tightening does not require override",
+  "input": {
+    "fact": {
+      "tool": {
+        "name": "read_file"
+      }
+    },
+    "rules": [
+      {
+        "name": "RES-024-same-ring-allow",
+        "description": "Same-ring ALLOW rule matching read_file",
+        "priority": 10,
+        "override": "normal",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "ALLOW"
+      },
+      {
+        "name": "RES-025-same-ring-critical-deny",
+        "description": "Same-ring critical DENY matching read_file",
+        "priority": 20,
+        "override": "critical",
+        "ring": 0,
+        "when": {
+          "logic": "AND",
+          "conditions": [
+            {
+              "field": "tool.name",
+              "operator": "eq",
+              "value": "read_file"
+            }
+          ]
+        },
+        "gloss": "tool.name equals \"read_file\"",
+        "then": "DENY",
+        "message": "read_file call denied"
+      }
+    ]
+  },
+  "observables": [
+    "decision",
+    "matched_rules",
+    "total_evaluated"
+  ]
 }
 ]
 }
