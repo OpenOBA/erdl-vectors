@@ -1,5 +1,5 @@
 {
-  "spec": "erdl-spec-v2.2",
+"spec": "erdl-language-spec-v2.1.md",
   "spec_commit": "7ba1e64",
   "category": "V-RESOLVE",
   "description": "Neutral vectors for independent re-derivation of ERDL §7.0.2 and §7.1 resolution semantics.",
@@ -117,7 +117,8 @@
         "ring": 0,
         "when": "true",
         "gloss": "true",
-        "then": "ALLOW"
+        "then": "ALLOW",
+"instruction": "Fallback advisory allowance"
       }
     ]
   },
@@ -129,7 +130,9 @@
 },
 {
   "id": "V-RESOLVE-R04",
-  "scenario": "explicit ALLOW matches and catch-all would DENY; catch-all remains inert",
+  "scenario": "explicit ALLOW matches with a hypothetical catch-all DENY",
+"validity": "hypothetical_invalid_config",
+"validity_note": "Catch-all DENY is prohibited at load time by §7.4; this case isolates §7.1 item 6 resolution behavior.",
   "input": {
     "fact": {
       "tool": {
@@ -213,7 +216,8 @@
         "ring": 0,
         "when": "true",
         "gloss": "true",
-        "then": "ALLOW"
+        "then": "ALLOW",
+"instruction": "Fallback advisory allowance"
       }
     ]
   },
@@ -339,7 +343,7 @@
 },
 {
   "id": "V-RESOLVE-R08",
-  "scenario": "ring 0 ALLOW followed by critical DENY in ring 3; override must not operate ALLOW to DENY",
+  "scenario": "ring 0 ALLOW, then ring 3 critical DENY",
   "input": {
     "fact": {
       "tool": {
@@ -453,7 +457,9 @@
 },
 {
   "id": "V-RESOLVE-R10",
-  "scenario": "multiple explicit rules match while catch-all is present; catch-all does not participate",
+  "scenario": "multiple explicit rules match with a hypothetical catch-all DENY",
+"validity": "hypothetical_invalid_config",
+"validity_note": "Catch-all DENY is prohibited at load time by §7.4; this case isolates §7.1 item 6 resolution behavior.",
   "input": {
     "fact": {
       "tool": {
@@ -557,7 +563,8 @@
         "ring": 0,
         "when": "true",
         "gloss": "true",
-        "then": "ALLOW"
+        "then": "ALLOW",
+"instruction": "Fallback advisory allowance"
       }
     ]
   },
@@ -569,7 +576,9 @@
 },
 {
   "id": "V-RESOLVE-R12",
-  "scenario": "explicit rule matches before catch-all pass; skipped catch-all is not included in total_evaluated",
+  "scenario": "explicit rule matches before a hypothetical catch-all DENY pass",
+"validity": "hypothetical_invalid_config",
+"validity_note": "Catch-all DENY is prohibited at load time by §7.4; this case isolates §7.1 item 6 resolution behavior.",
   "input": {
     "fact": {
       "tool": {
