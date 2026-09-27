@@ -46,9 +46,14 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 
 > 第三方 expression-layer Runner 提交见 [EXPRESSION-RUNNER-CONTRACT.md](EXPRESSION-RUNNER-CONTRACT.md)（ER3 envelope，`submissions/<runner>-output.json`）；CI 交叉验证（`verify-v-engine-submission.mjs`）通过后，合并时自动登记于上表。
 
-### 开放征集（尚未登记）
+### Resolution-Layer Registry（V-RESOLVE 13 向量）
 
-- **§7.1 裁决语义**（ring 顺序 0→3 / `override` 方向 / catch-all 惰性）：目前**无**第三方独立实现，也**尚无**对应向量集。裁决 fold 与其参考实现已由 `erdl-formal` 证明并变异测试，但两者源自对 SPEC §7.1 的同一解读，可能在同一误读上保持一致；决定性的独立锚定是仅凭 SPEC 文本重推导 §7.1 的第三方 runner。正在征集中——见 [README「§7.1 裁决语义 — Runner 征集中」](../README.zh-CN.md)。
+| Implementor | Method | Result | Date | Artifact |
+|------------|--------|:-------:|------|---------|
+| **OpenOBA (reference)** | Node.js, @openoba/erdl | 13/13 | 2026-09-27 | [generate-v-resolve.mjs](scripts/generate-v-resolve.mjs) |
+| **RavindraAnnam** | Node.js, spec-only | 13/13 | 2026-09-27 | [PR #5](https://github.com/OpenOBA/erdl-vectors/pull/5) |
+
+> 第三方 V-RESOLVE Runner 见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)；CI 交叉验证（`verify-v-resolve-submission.mjs`）待 `@openoba/erdl` 发布 §7.1 收紧修正后启用。
 
 ### v1.3 历史档案（Decision Object v1.3，AV 编号）
 

@@ -46,11 +46,11 @@ Decision Object 是 ERDL 规则引擎一次决策的审计记录——基于 [ER
 
 逐字节重算一致，即证明这份标准在你的实现下成立。v1.5 的 78 条哈希层向量现已有两个独立第三方 Runner 逐字节验证（Go / norviq-go，2026-09-01；Python / concordia-python，2026-09-02），各 107/107 canonical bytes——见 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表。
 
-### §7.1 裁决语义 — Runner 征集中（开放）
+### §7.1 裁决语义 — 首个独立 Runner（RavindraAnnam）
 
-在哈希层与表达式层之外，**§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）同样开放征集独立 Runner。这是一种不同类型的缺口：裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致（ANP2 Network 指出的独立性问题）。决定性的修复，是一个仅凭 SPEC 文本独立重推导 §7.1 的第三方实现。
+在哈希层与表达式层之外，**§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）同样由独立 Runner 覆盖。裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致（ANP2 Network 指出的独立性问题）。决定性的修复，是一个仅凭 SPEC 文本独立重推导 §7.1 的第三方实现。
 
-§7.1 裁决向量集**尚未生成**（不同于 78 条哈希层与 240 条表达式层向量）；其产出是本征集的一部分。若你能仅凭 §7.1 文本重推导 ring/override/catch-all 并与 fold 交叉核验，欢迎联系——见 [submissions/README.md](submissions/README.md)。
+13 条 V-RESOLVE 向量集（`resolution-vectors.json`）+ 独立 spec-only runner（`scripts/run-v-resolve.mjs`）由 **RavindraAnnam** 贡献（PR #5），已与参考引擎交叉验证 13/13 一致。这次独立推导暴露并解决了 §7.1 收紧方向的边界（R08/R13）：restrictive DENY 默认收紧已确立的 ALLOW，不比较 ring、无需 override。见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)。
 
 ## A2A 发展语境
 
@@ -169,7 +169,7 @@ npm test                  # vitest 回归套件（含 web/Node 一致性 + 对�
 - **Christopher Hopley（chopmob-cloud / AlgoVoi）**——独立技术审阅者。在 v1.2 / v1.3 审计中发现自引用哈希排除规则缺位、字符串小数跨引擎不一致等关键问题，推动扁平哈希架构确立；其洁净室 RFC 8785 JCS + SHA-256 检查器报告了四个技术发现（C1–C4）与三个安全问题（S1–S3），其中双哈希算法降级（CWE-757）与 schema_ref SSRF 攻击面直接推动了安全加固。
 - **Erik Newton（Concordia）**——首个独立 Runner 实现者，「中立性不是宣称的，是测出来的」原则的提出者。在 A2A Discussion #2031 确立「三个独立实现、一个开放规范、没有单一所有者」的标准化路径；以 Python 纯规范实现（自建 JCS）逐字节验证 v1.3 全部 13 条 AV 向量；贡献了链完整性金丝雀设计、答案文件分离架构与 generated-artifact + clean-room + registry 的 CI 验证架构。
 - **Santosh Kumar Puppala（norviq-dev）**——提出 record-emission fidelity 缺口（附录 A P-05）及 PEP/缓存命中路径的真实事故案例；提出 P6 可解析集语义歧义；将 decision_divergence 界定为「bound 非 closure」。
-- **RavindraAnnam**——独立技术审阅者，直指「确定性内核」宣称中最难坚守的边界——**有状态算子**（`within`/`rate`）。他对求值器的 review 揭示了状态突变的 `temporal_state` 证据缺口与 `total_evaluated` 计数漂移——现均已修复并由一致性向量覆盖。此外，他在 A2A Discussion #2031 中提出的四条运行时权威不变式（权威不放大、溯源连续、窄化继承、传递撤销）演化成了 INV-01~INV-05 委托权威安全备忘，并成为 OpenOBA 多 Agent 治理方向的基础。
+- **RavindraAnnam**——独立技术审阅者，直指「确定性内核」宣称中最难坚守的边界——**有状态算子**（`within`/`rate`）。他对求值器的 review 揭示了状态突变的 `temporal_state` 证据缺口与 `total_evaluated` 计数漂移——现均已修复并由一致性向量覆盖。此外，他在 A2A Discussion #2031 中提出的四条运行时权威不变式（权威不放大、溯源连续、窄化继承、传递撤销）演化成了 INV-01~INV-05 委托权威安全备忘，并成为 OpenOBA 多 Agent 治理方向的基础。他还贡献了首个独立 §7.1 resolution runner（PR #5）：13 条 neutral V-RESOLVE 向量 + spec-only runner，其推导暴露并解决了收紧方向边界（R08/R13），现已在 §7.1 第 5 条明示。
 - **Rulsynor 团队**——参考规则引擎实现，为 Decision Object 字段设计提供真实工程约束输入，是测试向量生成的基准。
 
 ## 归档说明

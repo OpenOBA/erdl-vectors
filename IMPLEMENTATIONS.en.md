@@ -43,6 +43,15 @@ Inclusion in this table does not imply endorsement by OpenOBA — it records onl
 
 > For third-party expression-layer Runner submissions see [EXPRESSION-RUNNER-CONTRACT.md](EXPRESSION-RUNNER-CONTRACT.md) (ER3 envelope, `submissions/<runner>-output.json`); after CI cross-verification passes, automatically registered in the table above on merge.
 
+### Resolution-Layer Registry (V-RESOLVE 13 vectors)
+
+| Implementor | Method | Result | Date | Artifact |
+|------------|--------|:-------:|------|---------|
+| **OpenOBA (reference)** | Node.js, @openoba/erdl | 13/13 | 2026-09-27 | [generate-v-resolve.mjs](scripts/generate-v-resolve.mjs) |
+| **RavindraAnnam** | Node.js, spec-only | 13/13 | 2026-09-27 | [PR #5](https://github.com/OpenOBA/erdl-vectors/pull/5) |
+
+> For the third-party V-RESOLVE runner see [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md); CI cross-verification (`verify-v-resolve-submission.mjs`) is enabled once `@openoba/erdl` publishes the §7.1 tightening fix.
+
 ### v1.3 historical archive (Decision Object v1.3, AV numbering)
 
 Third-party verification records from the v1.3 era (13 AV vectors); kept in archive, numbering not reused:

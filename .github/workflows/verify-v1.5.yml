@@ -61,6 +61,13 @@ jobs:
       - name: Generate V-ENGINE vectors + answers (oracle isolation)
         run: npm run generate:vengine
 
+      - name: Generate V-RESOLVE answers (oracle isolation)
+        run: npm run generate:vresolve
+        # NOTE: V-RESOLVE runner cross-verification (verify:vresolve) is NOT yet
+        # enabled in CI — it needs @openoba/erdl >= the §7.1 tightening fix
+        # (same-ring override DENY = DENY). The npm package currently lags the
+        # erdl-landing git main; enable `verify:vresolve` after the next publish.
+
       - name: Cross-verify runner submissions (hash-layer + expression-layer)
         run: |
           if ls submissions/*.json >/dev/null 2>&1; then
