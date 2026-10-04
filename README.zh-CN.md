@@ -48,7 +48,7 @@ Decision Object 是 ERDL 规则引擎一次决策的审计记录——基于 [ER
 
 ### §7.1 裁决语义 — 首个独立 Runner（RavindraAnnam）
 
-在哈希层与表达式层之外，**§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）同样由独立 Runner 覆盖。裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致（ANP2 Network 指出的独立性问题）。决定性的修复，是一个仅凭 SPEC 文本独立重推导 §7.1 的第三方实现。
+在哈希层与表达式层之外，**§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）同样由独立 Runner 覆盖。裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致。决定性的修复，是一个仅凭 SPEC 文本独立重推导 §7.1 的第三方实现。
 
 13 条 V-RESOLVE 向量集（`resolution-vectors.json`）+ 独立 spec-only runner（`scripts/run-v-resolve.mjs`）由 **RavindraAnnam** 贡献（PR #5），已与参考引擎交叉验证 13/13 一致。这次独立推导暴露并解决了 §7.1 收紧方向的边界（R08/R13）：restrictive DENY 默认收紧已确立的 ALLOW，不比较 ring、无需 override。见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)。
 

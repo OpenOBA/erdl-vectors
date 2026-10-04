@@ -48,7 +48,7 @@ Byte-identical recomputation proves that this standard holds under your implemen
 
 ### §7.1 resolution semantics — first independent runner (RavindraAnnam)
 
-Beyond the hash layer and the expression layer, the **§7.1 resolution semantics** (ring order 0→3, `override` direction, catch-all inertness) are also covered by independent Runners. The resolution fold and its hand-written reference are proven and mutation-tested in `erdl-formal`, but both encodings descend from the **same reading of SPEC §7.1**, so they can agree on the same mis-reading (the independence critique ANP2 Network raised). The deterministic fix is a third-party implementation that re-derives §7.1 from the SPEC text alone.
+Beyond the hash layer and the expression layer, the **§7.1 resolution semantics** (ring order 0→3, `override` direction, catch-all inertness) are also covered by independent Runners. The resolution fold and its hand-written reference are proven and mutation-tested in `erdl-formal`, but both encodings descend from the **same reading of SPEC §7.1**, so they can agree on the same mis-reading. The deterministic fix is a third-party implementation that re-derives §7.1 from the SPEC text alone.
 
 A 13-vector V-RESOLVE set (`resolution-vectors.json`) + an independent spec-only runner (`scripts/run-v-resolve.mjs`) were contributed by **RavindraAnnam** (PR #5) and cross-verified 13/13 against the reference engine. The independent derivation surfaced and resolved the §7.1 tightening-direction boundary (R08 / R13): a restrictive DENY tightens an established ALLOW by default, regardless of ring or override. See [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md).
 
