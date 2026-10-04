@@ -30,6 +30,8 @@
   },
   "scripts": {
     "generate": "node scripts/generate-v1.5.cjs",
+  "generate:signature": "node scripts/generate-signature.cjs",
+  "verify:signature": "node scripts/verify-signature.cjs",
     "generate:vengine": "node scripts/generate-v-engine.mjs",
     "generate:vresolve": "node scripts/generate-v-resolve.mjs",
     "verify:vresolve": "node scripts/verify-v-resolve-submission.mjs",

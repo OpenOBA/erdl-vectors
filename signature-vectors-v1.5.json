@@ -1,0 +1,587 @@
+{
+  "spec": "decision-object-v1.5-signature",
+  "preimage_version": "erdl-do-v1.5-hash-flat",
+  "signature_algorithm": "Ed25519 (RFC 8032 / FIPS 186-5, PureEdDSA)",
+  "signing_key_id": "ed25519-test-key-001",
+  "test_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA7eZBRNJWKQdFBa7jvgG5sotxqqUq8gc91czQVYNx5g0=\n-----END PUBLIC KEY-----",
+  "test_key_declaration": "PUBLIC test key pair (private key published, for vector verification only, strictly forbidden for production signing — RFC-002 §10.3)",
+  "vectors": [
+    {
+      "id": "V-SIGN-001",
+      "category": "V-SIGN",
+      "scenario": "legal-signature",
+      "description": "Legal signature: verify succeeds with the signing_key_id public key",
+      "decision_object": {
+        "spec": "decision-object-v1.5-signature",
+        "decision_id": "00000000-0000-0000-0000-000000000000",
+        "compliance_profile": {
+          "profile_id": "erdl-compliance-v1.5",
+          "profile_hash": "sha256:1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0",
+          "jurisdictions": [
+            "CN"
+          ],
+          "risk_level": "critical",
+          "activated_fields": [
+            "signature",
+            "signing_key_id",
+            "context_snapshot_hash",
+            "sanitized_context"
+          ],
+          "regulatory_references": []
+        },
+        "execution_trace_id": "trace-sig",
+        "timestamp": "2026-08-22T00:00:00.000Z",
+        "evaluation_duration_ms": 5,
+        "context": {
+          "operation": "read"
+        },
+        "agent": {
+          "id": "did:erdl:sha256:test-runner-v1.5",
+          "role": "guardian",
+          "version": "v1.5.0"
+        },
+        "context_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "sanitized_context": "sanitized-context-placeholder",
+        "rule_set_version": {
+          "id": "sha256:ruleset-sig",
+          "timestamp": "2026-08-22T00:00:00.000Z"
+        },
+        "policies": [],
+        "evaluation": {
+          "matched_rules": [],
+          "total_evaluated": 0,
+          "total_matched": 0
+        },
+        "result": {
+          "decision": "ALLOW",
+          "reason": "Decision: ALLOW",
+          "applied_rule": null,
+          "rules_matched": []
+        },
+        "human_oversight": {
+          "required": false
+        },
+        "audit": {
+          "mode": "signature",
+          "preimage_version": "erdl-do-v1.5-hash-flat",
+          "previous_signature": null,
+          "retention": {
+            "retention_until": "2029-08-22T00:00:00.000Z",
+            "retention_basis": "GB-Z-185-2026-36-month"
+          },
+          "chain_id": "chain-sig-001",
+          "chain_seq": 0
+        },
+        "signing_key_id": "ed25519-test-key-001",
+        "extensions": [],
+        "signature": "_SMFcAgG6zrcfjuS8G5X9rfJGz8MzeqaRl3egKRkAaDnaMulUmnp88vqYqfL2iIvc3i8-vOBW4J5XDRx0-QqDg"
+      },
+      "expected": {
+        "type": "VERIFY",
+        "verify": "pass"
+      }
+    },
+    {
+      "id": "V-SIGN-002",
+      "category": "V-SIGN",
+      "scenario": "tampered-signature",
+      "description": "Tampered field → verify fails (signature mismatch)",
+      "base_do": {
+        "spec": "decision-object-v1.5-signature",
+        "decision_id": "00000000-0000-0000-0000-000000000000",
+        "compliance_profile": {
+          "profile_id": "erdl-compliance-v1.5",
+          "profile_hash": "sha256:1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0",
+          "jurisdictions": [
+            "CN"
+          ],
+          "risk_level": "critical",
+          "activated_fields": [
+            "signature",
+            "signing_key_id",
+            "context_snapshot_hash",
+            "sanitized_context"
+          ],
+          "regulatory_references": []
+        },
+        "execution_trace_id": "trace-sig",
+        "timestamp": "2026-08-22T00:00:00.000Z",
+        "evaluation_duration_ms": 5,
+        "context": {
+          "operation": "read"
+        },
+        "agent": {
+          "id": "did:erdl:sha256:test-runner-v1.5",
+          "role": "guardian",
+          "version": "v1.5.0"
+        },
+        "context_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "sanitized_context": "sanitized-context-placeholder",
+        "rule_set_version": {
+          "id": "sha256:ruleset-sig",
+          "timestamp": "2026-08-22T00:00:00.000Z"
+        },
+        "policies": [],
+        "evaluation": {
+          "matched_rules": [],
+          "total_evaluated": 0,
+          "total_matched": 0
+        },
+        "result": {
+          "decision": "ALLOW",
+          "reason": "Decision: ALLOW",
+          "applied_rule": null,
+          "rules_matched": []
+        },
+        "human_oversight": {
+          "required": false
+        },
+        "audit": {
+          "mode": "signature",
+          "preimage_version": "erdl-do-v1.5-hash-flat",
+          "previous_signature": null,
+          "retention": {
+            "retention_until": "2029-08-22T00:00:00.000Z",
+            "retention_basis": "GB-Z-185-2026-36-month"
+          },
+          "chain_id": "chain-sig-002",
+          "chain_seq": 0
+        },
+        "signing_key_id": "ed25519-test-key-001",
+        "extensions": [],
+        "signature": "cGVxoMvUTeozw59tHlaQbavvNzwRmURlaLrNIzY6ILEFMh7FnNwkC9fRaA6di-V6pj2na83de9Q2nBAW-F_wBQ"
+      },
+      "tampered_do": {
+        "spec": "decision-object-v1.5-signature",
+        "decision_id": "00000000-0000-0000-0000-000000000000",
+        "compliance_profile": {
+          "profile_id": "erdl-compliance-v1.5",
+          "profile_hash": "sha256:1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0",
+          "jurisdictions": [
+            "CN"
+          ],
+          "risk_level": "critical",
+          "activated_fields": [
+            "signature",
+            "signing_key_id",
+            "context_snapshot_hash",
+            "sanitized_context"
+          ],
+          "regulatory_references": []
+        },
+        "execution_trace_id": "trace-sig",
+        "timestamp": "2026-08-22T00:00:00.000Z",
+        "evaluation_duration_ms": 5,
+        "context": {
+          "operation": "read"
+        },
+        "agent": {
+          "id": "did:erdl:sha256:test-runner-v1.5",
+          "role": "guardian",
+          "version": "v1.5.0"
+        },
+        "context_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "sanitized_context": "sanitized-context-placeholder",
+        "rule_set_version": {
+          "id": "sha256:ruleset-sig",
+          "timestamp": "2026-08-22T00:00:00.000Z"
+        },
+        "policies": [],
+        "evaluation": {
+          "matched_rules": [],
+          "total_evaluated": 0,
+          "total_matched": 0
+        },
+        "result": {
+          "decision": "DENY",
+          "reason": "Decision: ALLOW",
+          "applied_rule": null,
+          "rules_matched": []
+        },
+        "human_oversight": {
+          "required": false
+        },
+        "audit": {
+          "mode": "signature",
+          "preimage_version": "erdl-do-v1.5-hash-flat",
+          "previous_signature": null,
+          "retention": {
+            "retention_until": "2029-08-22T00:00:00.000Z",
+            "retention_basis": "GB-Z-185-2026-36-month"
+          },
+          "chain_id": "chain-sig-002",
+          "chain_seq": 0
+        },
+        "signing_key_id": "ed25519-test-key-001",
+        "extensions": [],
+        "signature": "cGVxoMvUTeozw59tHlaQbavvNzwRmURlaLrNIzY6ILEFMh7FnNwkC9fRaA6di-V6pj2na83de9Q2nBAW-F_wBQ"
+      },
+      "expected": {
+        "type": "VERIFY",
+        "verify": "fail"
+      }
+    },
+    {
+      "id": "V-SIGN-003",
+      "category": "V-SIGN",
+      "scenario": "signature-chain",
+      "description": "Signature chain traceback: previous_signature links 3 DOs with no break",
+      "chain": [
+        {
+          "spec": "decision-object-v1.5-signature",
+          "decision_id": "00000000-0000-0000-0000-000000000000",
+          "compliance_profile": {
+            "profile_id": "erdl-compliance-v1.5",
+            "profile_hash": "sha256:1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0",
+            "jurisdictions": [
+              "CN"
+            ],
+            "risk_level": "critical",
+            "activated_fields": [
+              "signature",
+              "signing_key_id",
+              "context_snapshot_hash",
+              "sanitized_context"
+            ],
+            "regulatory_references": []
+          },
+          "execution_trace_id": "trace-sig",
+          "timestamp": "2026-08-22T00:00:00.000Z",
+          "evaluation_duration_ms": 5,
+          "context": {
+            "operation": "read",
+            "step": 0
+          },
+          "agent": {
+            "id": "did:erdl:sha256:test-runner-v1.5",
+            "role": "guardian",
+            "version": "v1.5.0"
+          },
+          "context_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "sanitized_context": "sanitized-context-placeholder",
+          "rule_set_version": {
+            "id": "sha256:ruleset-sig",
+            "timestamp": "2026-08-22T00:00:00.000Z"
+          },
+          "policies": [],
+          "evaluation": {
+            "matched_rules": [],
+            "total_evaluated": 0,
+            "total_matched": 0
+          },
+          "result": {
+            "decision": "ALLOW",
+            "reason": "Decision: ALLOW",
+            "applied_rule": null,
+            "rules_matched": []
+          },
+          "human_oversight": {
+            "required": false
+          },
+          "audit": {
+            "mode": "signature",
+            "preimage_version": "erdl-do-v1.5-hash-flat",
+            "previous_signature": null,
+            "retention": {
+              "retention_until": "2029-08-22T00:00:00.000Z",
+              "retention_basis": "GB-Z-185-2026-36-month"
+            },
+            "chain_id": "chain-sig-003",
+            "chain_seq": 0
+          },
+          "signing_key_id": "ed25519-test-key-001",
+          "extensions": [],
+          "signature": "wzyAaPj2DZzLNe4O1qkIsuXioRO22B91CUS0yeVjU5zuPsRmUbowut780FTvFkaNtasCprWkKmu6tB7H2KqXBA"
+        },
+        {
+          "spec": "decision-object-v1.5-signature",
+          "decision_id": "00000000-0000-0000-0000-000000000000",
+          "compliance_profile": {
+            "profile_id": "erdl-compliance-v1.5",
+            "profile_hash": "sha256:1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0",
+            "jurisdictions": [
+              "CN"
+            ],
+            "risk_level": "critical",
+            "activated_fields": [
+              "signature",
+              "signing_key_id",
+              "context_snapshot_hash",
+              "sanitized_context"
+            ],
+            "regulatory_references": []
+          },
+          "execution_trace_id": "trace-sig",
+          "timestamp": "2026-08-22T00:00:00.000Z",
+          "evaluation_duration_ms": 5,
+          "context": {
+            "operation": "read",
+            "step": 1
+          },
+          "agent": {
+            "id": "did:erdl:sha256:test-runner-v1.5",
+            "role": "guardian",
+            "version": "v1.5.0"
+          },
+          "context_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "sanitized_context": "sanitized-context-placeholder",
+          "rule_set_version": {
+            "id": "sha256:ruleset-sig",
+            "timestamp": "2026-08-22T00:00:00.000Z"
+          },
+          "policies": [],
+          "evaluation": {
+            "matched_rules": [],
+            "total_evaluated": 0,
+            "total_matched": 0
+          },
+          "result": {
+            "decision": "ALLOW",
+            "reason": "Decision: ALLOW",
+            "applied_rule": null,
+            "rules_matched": []
+          },
+          "human_oversight": {
+            "required": false
+          },
+          "audit": {
+            "mode": "signature",
+            "preimage_version": "erdl-do-v1.5-hash-flat",
+            "previous_signature": "wzyAaPj2DZzLNe4O1qkIsuXioRO22B91CUS0yeVjU5zuPsRmUbowut780FTvFkaNtasCprWkKmu6tB7H2KqXBA",
+            "retention": {
+              "retention_until": "2029-08-22T00:00:00.000Z",
+              "retention_basis": "GB-Z-185-2026-36-month"
+            },
+            "chain_id": "chain-sig-003",
+            "chain_seq": 1
+          },
+          "signing_key_id": "ed25519-test-key-001",
+          "extensions": [],
+          "signature": "VtrZ2ZXJyELz8qPeAroBYKSyOHU6PG1oWCTSdXsLISfQoBIrEp5kzDScvM0Mc6pz-EYw544wk9tnIZcgEv62Aw"
+        },
+        {
+          "spec": "decision-object-v1.5-signature",
+          "decision_id": "00000000-0000-0000-0000-000000000000",
+          "compliance_profile": {
+            "profile_id": "erdl-compliance-v1.5",
+            "profile_hash": "sha256:1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0",
+            "jurisdictions": [
+              "CN"
+            ],
+            "risk_level": "critical",
+            "activated_fields": [
+              "signature",
+              "signing_key_id",
+              "context_snapshot_hash",
+              "sanitized_context"
+            ],
+            "regulatory_references": []
+          },
+          "execution_trace_id": "trace-sig",
+          "timestamp": "2026-08-22T00:00:00.000Z",
+          "evaluation_duration_ms": 5,
+          "context": {
+            "operation": "read",
+            "step": 2
+          },
+          "agent": {
+            "id": "did:erdl:sha256:test-runner-v1.5",
+            "role": "guardian",
+            "version": "v1.5.0"
+          },
+          "context_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "sanitized_context": "sanitized-context-placeholder",
+          "rule_set_version": {
+            "id": "sha256:ruleset-sig",
+            "timestamp": "2026-08-22T00:00:00.000Z"
+          },
+          "policies": [],
+          "evaluation": {
+            "matched_rules": [],
+            "total_evaluated": 0,
+            "total_matched": 0
+          },
+          "result": {
+            "decision": "ALLOW",
+            "reason": "Decision: ALLOW",
+            "applied_rule": null,
+            "rules_matched": []
+          },
+          "human_oversight": {
+            "required": false
+          },
+          "audit": {
+            "mode": "signature",
+            "preimage_version": "erdl-do-v1.5-hash-flat",
+            "previous_signature": "VtrZ2ZXJyELz8qPeAroBYKSyOHU6PG1oWCTSdXsLISfQoBIrEp5kzDScvM0Mc6pz-EYw544wk9tnIZcgEv62Aw",
+            "retention": {
+              "retention_until": "2029-08-22T00:00:00.000Z",
+              "retention_basis": "GB-Z-185-2026-36-month"
+            },
+            "chain_id": "chain-sig-003",
+            "chain_seq": 2
+          },
+          "signing_key_id": "ed25519-test-key-001",
+          "extensions": [],
+          "signature": "AuYM8ksATpoeFdCzlKK4Bcw3fCp31JkFrKBeSKJnkNpF9ItCu-2wDS6BEDZOxDgz94SVsL67E5iRNoBeiMW_BQ"
+        }
+      ],
+      "expected": {
+        "type": "VERIFY",
+        "verify": "chain-pass"
+      }
+    },
+    {
+      "id": "V-SIGN-004",
+      "category": "V-SIGN",
+      "scenario": "forged-signature",
+      "description": "Signed with a different private key → verify fails under the claimed signing_key_id",
+      "decision_object": {
+        "spec": "decision-object-v1.5-signature",
+        "decision_id": "00000000-0000-0000-0000-000000000000",
+        "compliance_profile": {
+          "profile_id": "erdl-compliance-v1.5",
+          "profile_hash": "sha256:1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0",
+          "jurisdictions": [
+            "CN"
+          ],
+          "risk_level": "critical",
+          "activated_fields": [
+            "signature",
+            "signing_key_id",
+            "context_snapshot_hash",
+            "sanitized_context"
+          ],
+          "regulatory_references": []
+        },
+        "execution_trace_id": "trace-sig",
+        "timestamp": "2026-08-22T00:00:00.000Z",
+        "evaluation_duration_ms": 5,
+        "context": {
+          "operation": "read"
+        },
+        "agent": {
+          "id": "did:erdl:sha256:test-runner-v1.5",
+          "role": "guardian",
+          "version": "v1.5.0"
+        },
+        "context_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "sanitized_context": "sanitized-context-placeholder",
+        "rule_set_version": {
+          "id": "sha256:ruleset-sig",
+          "timestamp": "2026-08-22T00:00:00.000Z"
+        },
+        "policies": [],
+        "evaluation": {
+          "matched_rules": [],
+          "total_evaluated": 0,
+          "total_matched": 0
+        },
+        "result": {
+          "decision": "ALLOW",
+          "reason": "Decision: ALLOW",
+          "applied_rule": null,
+          "rules_matched": []
+        },
+        "human_oversight": {
+          "required": false
+        },
+        "audit": {
+          "mode": "signature",
+          "preimage_version": "erdl-do-v1.5-hash-flat",
+          "previous_signature": null,
+          "retention": {
+            "retention_until": "2029-08-22T00:00:00.000Z",
+            "retention_basis": "GB-Z-185-2026-36-month"
+          },
+          "chain_id": "chain-sig-004",
+          "chain_seq": 0
+        },
+        "signing_key_id": "ed25519-test-key-001",
+        "extensions": [],
+        "signature": "UaqwW4zp-uzLsbxQdRe6VRpPkQdHov949cGhYdcBvykSLmbaoicYD698QQRwteMhQR3aXT03M8I0hd3trCrGDA"
+      },
+      "expected": {
+        "type": "VERIFY",
+        "verify": "fail",
+        "verify_public_key": "primary"
+      }
+    },
+    {
+      "id": "V-SIGN-005",
+      "category": "V-SIGN",
+      "scenario": "signature-canary",
+      "description": "Canary: invalid signature; a correct verifier MUST fail",
+      "decision_object": {
+        "spec": "decision-object-v1.5-signature",
+        "decision_id": "00000000-0000-0000-0000-000000000000",
+        "compliance_profile": {
+          "profile_id": "erdl-compliance-v1.5",
+          "profile_hash": "sha256:1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0",
+          "jurisdictions": [
+            "CN"
+          ],
+          "risk_level": "critical",
+          "activated_fields": [
+            "signature",
+            "signing_key_id",
+            "context_snapshot_hash",
+            "sanitized_context"
+          ],
+          "regulatory_references": []
+        },
+        "execution_trace_id": "trace-sig",
+        "timestamp": "2026-08-22T00:00:00.000Z",
+        "evaluation_duration_ms": 5,
+        "context": {
+          "operation": "read"
+        },
+        "agent": {
+          "id": "did:erdl:sha256:test-runner-v1.5",
+          "role": "guardian",
+          "version": "v1.5.0"
+        },
+        "context_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "sanitized_context": "sanitized-context-placeholder",
+        "rule_set_version": {
+          "id": "sha256:ruleset-sig",
+          "timestamp": "2026-08-22T00:00:00.000Z"
+        },
+        "policies": [],
+        "evaluation": {
+          "matched_rules": [],
+          "total_evaluated": 0,
+          "total_matched": 0
+        },
+        "result": {
+          "decision": "ALLOW",
+          "reason": "Decision: ALLOW",
+          "applied_rule": null,
+          "rules_matched": []
+        },
+        "human_oversight": {
+          "required": false
+        },
+        "audit": {
+          "mode": "signature",
+          "preimage_version": "erdl-do-v1.5-hash-flat",
+          "previous_signature": null,
+          "retention": {
+            "retention_until": "2029-08-22T00:00:00.000Z",
+            "retention_basis": "GB-Z-185-2026-36-month"
+          },
+          "chain_id": "chain-sig-005",
+          "chain_seq": 0
+        },
+        "signing_key_id": "ed25519-test-key-001",
+        "extensions": [],
+        "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "expected": {
+        "type": "VERIFY",
+        "verify": "fail",
+        "canary": true
+      }
+    }
+  ]
+}
