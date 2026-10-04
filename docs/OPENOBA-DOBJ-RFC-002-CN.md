@@ -6,10 +6,10 @@
 >
 > **文档名称**：ERDL Decision Object v1.5 — 扁平哈希链与表达式树字段规范
 >
-> **版本语义**：本文档描述的 Decision Object 数据模型版本为 **v1.5**（preimage_version 常量 `"erdl-do-v1.5-hash-flat"`，FREEZE-1 冻结）；「SPEC v2.3」为上位规范文档版本。二者为**正交版本线**——SPEC 文档版本（v2.3）与 DO 数据模型版本（v1.5）独立演进，不可混同。>   
-> **作者**：唐启鑫>   
-> **维护方**：OpenOBA（代为管理与维护）>   
-> **上位规范**：ERDL SPEC v2.3>   
+> **版本语义**：本文档描述的 Decision Object 数据模型版本为 **v1.5**（preimage_version 常量 `"erdl-do-v1.5-hash-flat"`，FREEZE-1 冻结）；「SPEC v2.3」为上位规范文档版本。二者为**正交版本线**——SPEC 文档版本（v2.3）与 DO 数据模型版本（v1.5）独立演进，不可混同。>
+> **作者**：唐启鑫>
+> **维护方**：OpenOBA（代为管理与维护）>
+> **上位规范**：ERDL SPEC v2.3>
 > **前序文档**：ERDL-RFC-001（v1.3，哈希管线基座）
 >
 > **继承自 RFC-001（v1.3，已归档）**：本文档为 v1.5 增量，以下内容仍以 RFC-001 为权威、本文档不重复——设计哲学（通用事实证据容器）、生态兼容性（MCP/A2A/OpenTelemetry/OCSF/IETF AAT）、隐私与数据最小化（GDPR/LGPD/DPDP）、法规版本化与升级路径、长期维护与字段治理（只增不删 Append-Only）、威胁模型。
@@ -32,7 +32,7 @@
 8. 链完整性（断裂检测 + 金丝雀）
 9. 向量体系（v1.5 审计层）
 10. 三层证据体系（哈希/签名/TSA）
-11. 版本演进（v1.3 → v1.5）      
+11. 版本演进（v1.3 → v1.5）
     附录 A：威胁模型与剩余风险声明
 
 ---
@@ -380,13 +380,13 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 两条向量的 `expected.also_present` 字段显式列出被拑压的低优先级 breach。
 
-> **also_present 是规范约束，非注释（MUST）**：对任意语义 BREACH 向量，conforming runner MUST 校验——>   
-> ① `expected.breach` 等于按优先级排序后的**首项**；>   
-> ② `expected.also_present` 列出的每一项 MUST 真实成立且排在首项之后（确实被拑压）；>   
+> **also_present 是规范约束，非注释（MUST）**：对任意语义 BREACH 向量，conforming runner MUST 校验——>
+> ① `expected.breach` 等于按优先级排序后的**首项**；>
+> ② `expected.also_present` 列出的每一项 MUST 真实成立且排在首项之后（确实被拑压）；>
 > ③ 反向也成立：**凡同时成立但未在 `also_present` 声明的 breach 均为向量集缺陷**（向量必须自描述其全部违规，否则会隐式依赖优先级而不自知）。
 >
-> 参考实现已将三条均实现为硬失败（反向验证：删除 F10 的 also_present 声明后，验证器立即报 78→77 并指名未声明项）。>   
-> 此约束的动因：also_present 初版仅写作「供 runner 自查」而参考实现从不读取——>   
+> 参考实现已将三条均实现为硬失败（反向验证：删除 F10 的 also_present 声明后，验证器立即报 78→77 并指名未声明项）。>
+> 此约束的动因：also_present 初版仅写作「供 runner 自查」而参考实现从不读取——>
 > 与当日刚修掉的「答案文件死键」同属一类缺陷（声明了却无人验证）。
 
 ### 9.1.2 `jurisdiction_mismatch` 语义边界（显式收窄）
