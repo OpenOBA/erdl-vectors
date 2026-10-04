@@ -11,8 +11,12 @@
 ### Added
 - **RFC-002 DO 规范形态定死**（2026-10-04）：新增 §2.5 重算最小字段集、§5.4 context 规范形态（点路径解析，嵌套 fact 非扁平点键）、§5.5 脱敏顺序（求值前脱敏；被规则引用字段不得脱敏）、§5.6 context_snapshot_hash/sanitized_context 语义；在 §1.1 明确规则本体（`policies[].when`）在 DO。双语（CN + EN）。
 - **RFC-002 签名算法 → Ed25519**（2026-10-04）：§10 签名层由 ECDSA P-256 改为 Ed25519（RFC 8032 / FIPS 186-5，PureEdDSA）；V-SIGN 测试密钥对声明为 Ed25519。双语（CN + EN）。
+- **V-SIGN 签名层向量**（2026-10-04）：V-SIGN-001..005（合法验签 / 篡改 / 链回溯 / 伪造 / 金丝雀）用 Ed25519（`scripts/generate-signature.cjs` + `scripts/verify-signature.cjs`，`signature-vectors-v1.5.json`）。
+- **T 系列时间锚定向量**（2026-10-04）：T01..T03（有效 TSA 令牌 / 时钟漂移 / 缺锚）用 mock 时间戳机构（`scripts/mock-tsa.cjs` + `scripts/generate-tsa.cjs` + `scripts/verify-tsa.cjs`，`tsa-vectors-v1.5.json`；简化，非 RFC 3161 线格式兼容）。
 
 ### Changed
+- **JCS 收敛（单一事实源）**（2026-10-04）：自建 RFC 8785 JCS 提取到 `scripts/jcs.cjs`（含 lone-surrogate 校验）；`generate-v1.5.cjs` 与 `verify-v1.5.js` 共用，生成路径移除 `json-canonicalize`（字节不变）。
+- **RFC-002 上位规范引用 SPEC v2.1 → v2.3**（2026-10-04）：对齐 SPEC 版本 bump。
 - **V-RESOLVE 向量 + 独立 runner**（PR #5，RavindraAnnam）：13 个 neutral §7.1 resolution 向量（`resolution-vectors.json`）+ 独立窄 runner（`scripts/run-v-resolve.mjs`）+ 独立 review 说明（`docs/RESOLUTION-INDEPENDENT-REVIEW.md`）。R08（ring0 ALLOW + ring3 critical DENY）= DENY、R13（same-ring override critical DENY）= DENY；与 erdl-landing / erdl-formal 参考实现交叉验证 13/13 一致。
 - **契约 ER3**：`value_type` 枚举补入 `null`（E4 throw 结果）；约束验证向量（E4）补注携带 `threw: true`。
 - **契约 ER3**：明确 `value_type` 始终是**字符串**标签（`"null"` 是字符串字面量，不是 JSON `null`）——与 number 编码同理（标签拼作字符串，即使命名 null 类型）。
@@ -24,6 +28,9 @@
 - **verify-v-engine-submission.mjs + update-expression-registry.cjs**：按 ER4 收紧比对——number 用 scale-14 定点精度（尾零不敏感，基于 `BigInt`）、string 先 NFC 归一化再字节相等、E4 约束向量补比 `threw`（须为 `true`）。
 - **规范出处 pin 定**：README / 契约的 spec 链接从失效的 `erdl-spec.md`（浮动 `main`）改为 `erdl-language-spec-v2.1.md` @ `7ba1e64`（ERDL v2.2）；版本标注 v2.1 → v2.2（commit `08cb062`）。
 - **向量 `spec` 字段对齐**：`v-engine-vectors.json` + `scripts/generate-v-engine.mjs` 的 `spec` 字段从 `erdl-spec-v2.1` 改为 `erdl-language-spec-v2.1.md`，与 pin 的规范一致（commit `9fa6b5c`）。
+
+### Fixed
+- **PIT-7 签名原像排除 timestamp_proof**（2026-10-04）：`timestamp_proof` 不进签名原像（时间锚定签名）；解决签名↔token 循环依赖。双语（CN + EN）。
 
 ## v1.6.0（现行）- 2026-09-09
 

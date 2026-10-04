@@ -11,8 +11,12 @@
 ### Added
 - **RFC-002 DO canonical form pinned down** (2026-10-04): added §2.5 minimal field set for recomputation, §5.4 context canonical form (dot-path resolution, nested fact not flattened dot-keys), §5.5 sanitization order (sanitize before evaluation; rule-referenced fields must not be sanitized), §5.6 context_snapshot_hash/sanitized_context semantics; clarified in §1.1 that the rule body (`policies[].when`) is in the DO. Bilingual (CN + EN).
 - **RFC-002 signature algorithm → Ed25519** (2026-10-04): §10 signature layer changed from ECDSA P-256 to Ed25519 (RFC 8032 / FIPS 186-5, PureEdDSA); V-SIGN test key pair declared Ed25519. Bilingual (CN + EN).
+- **V-SIGN signature-layer vectors** (2026-10-04): V-SIGN-001..005 (legal signature / tampered / chain traceback / forged / canary) with Ed25519 (`scripts/generate-signature.cjs` + `scripts/verify-signature.cjs`, `signature-vectors-v1.5.json`).
+- **T-series time-anchoring vectors** (2026-10-04): T01..T03 (valid TSA token / clock drift / missing anchor) with a MOCK Time-Stamp Authority (`scripts/mock-tsa.cjs` + `scripts/generate-tsa.cjs` + `scripts/verify-tsa.cjs`, `tsa-vectors-v1.5.json`; simplified, not RFC 3161 wire-compatible).
 
 ### Changed
+- **JCS 收敛（单一事实源）** (2026-10-04): extracted self-built RFC 8785 JCS into `scripts/jcs.cjs` (lone-surrogate validation); `generate-v1.5.cjs` and `verify-v1.5.js` now share it, `json-canonicalize` removed from the generation path (byte-identical output).
+- **RFC-002 上位规范引用 SPEC v2.1 → v2.3** (2026-10-04): aligned the higher-level spec reference with the SPEC version bump.
 - **V-RESOLVE vectors + independent runner** (PR #5, RavindraAnnam): 13 neutral §7.1 resolution vectors (`resolution-vectors.json`) + a narrow independent runner (`scripts/run-v-resolve.mjs`) + an independent-review note (`docs/RESOLUTION-INDEPENDENT-REVIEW.md`). R08 (ring0 ALLOW + ring3 critical DENY) = DENY and R13 (same-ring override critical DENY) = DENY; cross-verified 13/13 against the erdl-landing / erdl-formal reference implementations.
 - **Contract ER3**: `value_type` enumeration extended to include `null` (E4 throw results); constraint-verification vectors (E4) documented to carry `threw: true`.
 - **Contract ER3**: clarified `value_type` is always a **string** tag (`"null"` is the literal string, not JSON `null`) — mirrors the number encoding (tag is a string, even when naming the null type).
@@ -24,6 +28,9 @@
 - **verify-v-engine-submission.mjs + update-expression-registry.cjs**: comparison hardened per ER4 — numbers at scale-14 fixed-point precision (trailing-zero insensitive, `BigInt`-based), strings NFC-normalized before byte equality, and E4 constraint vectors compare `threw` (`true`).
 - **Spec provenance pinned**: README / contracts' spec link changed from the broken `erdl-spec.md` (floating `main`) to `erdl-language-spec-v2.1.md` @ `7ba1e64` (ERDL v2.2); version labels v2.1 → v2.2 (commit `08cb062`).
 - **Vector `spec` field aligned**: `v-engine-vectors.json` + `scripts/generate-v-engine.mjs` `spec` field changed from `erdl-spec-v2.1` to `erdl-language-spec-v2.1.md`, matching the pinned spec (commit `9fa6b5c`).
+
+### Fixed
+- **PIT-7 签名原像排除 timestamp_proof** (2026-10-04): `timestamp_proof` no longer enters the signature preimage (it time-anchors the signature); resolves the signature↔token circular dependency. Bilingual (CN + EN).
 
 ## v1.6.0 (current) - 2026-09-09
 
