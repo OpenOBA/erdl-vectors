@@ -22,6 +22,8 @@ function verifySignature(doObj, publicKeyPem) {
   const signature = clone.signature;
   delete clone.signature;
   delete clone.signing_key_id;
+  // PIT-7: timestamp_proof is excluded from the signature preimage (time-anchors the signature).
+  if (clone.audit) delete clone.audit.timestamp_proof;
   const canonical = jcsCanonicalize(clone);
   return crypto.verify(null, Buffer.from(canonical, 'utf8'), publicKeyPem, Buffer.from(signature, 'base64url'));
 }

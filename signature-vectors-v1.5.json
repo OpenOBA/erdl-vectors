@@ -499,7 +499,7 @@
         },
         "signing_key_id": "ed25519-test-key-001",
         "extensions": [],
-        "signature": "UaqwW4zp-uzLsbxQdRe6VRpPkQdHov949cGhYdcBvykSLmbaoicYD698QQRwteMhQR3aXT03M8I0hd3trCrGDA"
+        "signature": "CeIy4f0hNQcemWXmHdvfRt-mGdTJUalxIoAOkwhOK0q97Y_FmhI2M4Qodf4rZCJwK2oAbedyS4l1l5ObdXhzBQ"
       },
       "expected": {
         "type": "VERIFY",

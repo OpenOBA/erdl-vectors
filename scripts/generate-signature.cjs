@@ -44,6 +44,9 @@ function signDO(doObj, privateKeyPem) {
   const clone = JSON.parse(JSON.stringify(doObj));
   delete clone.signature;
   delete clone.signing_key_id;
+  // PIT-7: timestamp_proof is added after signing (time-anchors the signature);
+  // it MUST NOT enter the signature preimage, or the signature↔token cycle is unresolvable.
+  if (clone.audit) delete clone.audit.timestamp_proof;
   const canonical = jcsCanonicalize(clone);
   const sig = crypto.sign(null, Buffer.from(canonical, 'utf8'), privateKeyPem);
   return sig.toString('base64url');
@@ -188,4 +191,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { signDO, verifySignature, buildSignatureDO };
+module.exports = { signDO, verifySignature, buildSignatureDO, KEYS };
