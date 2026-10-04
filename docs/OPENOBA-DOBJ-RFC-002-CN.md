@@ -6,7 +6,7 @@
 >
 > **文档名称**：ERDL Decision Object v1.5 — 扁平哈希链与表达式树字段规范
 >
-> **版本语义**：本文档描述的 Decision Object 数据模型版本为 **v1.5**（preimage_version 常量 `"erdl-do-v1.5-hash-flat"`，FREEZE-1 冻结）；「SPEC v2.3」为上位规范文档版本。二者为**正交版本线**——SPEC 文档版本（v2.1）与 DO 数据模型版本（v1.5）独立演进，不可混同。>   
+> **版本语义**：本文档描述的 Decision Object 数据模型版本为 **v1.5**（preimage_version 常量 `"erdl-do-v1.5-hash-flat"`，FREEZE-1 冻结）；「SPEC v2.3」为上位规范文档版本。二者为**正交版本线**——SPEC 文档版本（v2.3）与 DO 数据模型版本（v1.5）独立演进，不可混同。>   
 > **作者**：唐启鑫>   
 > **维护方**：OpenOBA（代为管理与维护）>   
 > **上位规范**：ERDL SPEC v2.3>   
@@ -136,7 +136,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 > **字段激活归类**：`temporal_state` 属「条件激活」字段（§5.3）——仅当本次决策命中了含 within/rate 的规则时才产生（Omit over Null：无有状态算子命中时物理删除键）；其存在性由 V-TEMPORAL 向量覆盖，不纳入 V-COMP 字段存在性检查（V-COMP 验的是法域/框架要求的合规字段，temporal_state 属业务判定输入，非合规字段）。
 >
-> **preimage_version 影响判定**：`temporal_state` 为 v1.5 字段集的**增量条件激活字段**（可选、随事实产生），不改变哈希算法、不改变 CORE 14 字段结构、不改变唯一删除点（`audit.hash`）语义。因此 `preimage_version` 常量 **保持 `"erdl-do-v1.5-hash-flat"` 不变**，不触发版本号递增——字段集增量直接并入 v1.5，无需 bump 到 v1.6。此判定与「SPEC 文档版本（v2.1）与 DO 数据模型版本（v1.5）为正交版本线」一致：字段集在 DO 模型内增量演进，不牵动 SPEC 文档版本。
+> **preimage_version 影响判定**：`temporal_state` 为 v1.5 字段集的**增量条件激活字段**（可选、随事实产生），不改变哈希算法、不改变 CORE 14 字段结构、不改变唯一删除点（`audit.hash`）语义。因此 `preimage_version` 常量 **保持 `"erdl-do-v1.5-hash-flat"` 不变**，不触发版本号递增——字段集增量直接并入 v1.5，无需 bump 到 v1.6。此判定与「SPEC 文档版本（v2.3）与 DO 数据模型版本（v1.5）为正交版本线」一致：字段集在 DO 模型内增量演进，不牵动 SPEC 文档版本。
 
 ### 2.5 重算最小字段集（MUST）
 
@@ -273,7 +273,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 > **验证状态（二元分类）**：本规范向量按「是否经独立第三方 Runner 逐字节验证」分为两类——
 >
 > - **已验证（Verified）**：现行 v1.5 已生成的 78 条哈希层向量，由两个独立第三方 Runner 逐字节验证——norviq-go（Go，2026-09-01）、concordia-python（Python，Erik Newton，2026-09-02），各 107/107 canonical bytes；历史 v1.3 的 13 条 AV 向量（Erik Newton / Concordia，2026-07-30，Python 自建 JCS 逐字节通过）。
-> - **未验证（Unverified）**：尚未生成的向量层（V-SIGN 签名链、V-TEMPORAL 时间锚定，见 §10.3）。
+> - **未验证（Unverified）**：尚未生成的向量层（V-TEMPORAL 时间锚定，见 §10.3）；已生成但尚未独立第三方验证的向量层（V-SIGN 签名链、V-DO-v15-T01..T03 TSA）。
 >
 > 记录原则遵循「**Measurements, not endorsements**」——只记录测量事实（谁、哪天、通过多少条），不做背书。
 >
@@ -284,13 +284,13 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 | 决策类型覆盖                | V-DO-v15-D01..D13          |     13     | 13 种决策类型（ALLOW/DENY/CORRECT/NOTIFY/REQUEST_HUMAN/ESCALATE/DELEGATE/DEFER/EMERGENCY_HALT/ROLLBACK/QUARANTINE/WORKFLOW/GUIDE）× 扁平哈希（含 canonical_tree 字段）                                                                           |
 | 链攻击检测                 | V-DO-v15-C01..C08          |      8     | 正常链基线 + 7 攻击（单条篡改/删记录/指针悬空/时钟回退/整链重建/版本降级/混链，详见 §9.2）                                                                                                                                                                            |
 | 锚定攻击检测                | V-DO-v15-A01..A10          |     10     | 知识篡改/引用不可解析/分片不符/附件篡改/意图篡改/记忆键篡改/树快照伪造/树篡改 2 条（节点交换序/字面量精度）/B 类文本篡改（详见 §9.3）                                                                                                                                                     |
-| 签名链（规划，未生成）           | V-SIGN-001..005            |      5     | 合法验签/篡改验签失败/链回溯/伪造签名/签名金丝雀，§10.3；随签名层实现后补入                                                                                                                                                                                       |
-| 时间锚定（规划，未生成）          | V-DO-v15-T01..T03          |      3     | TSA 令牌/clock_drift/关键决策无锚；随签名层实现后补入                                                                                                                                                                                              |
+| 签名链（已生成，参考实现自验）        | V-SIGN-001..005            |      5     | 合法验签/篡改验签失败/链回溯/伪造签名/签名金丝雀，§10.3（已生成，尚未独立第三方验证）                                                                                                                                                                                       |
+| 时间锚定（已生成，参考实现自验）        | V-DO-v15-T01..T03          |      3     | TSA 令牌/clock_drift/关键决策无锚（已生成，尚未独立第三方验证）                                                                                                                                                                                              |
 | 金丝雀                   | V-DO-v15-K01               |      1     | 链位置金丝雀（哈希模式，延续 AV-013；签名金丝雀由 V-SIGN-005 承载，不重复计数）                                                                                                                                                                                |
 | 结论层                   | V-DO-v15-G01..G14          |     14     | 结构攻击恒定 6 + 领域示例 8（政务 4 + 企业 4，可增）                                                                                                                                                                                                |
 | 法域合规                  | V-COMP-001..021 + F01..F11 |     32     | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含 F06/F07 第一层篡改、F08/F09 风险条件层、F10/F11 优先级铉定，详见 §9.1）                                                                                                                                             |
 | **有状态算子状态验证（规划，未生成）** | **V-TEMPORAL-001..004**    |    **4**   | within/rate 跨决策窗口计数状态行为（多决策序列，验证 temporal_state 快照与重放一致，对应 §2.4）：T01 rate 正常序列（未超限→超限）、T02 within 正常序列、T03 temporal_state 快照篡改（判 `temporal_state_divergence`）、T04 状态重放金丝雀（跳过重放的 regressed 验证器被捕）。向量随 temporal_state 进 DO 落地后生成冻结 |
-| **合计**                |                            | **审计层 78** | 哈希层 78 条（D/C/A/K/G/V-COMP 已冻结）。签名 5 + TSA 3 + V-TEMPORAL 4 为规划项（未生成，不计数）                                                                                                                                                         |
+| **合计**                |                            | **审计层 78** | 哈希层 78 条（D/C/A/K/G/V-COMP 已冻结）。签名 5 + TSA 3 已生成（不计数），V-TEMPORAL 4 为规划项（未生成，不计数）                                                                                                                                                         |
 
 > **2026-09-02 新增验证对象（非 Core 317）**：`decision_divergence`（跨层语义重推，V-DIVERGENCE 3 条，按 §1.5 从 DO 存储的 context+rules 重推决策，见 VERIFIER-GUIDE §4.4）+ `V-PRODUCER`（producer-side 一致性，按 §1.6 Producer Contract 运行 producer、捕获 enforcement vs 发射 DO，唯一能触达 P-05 的地方）。
 

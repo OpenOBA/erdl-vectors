@@ -137,7 +137,7 @@ The verifier SHOULD pull the rule set via `rule_set_version.id` → recompile + 
 
 > **Field-activation classification**: `temporal_state` is a "conditionally-activated" field (§5.3) — produced only when this decision matched a rule containing within/rate (Omit over Null: physically delete the key when no stateful operator matched); its existence is covered by V-TEMPORAL vectors, not included in V-COMP field-existence checks (V-COMP checks jurisdiction/framework-required compliance fields; temporal_state is a business-adjudication input, not a compliance field).
 >
-> **preimage_version impact determination**: `temporal_state` is an **incremental conditionally-activated field** of the v1.5 field set (optional, produced by fact), it does not change the hash algorithm, does not change the CORE 14 field structure, does not change the single-deletion-point (`audit.hash`) semantics. Therefore the `preimage_version` constant **stays `"erdl-do-v1.5-hash-flat"`**, no version-number bump — the field-set increment merges directly into v1.5, no need to bump to v1.6. This determination is consistent with "SPEC document version (v2.0) and DO data-model version (v1.5) are orthogonal version lines": the field set evolves incrementally within the DO model, without touching the SPEC document version.
+> **preimage_version impact determination**: `temporal_state` is an **incremental conditionally-activated field** of the v1.5 field set (optional, produced by fact), it does not change the hash algorithm, does not change the CORE 14 field structure, does not change the single-deletion-point (`audit.hash`) semantics. Therefore the `preimage_version` constant **stays `"erdl-do-v1.5-hash-flat"`**, no version-number bump — the field-set increment merges directly into v1.5, no need to bump to v1.6. This determination is consistent with "SPEC document version (v2.3) and DO data-model version (v1.5) are orthogonal version lines": the field set evolves incrementally within the DO model, without touching the SPEC document version.
 
 ### 2.5 Minimal Field Set for Recomputation (MUST)
 
@@ -273,7 +273,7 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 
 > **Verification status (binary classification)**: the vectors in this specification are divided into two classes by "whether independently third-party-Runner byte-verified" —
 > - **Verified**: the current v1.5 78 generated hash-layer vectors, byte-verified by two independent third-party runners — norviq-go (Go, 2026-09-01) and concordia-python (Python, Erik Newton, 2026-09-02), each at 107/107 canonical bytes; plus the historical v1.3 13 AV vectors (Erik Newton / Concordia, 2026-07-30, self-built Python JCS, byte-identical pass).
-> - **Unverified**: the not-yet-generated vector layers (V-SIGN signature chain, V-TEMPORAL time anchoring, see §10.3).
+> - **Unverified**: the not-yet-generated vector layer (V-TEMPORAL time anchoring, see §10.3); plus the generated-but-not-yet-independently-third-party-verified layers (V-SIGN signature chain, V-DO-v15-T01..T03 TSA).
 >
 > The recording principle follows "**Measurements, not endorsements**" — record only the measurement facts (who, which day, how many passed), no endorsement.
 >
@@ -284,13 +284,13 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 | Decision-type coverage | V-DO-v15-D01..D13 | 13 | 13 decision types (ALLOW/DENY/CORRECT/NOTIFY/REQUEST_HUMAN/ESCALATE/DELEGATE/DEFER/EMERGENCY_HALT/ROLLBACK/QUARANTINE/WORKFLOW/GUIDE) × flat hash (with canonical_tree field) |
 | Chain-attack detection | V-DO-v15-C01..C08 | 8 | normal-chain baseline + 7 attacks (single-record tamper / record deletion / dangling pointer / clock regression / whole-chain rebuild / version downgrade / mixed chain, see §9.2) |
 | Anchoring-attack detection | V-DO-v15-A01..A10 | 10 | knowledge tamper / unresolvable reference / fragment mismatch / attachment tamper / intent tamper / memory-key tamper / tree-snapshot forgery / tree tamper ×2 (node order swap / literal precision) / type-B text tamper (see §9.3) |
-| Signature chain (planned, not generated) | V-SIGN-001..005 | 5 | valid verify / tamper verify-fail / chain trace-back / forged signature / signature canary, §10.3; added after the signature layer lands |
-| Time anchoring (planned, not generated) | V-DO-v15-T01..T03 | 3 | TSA token / clock_drift / key decision without anchor; added after the signature layer lands |
+| Signature chain (generated, reference self-verified) | V-SIGN-001..005 | 5 | valid verify / tamper verify-fail / chain trace-back / forged signature / signature canary, §10.3 (generated, not yet independently third-party verified) |
+| Time anchoring (generated, reference self-verified) | V-DO-v15-T01..T03 | 3 | TSA token / clock_drift / key decision without anchor (generated, not yet independently third-party verified) |
 | Canary | V-DO-v15-K01 | 1 | chain-position canary (hash mode, continues AV-013; the signature canary is carried by V-SIGN-005, not double-counted) |
 | Conclusion layer | V-DO-v15-G01..G14 | 14 | structural attacks fixed 6 + domain examples 8 (government 4 + enterprise 4, extensible) |
 | Jurisdiction compliance | V-COMP-001..021 + F01..F11 | 32 | field conformance 21 (jurisdiction 7 + framework 14) + failure detection 11 (incl. F06/F07 first-layer tamper, F08/F09 risk-condition layer, F10/F11 priority pinning, see §9.1) |
 | **Stateful-operator state verification (planned, not generated)** | **V-TEMPORAL-001..004** | **4** | within/rate cross-decision window-count state behavior (multi-decision sequences, verifying temporal_state snapshot consistent with replay, corresponding to §2.4): T01 rate normal sequence (under-limit→over-limit), T02 within normal sequence, T03 temporal_state snapshot tamper (judged `temporal_state_divergence`), T04 state-replay canary (a regressed verifier skipping replay is caught). Vectors generated-frozen after temporal_state lands in the DO |
-| **Total** | | **audit layer 78** | hash-layer 78 (D/C/A/K/G/V-COMP frozen). Signature 5 + TSA 3 + V-TEMPORAL 4 are planned (not generated, not counted) |
+| **Total** | | **audit layer 78** | hash-layer 78 (D/C/A/K/G/V-COMP frozen). Signature 5 + TSA 3 generated (not counted); V-TEMPORAL 4 planned (not generated, not counted) |
 
 > **Verification objects added 2026-09-02 (not in Core 317)**: `decision_divergence` (cross-layer semantic re-derivation, V-DIVERGENCE 3 vectors, re-derives the decision from the DO's stored context+rules per §1.5, see VERIFIER-GUIDE §4.4) + `V-PRODUCER` (producer-side conformance, runs the producer per §1.6 Producer Contract, capturing enforcement vs. emitted DO — the only place P-05 is reachable).
 
