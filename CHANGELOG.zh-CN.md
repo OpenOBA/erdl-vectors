@@ -8,6 +8,9 @@
 
 ## [Unreleased] - 2026-09-10
 
+### Added
+- **RFC-002 DO 规范形态定死**（2026-10-04）：新增 §2.5 重算最小字段集、§5.4 context 规范形态（点路径解析，嵌套 fact 非扁平点键）、§5.5 脱敏顺序（求值前脱敏；被规则引用字段不得脱敏）、§5.6 context_snapshot_hash/sanitized_context 语义；在 §1.1 明确规则本体（`policies[].when`）在 DO。双语（CN + EN）。
+
 ### Changed
 - **V-RESOLVE 向量 + 独立 runner**（PR #5，RavindraAnnam）：13 个 neutral §7.1 resolution 向量（`resolution-vectors.json`）+ 独立窄 runner（`scripts/run-v-resolve.mjs`）+ 独立 review 说明（`docs/RESOLUTION-INDEPENDENT-REVIEW.md`）。R08（ring0 ALLOW + ring3 critical DENY）= DENY、R13（same-ring override critical DENY）= DENY；与 erdl-landing / erdl-formal 参考实现交叉验证 13/13 一致。
 - **契约 ER3**：`value_type` 枚举补入 `null`（E4 throw 结果）；约束验证向量（E4）补注携带 `threw: true`。

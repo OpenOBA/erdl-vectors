@@ -14,7 +14,7 @@
 >
 > **Inherited from RFC-001 (v1.3, archived)**: this document is a v1.5 increment; the following content remains authoritative in RFC-001 and is not repeated here — design philosophy (universal fact container), ecosystem compatibility (MCP/A2A/OpenTelemetry/OCSF/IETF AAT), privacy & data minimization (GDPR/LGPD/DPDP), regulatory versioning & upgrade paths, long-term maintenance & field governance (append-only), and threat model.
 >
-> **Revision history**: after multiple revisions, established the "flat hash + expression-tree field" scheme, and completed the jurisdiction vectors and the unified adjudication of stateful operators (within/rate). 2026-08-31: chain scale-governance pointer (§8); full-line count-caliber unification (audit layer 78 / Core 301). 2026-09-02: added §1.4 production-side invariant, §1.5 decision-derivation semantics, §1.6 Producer Contract; added two verification objects — decision_divergence (cross-layer semantic re-derivation) and V-PRODUCER (producer-side conformance); added P-05 residual risk to Appendix A; P6 resolvable-set semantic clarification.
+> **Revision history**: after multiple revisions, established the "flat hash + expression-tree field" scheme, and completed the jurisdiction vectors and the unified adjudication of stateful operators (within/rate). 2026-08-31: chain scale-governance pointer (§8); full-line count-caliber unification (audit layer 78 / Core 301). 2026-09-02: added §1.4 production-side invariant, §1.5 decision-derivation semantics, §1.6 Producer Contract; added two verification objects — decision_divergence (cross-layer semantic re-derivation) and V-PRODUCER (producer-side conformance); added P-05 residual risk to Appendix A; P6 resolvable-set semantic clarification. 2026-10-04: pinned down the DO canonical form — added §2.5 minimal field set for recomputation, §5.4 context canonical form (dot-path resolution), §5.5 sanitization order, §5.6 context_snapshot_hash/sanitized_context semantics, and clarified in §1.1 that the rule body (policies[].when) is in the DO.
 >
 > **Keyword interpretation**: the keywords "MUST", "MUST NOT", "SHOULD", "MAY" in this document follow the semantics of RFC 2119 and RFC 8174.
 
@@ -48,6 +48,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( all DO fields − audit.hash − sig
 - **Single deletion point**: in hash mode only `audit.hash` itself is deleted (self-reference exclusion; `signature`/`signing_key_id` do not exist in hash mode, so the defensive deletion is a no-op); in signature mode the three fields `audit.hash`/`signature`/`signing_key_id` are deleted. **Deletion semantics are unified: delete (delete key), never blank** — the two produce different JCS bytes;
 - **Self-reference exclusion for intra-field hashes** (same as `audit.hash`): when computing `policies[].hash` and `compliance_profile.profile_hash`, the field being computed (the hash key) MUST be temporarily removed before JCS, to prevent self-reference loops (RFC-002 §1); its **value** (the already-computed hash) participates in the whole-DO flat hash as an ordinary field;
 - **`policies[].hash` preimage excludes gloss**: `policies[].hash` is the hash of the rule **content**, its preimage being the rule structural fields (id/name/when/then/priority/ring/author_id, RFC-002 §1), **excluding gloss** (gloss is a render product, not rule content, SPEC §8.3 G4); gloss tampering does not affect `policies[].hash` — it is detected by render validation (`gloss == render(tree)`, SPEC §8.3 G2), not by hash mismatch.
+- **Rule body in the DO (MUST)**: The `policies[]` array carries the rule body, and `policies[].when` is the rule's complete trigger condition, entering the full-DO flat hash. The DO is self-contained: `policies[].when` + `context` suffice to re-derive `result.decision`, with no external rule store (see §2.5). Any document listing only `policies = { name, version, hash }` while omitting `when` is an incomplete expression of the DO field set, conflicting with this section.
 - **preimage_version constant (v1.5 hash mode)**: `"erdl-do-v1.5-hash-flat"` — a **domain separator** (prevents cross-version/cross-mode hash collisions, following the EIP-712 domain-separator idea), enters the preimage and is hash-protected; **routing is carried by the audit.mode field (§10.2); preimage_version does not carry routing**.
 - All remaining fields (CORE + JURISDICTION + extensions + canonical_tree) **participate in JCS unconditionally** — no whitelist, no projection, no verifier-side field-selection logic; **generator-side trimming by `activated_fields` (RFC-002 §1) is the preceding step** — unactivated JURISDICTION fields are already physically removed on the generator side, so the verifier side still does zero selection, zero projection.
 
@@ -138,6 +139,20 @@ The verifier SHOULD pull the rule set via `rule_set_version.id` → recompile + 
 >
 > **preimage_version impact determination**: `temporal_state` is an **incremental conditionally-activated field** of the v1.5 field set (optional, produced by fact), it does not change the hash algorithm, does not change the CORE 14 field structure, does not change the single-deletion-point (`audit.hash`) semantics. Therefore the `preimage_version` constant **stays `"erdl-do-v1.5-hash-flat"`**, no version-number bump — the field-set increment merges directly into v1.5, no need to bump to v1.6. This determination is consistent with "SPEC document version (v2.0) and DO data-model version (v1.5) are orthogonal version lines": the field set evolves incrementally within the DO model, without touching the SPEC document version.
 
+### 2.5 Minimal Field Set for Recomputation (MUST)
+
+The minimal field set required to independently recompute a decision, in two classes:
+
+| Recomputation object | Required fields | All in DO? |
+|---------|---------|:---:|
+| `result.decision` re-derivation | `policies[].when` + `context` | ✅ all in DO |
+| Tree-snapshot consistency (tree_snapshot_divergence) | `matched_rules[].canonical_tree` + `policies[].when` | ✅ all in DO (test-vector approximation) |
+| Full recompilation verification | external rule set fetched by `rule_set_version.id` | ❌ external input required |
+| Authorization-state recomputation | `state_snapshot` | ✅ all in DO |
+| Window-count recomputation | `temporal_state` | ✅ all in DO |
+
+**With the DO alone (no external rule store)**: `result.decision` can be re-derived (via the three-step derivation from `context` + `policies[].when`, §1.5), and tree-snapshot consistency can be approximately compared (via the in-DO `when`). **External input required**: full recompilation verification (via `rule_set_version.id`). Generators and verifiers MUST keep a consistent account of these boundaries, and must not claim "the DO alone suffices for full recomputation" while actually depending on external input.
+
 ## 3. gloss and Re-renderable Text: Not in the DO, Render-Validated
 
 | Field | Disposition | Mechanism |
@@ -193,6 +208,26 @@ Multi-jurisdiction simultaneous activation = the union of activated_fields (RFC-
 
 **First-layer compliance fields enter the hash (zero-selection cost under the flat scheme)**: agent.known_limitations / tool_registry_hash / algorithm_filing_no / model_registration_id are "integrity-level compliance claims" (OpenOBA reference implementation's own compliance), naturally tamper-protected by the whole-DO hash — V-COMP-F06/F07 verify this protection holds. This is the flat scheme's natural advantage over whitelist schemes: **no per-field selection declaration needed; all fields are protected by default**.
 
+
+### 5.4 context Canonical Form (Dot-Path Resolution, MUST)
+
+The `context` field (one of the CORE 14) carries the evaluation input's **fact object**, as a **nested JSON object** (not flattened dot-keys). Field references resolve by dot-path:
+
+- `context.tool.name` → the `name` inside the nested `{ tool: { name: ... } }`
+- `context.amount` → the flat `amount`
+
+Dot-path resolution rule (MUST): dot-separated path segments descend left to right; any missing intermediate layer means the field is absent (E11 empty-value propagation). Generators MUST write the evaluation fact into `context` **as-is** (preserving nesting), and MUST NOT flatten it into dot-keys; verifiers resolve by the same rule. Any document expressing `context` as flat dot-keys `{ 'tool.name': ... }` conflicts with this section and is an incomplete/incorrect expression.
+
+### 5.5 Sanitization Order (MUST)
+
+`sanitized_context` carries the sanitized context. Sanitization MUST complete **before** evaluation, so that the DO's recorded `context` value is byte-identical to the fact actually used in evaluation — "evaluate on the raw value but record the sanitized value" is forbidden, as it makes the record diverge from the decision.
+
+Fields referenced by a rule's `when` MUST NOT be sanitized (sanitization changes the value and causes the rule to miss, breaking determinism). If a field both needs sanitization and is referenced by a rule, it is a rule-design conflict and MUST be rejected at load time.
+
+### 5.6 context_snapshot_hash and sanitized_context Semantics (MUST)
+
+- `context_snapshot_hash` = `sha256(JCS(context))` — the hash of this evaluation's context snapshot, for data-flow traceability (DPDP §12(2)). Test vectors use a placeholder (all zeros) because there is no real context to hash; production MUST fill the real hash.
+- `sanitized_context` = the `context` sanitized per §5.5. Before sanitization is implemented, it is a placeholder; after implementation, it holds the real value.
 
 ## 6. Two-Layer Compliance-Proof System (Vector-Set Positioning)
 

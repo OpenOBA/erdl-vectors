@@ -8,6 +8,9 @@
 
 ## [Unreleased] - 2026-09-10
 
+### Added
+- **RFC-002 DO canonical form pinned down** (2026-10-04): added §2.5 minimal field set for recomputation, §5.4 context canonical form (dot-path resolution, nested fact not flattened dot-keys), §5.5 sanitization order (sanitize before evaluation; rule-referenced fields must not be sanitized), §5.6 context_snapshot_hash/sanitized_context semantics; clarified in §1.1 that the rule body (`policies[].when`) is in the DO. Bilingual (CN + EN).
+
 ### Changed
 - **V-RESOLVE vectors + independent runner** (PR #5, RavindraAnnam): 13 neutral §7.1 resolution vectors (`resolution-vectors.json`) + a narrow independent runner (`scripts/run-v-resolve.mjs`) + an independent-review note (`docs/RESOLUTION-INDEPENDENT-REVIEW.md`). R08 (ring0 ALLOW + ring3 critical DENY) = DENY and R13 (same-ring override critical DENY) = DENY; cross-verified 13/13 against the erdl-landing / erdl-formal reference implementations.
 - **Contract ER3**: `value_type` enumeration extended to include `null` (E4 throw results); constraint-verification vectors (E4) documented to carry `threw: true`.
