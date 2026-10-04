@@ -6,10 +6,10 @@
 >
 > **文档名称**：ERDL Decision Object v1.5 — 扁平哈希链与表达式树字段规范
 >
-> **版本语义**：本文档描述的 Decision Object 数据模型版本为 **v1.5**（preimage_version 常量 `"erdl-do-v1.5-hash-flat"`，FREEZE-1 冻结）；「SPEC v2.1」为上位规范文档版本。二者为**正交版本线**——SPEC 文档版本（v2.1）与 DO 数据模型版本（v1.5）独立演进，不可混同。>   
+> **版本语义**：本文档描述的 Decision Object 数据模型版本为 **v1.5**（preimage_version 常量 `"erdl-do-v1.5-hash-flat"`，FREEZE-1 冻结）；「SPEC v2.3」为上位规范文档版本。二者为**正交版本线**——SPEC 文档版本（v2.1）与 DO 数据模型版本（v1.5）独立演进，不可混同。>   
 > **作者**：唐启鑫>   
 > **维护方**：OpenOBA（代为管理与维护）>   
-> **上位规范**：ERDL SPEC v2.1>   
+> **上位规范**：ERDL SPEC v2.3>   
 > **前序文档**：ERDL-RFC-001（v1.3，哈希管线基座）
 >
 > **继承自 RFC-001（v1.3，已归档）**：本文档为 v1.5 增量，以下内容仍以 RFC-001 为权威、本文档不重复——设计哲学（通用事实证据容器）、生态兼容性（MCP/A2A/OpenTelemetry/OCSF/IETF AAT）、隐私与数据最小化（GDPR/LGPD/DPDP）、法规版本化与升级路径、长期维护与字段治理（只增不删 Append-Only）、威胁模型。
@@ -99,7 +99,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 ### 2.1 定义
 
-`evaluation.matched_rules[].canonical_tree`：每条命中规则的 when 条件编译后的**规范化表达式树（JSON 嵌套对象形态，非 S-expression 字符串）**（SPEC v2.1 §8.2 规范化树）。**它是 DO 的普通字段**，随全 DO 一起进扁平哈希，无特殊处理。树结构直接作为 JSON 嵌套对象进 JCS（对象键序由 JCS 排序、数组序语义固定），逐字节确定。
+`evaluation.matched_rules[].canonical_tree`：每条命中规则的 when 条件编译后的**规范化表达式树（JSON 嵌套对象形态，非 S-expression 字符串）**（SPEC v2.3 §8.2 规范化树）。**它是 DO 的普通字段**，随全 DO 一起进扁平哈希，无特殊处理。树结构直接作为 JSON 嵌套对象进 JCS（对象键序由 JCS 排序、数组序语义固定），逐字节确定。
 
 ### 2.2 规范化规则（引擎构造时一次性冻结）
 
@@ -183,7 +183,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 
 ### 5.1 合规画像锚定
 
-`compliance_profile.profile_hash`（画像本体 JCS+SHA-256）随扁平哈希——堵“偷换法域声明”攻击（V-COMP-F02）。画像变更不溯及既往（grandfathering，SPEC v2.1）。
+`compliance_profile.profile_hash`（画像本体 JCS+SHA-256）随扁平哈希——堵“偷换法域声明”攻击（V-COMP-F02）。画像变更不溯及既往（grandfathering，SPEC v2.3）。
 
 ### 5.2 三层激活维度（14 框架全覆盖）
 
