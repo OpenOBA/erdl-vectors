@@ -67,7 +67,7 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 | 审计层 | V-DO-v15 | 决策类型 13 / 链攻击 8 / 锚定 10 / 金丝雀 1 / 结论 14 / 法域 32 | 78 | ✅ 已验证（第三方 ×2） |
 | 表达层 | V-ENGINE | 节点语义 136 + 求值约束 52 + Simple 编译 30 | 218 | ✅ 已验证（concordia-python-expression） |
 | 表达层 | V-GLOSS / V-PROJ | gloss 16（渲染 12 + 完整性 4）+ 投影面 6 | 22 | ✅ 已验证（concordia-python-expression） |
-| 裁决层 | V-RESOLVE | §7.1 ring / override / catch-all 裁决语义 | 13 | ✅ 已验证（RavindraAnnam spec-only runner） |
+| 裁决层 | V-RESOLVE | §7.1 ring / override / catch-all 裁决语义 | 13 | ✅ 已验证（Ravindra Annam spec-only runner） |
 | 签名层 | V-SIGN | Ed25519 签名链 | 5 | ✅ 已生成（参考实现自验） |
 | 时间层 | V-DO-v15-T | RFC 3161 时间锚定 | 3 | ✅ 已生成（参考实现自验） |
 | **合计** | | **Core** | **318** | **已验证（318/318）** |
@@ -124,7 +124,7 @@ RFC 3161 时间锚定——已生成，参考实现自验，尚未独立第三�
 
 **§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）由一个第三方独立 Runner 覆盖。裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致；修复是一个仅凭 SPEC 文本独立重推导 §7.1 的实现。
 
-13 条 V-RESOLVE 向量集（`resolution-vectors.json`）+ 独立 spec-only runner（`scripts/run-v-resolve.mjs`）由 **RavindraAnnam** 贡献（PR #5），已与参考引擎交叉验证 13/13 一致。这次独立推导暴露并解决了 §7.1 收紧方向的边界（R08/R13）：restrictive DENY 默认收紧已确立的 ALLOW，不比较 ring、无需 override。见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)。
+13 条 V-RESOLVE 向量集（`resolution-vectors.json`）+ 独立 spec-only runner（`scripts/run-v-resolve.mjs`）由 **Ravindra Annam** 贡献（PR #5），已与参考引擎交叉验证 13/13 一致。这次独立推导暴露并解决了 §7.1 收紧方向的边界（R08/R13）：restrictive DENY 默认收紧已确立的 ALLOW，不比较 ring、无需 override。见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)。
 
 | 编号 | 场景 |
 |------|------|
@@ -210,7 +210,7 @@ npm test                  # vitest 回归套件（含 web/Node 一致性 + 对�
 - **Christopher Hopley（chopmob-cloud / AlgoVoi）**——独立技术审阅者。在 v1.2 / v1.3 审计中发现自引用哈希排除规则缺位、字符串小数跨引擎不一致等关键问题，推动扁平哈希架构确立；其洁净室 RFC 8785 JCS + SHA-256 检查器报告了四个技术发现（C1–C4）与三个安全问题（S1–S3），其中双哈希算法降级（CWE-757）与 schema_ref SSRF 攻击面直接推动了安全加固。
 - **Erik Newton（Concordia）**——首个独立 Runner 实现者，「中立性不是宣称的，是测出来的」原则的提出者。在 A2A Discussion #2031 确立「三个独立实现、一个开放规范、没有单一所有者」的标准化路径；以 Python 纯规范实现（自建 JCS）逐字节验证 v1.3 全部 13 条 AV 向量；2026-09 他以 concordia-python 逐字节验证 v1.5 的 78 条 V-DO-v15 哈希向量（107/107 canonical bytes）；贡献了链完整性金丝雀设计、答案文件分离架构与 generated-artifact + clean-room + registry 的 CI 验证架构。2026-09 他还构建了首个独立表达层 runner（`concordia-python-expression`），仅凭 spec + 契约的 Python 实现逐字节验证 V-ENGINE 表达层全部 240 条向量；其 RESULTS.md 记录了 16 处 spec 歧义（A1–A16），其中四处暴露了现已修复的真实缺口。
 - **Santosh Kumar Puppala（norviq-dev）**——以 norviq-go（Go）逐字节验证 v1.5 的 78 条 V-DO-v15 哈希向量（107/107 canonical bytes，2026-09-01）；提出 record-emission fidelity 缺口（附录 A P-05）及 PEP/缓存命中路径的真实事故案例；提出 P6 可解析集语义歧义；将 decision_divergence 界定为「bound 非 closure」。
-- **RavindraAnnam**——独立技术审阅者，直指「确定性内核」宣称中最难坚守的边界——有状态算子（`within`/`rate`）。他对求值器的 review 揭示了状态突变的 `temporal_state` 证据缺口与 `total_evaluated` 计数漂移——现均已修复并由一致性向量覆盖。委托授权安全不变量（INV-01–INV-05）与对抗一致性向量（AV-01–AV-16）由他提出，随后在与 OpenOBA 的技术评审与协作中进一步细化与完善，并成为 OpenOBA 多 Agent 治理方向的基础。他还为委托授权 conformance 贡献了独立 Python runner（ravindra-annam-python-independent，Python 3 stdlib spec-only 独立表达式树求值器），逐字节验证 AV-01~AV-14 对抗向量（14/14）。他还贡献了首个独立 §7.1 resolution runner（PR #5）：13 条 neutral V-RESOLVE 向量（R01–R13）+ spec-only runner，其推导暴露并解决了收紧方向边界（R08/R13），现已在 §7.1 第 5 条明示。
+- **Ravindra Annam**——独立技术审阅者，直指「确定性内核」宣称中最难坚守的边界——有状态算子（`within`/`rate`）。他对求值器的 review 揭示了状态突变的 `temporal_state` 证据缺口与 `total_evaluated` 计数漂移——现均已修复并由一致性向量覆盖。委托授权安全不变量（INV-01–INV-05）与相关对抗一致性向量（AV-01–AV-16）由他提出，随后在与 OpenOBA 的技术评审与协作中进一步细化与完善，并成为 OpenOBA 多 Agent 治理方向的基础。他还为委托授权 conformance 贡献了独立 Python runner（ravindra-annam-python-independent，Python 3 stdlib spec-only 独立表达式树求值器），逐字节验证 AV-01~AV-14 对抗向量（14/14）。他还贡献了首个独立 §7.1 resolution runner（PR #5）：13 条 neutral V-RESOLVE 向量（R01–R13）+ spec-only runner，其推导暴露并解决了收紧方向边界（R08/R13），现已在 §7.1 第 5 条明示。
 - **Rulsynor 团队**——参考规则引擎实现，为 Decision Object 字段设计提供真实工程约束输入，是测试向量生成的基准。
 
 ## 归档说明
