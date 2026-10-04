@@ -514,7 +514,7 @@ signature(n) = Ed25519_Sign( private_key,
 | all DO fields (incl. canonical_tree, human_oversight object, outcome, agent, policies, evaluation, context, compliance_profile, extensions) | ✅ enters | signature covers the complete decision content (incl. the extension area, echoing the flat hash's extension integrity) |
 | `audit.mode` | ✅ enters | inside the audit object, signature-covered; prevents mode-tamper downgrade |
 | `audit.previous_signature` | ✅ enters | signature-chain anchoring (signature(n) covers signature(n-1)) |
-| `audit.timestamp_proof` | ✅ enters | time anchoring, prevents clock rollback |
+| `audit.timestamp_proof` | ❌ does not | time-anchors the signature (added after signing); if it entered the preimage, the token anchors the signature and the signature covers the token — an unresolvable cycle |
 | `signature` | ❌ does not | self-reference (does not exist at signing time) |
 | `signing_key_id` | ❌ does not | key metadata; key rotation does not affect the signature value |
 
@@ -562,6 +562,7 @@ The two modes are symmetric: each deletes one self-reference field, each retains
 | PIT-4 | first record previous_signature=null being Omitted → genesis cross-implementation divergence | pinned: retain null into JCS |
 | PIT-5 | signature mode retaining hash fields (hash/previous_hash/commitment) → byte drift | pinned: physically omit |
 | PIT-6 | mode not in the preimage → mode-tamper downgrade attack | pinned: mode enters the preimage (inside audit) |
+| PIT-7 | timestamp_proof in the preimage → token anchors the signature and the signature covers the token (unresolvable cycle) | pinned: timestamp_proof does not enter the signature preimage (time-anchored after signing) |
 
 Evidence Bundle: DO chain (with signatures) + rule-set snapshot + knowledge snapshot + compliance-profile snapshot + TSA credential + verification report (hash recompute + signature verify + rule recompile triple-check).
 

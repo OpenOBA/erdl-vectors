@@ -561,6 +561,7 @@ signature(n) = Ed25519_Sign( private_key,
 | PIT-4 | 首条 previous_signature=null 被 Omit → 创世块跨实现分叉    | 钉死：null 保留进 JCS              |
 | PIT-5 | 签名模式残留哈希字段（hash/previous_hash/commitment）→ 字节漂移 | 钉死：物理省略                      |
 | PIT-6 | mode 不进原像 → 篡改 mode 降级攻击                        | 钉死：mode 进原像（在 audit 内）       |
+| PIT-7 | timestamp_proof 进原像 → token 锚定签名、签名覆盖 token 的循环依赖 | 钉死：timestamp_proof 不进签名原像（时间锚定在签名之后添加） |
 
 证据包（Evidence Bundle）：DO 链（含签名）+ 规则集快照 + 知识快照 + 合规画像快照 + TSA 凭证 + 验证报告（哈希重算 + 签名验签 + 规则重编译三核对）。
 
