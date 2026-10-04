@@ -32,7 +32,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const { canonicalize } = require('json-canonicalize');
+const { jcsCanonicalize } = require('./jcs.cjs');
 const fs = require('fs');
 const path = require('path');
 
@@ -40,7 +40,7 @@ const path = require('path');
 //  Utilities
 // ═══════════════════════════════════════════════════
 const sha256 = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
-const jcs = (o) => canonicalize(o);
+const jcs = (o) => jcsCanonicalize(o);
 
 // ═══════════════════════════════════════════════════
 //  Constants (frozen)
