@@ -1,14 +1,14 @@
 # ERDL Decision Object · 跨实现验证向量 v1.5
 
-[![Version](https://img.shields.io/badge/version-v1.5.1-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-318-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-240-blueviolet)]()
+[![Version](https://img.shields.io/badge/version-v1.6.0-blue)](https://github.com/OpenOBA/erdl-vectors/releases) [![Core vectors](https://img.shields.io/badge/Core%20vectors-318-8A2BE2)]() [![Third-party verified](https://img.shields.io/badge/verified-2%20independent%20runners-brightgreen)](IMPLEMENTATIONS.md) [![JCS](https://img.shields.io/badge/canonicalization-JCS%20RFC%208785-orange)]() [![Hash](https://img.shields.io/badge/hash-SHA--256-9cf)]() [![Vectors license](https://img.shields.io/badge/vectors-CC0--1.0-lightgrey)](LICENSE-CC0) [![Code license](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE) [![Decision Object](https://img.shields.io/badge/Decision%20Object-AI%20Governance-red)]() [![Deterministic](https://img.shields.io/badge/deterministic-by_construction-2ea44f)]() [![Expression](https://img.shields.io/badge/expression_vectors-240-blueviolet)]()
 
 > 🚀 **欢迎 POC** —— 欢迎你在自己的环境中试用本项目概念验证。需要技术支持？随时联系 [support@openoba.com](mailto:support@openoba.com)。
 
 > Copyright © 2026 深圳市秒镜科技有限公司 (Shenzhen Miaojing Technology Co., Ltd.) · 向量与规范 CC0-1.0 · 代码 Apache-2.0（见 LICENSE / LICENSE-CC0）
 
 > **规范依据**：ERDL-DOBJ-RFC-002 — Decision Object v1.5 扁平哈希链（[`docs/OPENOBA-DOBJ-RFC-002-CN.md`](docs/OPENOBA-DOBJ-RFC-002-CN.md)）
-> **向量版本**：v1.5.1 · Core 向量 318 条（审计层 78 + 表达层 240）
-> **基于 ERDL 设计**：[ERDL（Entity-Rule Definition Language）](https://github.com/OpenOBA/erdl-landing) —— 声明式规则执行协议；Decision Object 即其决策的审计记录，数据模型见 [ERDL 规范 v2.2](https://github.com/OpenOBA/erdl-landing/blob/7ba1e64/erdl-language-spec-v2.1.md)
+> **向量版本**：v1.6.0 · Core 向量 318 条（审计层 78 + 表达层 240）
+> **基于 ERDL 设计**：[ERDL（Entity-Rule Definition Language）](https://github.com/OpenOBA/erdl-landing) —— 声明式规则执行协议；Decision Object 即其决策的审计记录，数据模型见 [ERDL 规范 v2.3](https://github.com/OpenOBA/erdl-landing/blob/7ba1e64/erdl-language-spec-v2.1.md)
 
 AI 治理的跨实现验证基准：一套不属于任何单一实现的中性测试向量。任何语言、任何技术栈的 runner，都可以仅凭规范从第一性原理独立实现 JCS（RFC 8785）+ SHA-256，逐字节重算 Decision Object 哈希并比对。
 
@@ -71,7 +71,7 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 | 验证层 | 类别 | 覆盖对象 | 数量 | 状态 |
 |--------|------|---------|:---:|------|
 | 审计层 | V-DO-v15 | 决策类型 13 / 链攻击 8 / 锚定 10 / 金丝雀 1 / 结论 14 / 法域 32 | 78 | ✅ 已验证（第三方 ×2） |
-| 表达层 | V-ENGINE | 节点语义 136 + 求值约束 51 + Simple 编译 30 | 218 | ✅ 已验证（concordia-python-expression） |
+| 表达层 | V-ENGINE | 节点语义 136 + 求值约束 52 + Simple 编译 30 | 218 | ✅ 已验证（concordia-python-expression） |
 | 表达层 | V-GLOSS / V-PROJ | gloss 16（渲染 12 + 完整性 4）+ 投影面 6 | 22 | ✅ 已验证（concordia-python-expression） |
 | **合计** | | **Core** | **318** | **已验证（318/318）** |
 
@@ -79,7 +79,7 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 
 - **已验证（318/318）**：审计层 V-DO-v15 78 条哈希层向量，由两个独立第三方 Runner 逐字节验证——norviq-go（Go，2026-09-01）、concordia-python（Python，Erik Newton，2026-09-02），各 107/107 canonical bytes；表达层 240 条（V-ENGINE 218 + V-GLOSS / V-PROJ 22）由 concordia-python-expression（Python，Erik Newton，2026-09-10）独立重算，240/240。历史 v1.3 的 13 条 AV（Erik Newton，2026-07-30）已由 v1.5 取代。
 
-**规划未生成（不计数）**：签名 V-SIGN 5 + 时间锚定 TSA 3 + 状态验证 V-TEMPORAL 4。
+**已生成（参考实现自验，尚未独立第三方验证）**：签名 V-SIGN 5 + 时间锚定 TSA 3。**规划未生成**：状态验证 V-TEMPORAL 4。
 
 > **向量文件**：`decision-object-vectors-v1.5.json`（V-DO-v15 审计层 78 条）+ `v-engine-vectors.json`（V-ENGINE 表达层 240 条）。
 
@@ -95,11 +95,11 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 | 法域合规 | V-COMP-001..021 + F01..F11 | 32 | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含第一层篡改 / 风险条件层 / 优先级锚定） |
 | **哈希层合计** | | **78** | D / C / A / K / G / V-COMP |
 
-规划、未生成、不计数：时间锚定 V-DO-v15-T01..T03（3 条）、签名链 V-SIGN-001..005（5 条），随签名层实现后补入。
+已生成、不计入 Core 318：签名链 V-SIGN-001..005（5 条）+ 时间锚定 V-DO-v15-T01..T03（3 条），参考实现自验。规划、未生成：V-TEMPORAL-001..004（4 条）。
 
 ### V-ENGINE 表达层（240 条）
 
-节点语义 136（34 节点 × 4 场景）+ 求值约束 51（E1–E12 可向量化子集）+ Simple 编译 30（运算符）+ gloss 16（渲染 12 + 完整性 4）+ 投影面编译 6。
+节点语义 136（34 节点 × 4 场景）+ 求值约束 52（E1–E12 可向量化子集）+ Simple 编译 30（运算符）+ gloss 16（渲染 12 + 完整性 4）+ 投影面编译 6。
 
 ### 语义重推与生产侧一致性（2026-09-02 新增，非 Core 318）
 

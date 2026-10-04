@@ -47,7 +47,7 @@
 - **rate modifier truth value inverted** (SPEC §5.2: over-limit → true).
 - **`in` membership comparison NFC-normalized** (E10).
 
-## v1.5.1 (current) - 2026-09-06
+## v1.5.1 - 2026-09-06
 
 ### Added
 - Null-check asymmetry vectors (expression layer 236 → 239): lock `== null`/`!= null` field-presence sensing semantics.
