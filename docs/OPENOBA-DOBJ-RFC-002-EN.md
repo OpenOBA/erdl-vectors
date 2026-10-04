@@ -14,7 +14,7 @@
 >
 > **Inherited from RFC-001 (v1.3, archived)**: this document is a v1.5 increment; the following content remains authoritative in RFC-001 and is not repeated here — design philosophy (universal fact container), ecosystem compatibility (MCP/A2A/OpenTelemetry/OCSF/IETF AAT), privacy & data minimization (GDPR/LGPD/DPDP), regulatory versioning & upgrade paths, long-term maintenance & field governance (append-only), and threat model.
 >
-> **Revision history**: after multiple revisions, established the "flat hash + expression-tree field" scheme, and completed the jurisdiction vectors and the unified adjudication of stateful operators (within/rate). 2026-08-31: chain scale-governance pointer (§8); full-line count-caliber unification (audit layer 78 / Core 301). 2026-09-02: added §1.4 production-side invariant, §1.5 decision-derivation semantics, §1.6 Producer Contract; added two verification objects — decision_divergence (cross-layer semantic re-derivation) and V-PRODUCER (producer-side conformance); added P-05 residual risk to Appendix A; P6 resolvable-set semantic clarification. 2026-10-04: pinned down the DO canonical form — added §2.5 minimal field set for recomputation, §5.4 context canonical form (dot-path resolution), §5.5 sanitization order, §5.6 context_snapshot_hash/sanitized_context semantics, and clarified in §1.1 that the rule body (policies[].when) is in the DO.
+> **Revision history**: after multiple revisions, established the "flat hash + expression-tree field" scheme, and completed the jurisdiction vectors and the unified adjudication of stateful operators (within/rate). 2026-08-31: chain scale-governance pointer (§8); full-line count-caliber unification (audit layer 78 / Core 301). 2026-09-02: added §1.4 production-side invariant, §1.5 decision-derivation semantics, §1.6 Producer Contract; added two verification objects — decision_divergence (cross-layer semantic re-derivation) and V-PRODUCER (producer-side conformance); added P-05 residual risk to Appendix A; P6 resolvable-set semantic clarification. 2026-10-04: pinned down the DO canonical form — added §2.5 minimal field set for recomputation, §5.4 context canonical form (dot-path resolution), §5.5 sanitization order, §5.6 context_snapshot_hash/sanitized_context semantics, and clarified in §1.1 that the rule body (policies[].when) is in the DO; signature-layer algorithm ECDSA P-256 → Ed25519 (RFC 8032 / FIPS 186-5, PureEdDSA, §10).
 >
 > **Keyword interpretation**: the keywords "MUST", "MUST NOT", "SHOULD", "MAY" in this document follow the semantics of RFC 2119 and RFC 8174.
 
@@ -478,7 +478,7 @@ This specification narrows `jurisdiction_mismatch` to a single meaning:
 
 ## 10. Three-Layer Evidence System (Hash/Signature/TSA)
 
-Layer 1 hash chain → Layer 2 ECDSA P-256 signature chain (unfrozen) → Layer 3 RFC 3161 TSA (fields frozen, implementation follows signature).
+Layer 1 hash chain → Layer 2 Ed25519 signature chain (unfrozen) → Layer 3 RFC 3161 TSA (fields frozen, implementation follows signature).
 
 ### 10.1 Signature Preimage Complete Definition
 
@@ -503,7 +503,7 @@ Layer 1 hash chain → Layer 2 ECDSA P-256 signature chain (unfrozen) → Layer 
 **Signature preimage (the bytes covered by signature)**:
 
 ```
-signature(n) = ECDSA_P256_Sign( private_key,
+signature(n) = Ed25519_Sign( private_key,
                                  JCS( DO(n) − signature − signing_key_id ) )
 ```
 
@@ -533,7 +533,7 @@ The two modes are symmetric: each deletes one self-reference field, each retains
 
 | # | Constraint | Frozen value |
 |---|------|--------|
-| 1 | Algorithm | ECDSA P-256 (FIPS 186-5) + SHA-256 |
+| 1 | Algorithm | Ed25519 (RFC 8032 / FIPS 186-5, PureEdDSA) |
 | 2 | Signature format | Base64url |
 | 3 | First record previous_signature | null (retain null into JCS, not Omit — symmetric with hash-mode previous_hash=null) |
 | 4 | Signature-mode hash fields | audit.hash / previous_hash / commitment **physically omitted** (Omit, not empty values) |
@@ -565,13 +565,13 @@ The two modes are symmetric: each deletes one self-reference field, each retains
 
 Evidence Bundle: DO chain (with signatures) + rule-set snapshot + knowledge snapshot + compliance-profile snapshot + TSA credential + verification report (hash recompute + signature verify + rule recompile triple-check).
 
-**V-SIGN test-key declaration**: V-SIGN vectors use a **public test key pair** (private key public, for vector verification only, strictly forbidden for production signing). The vector file embeds the test public key (corresponding to signing_key_id); the README declares the test-key purpose. Real production signing uses KMS/HSM private-key management; the private key is never distributed.
+**V-SIGN test-key declaration**: V-SIGN vectors use a **public Ed25519 test key pair** (private key public, for vector verification only, strictly forbidden for production signing). The vector file embeds the test public key (corresponding to signing_key_id); the README declares the test-key purpose. Real production signing uses KMS/HSM private-key management; the private key is never distributed.
 
 **Forensic-grade claim threshold**: only after signature + TSA land and pass independent third-party verification may a forensic-grade evidence claim be made externally; before that, external claims are integrity-level + attribution-level (after the signature layer goes live).
 
 ## 11. Version Evolution (v1.3 → v1.5)
 
-- **v1.5 increments over v1.3**: on the verified hash pipeline (JCS flat + single deletion point) basis, extend the field set (canonical_tree, knowledge-reference pointers, attachment pointers, human_oversight objectification, conclusion-layer outcome), complete the signature layer (ECDSA P-256, unfrozen) and the audit-layer vector set (78 + 8 to be added with the signature layer);
+- **v1.5 increments over v1.3**: on the verified hash pipeline (JCS flat + single deletion point) basis, extend the field set (canonical_tree, knowledge-reference pointers, attachment pointers, human_oversight objectification, conclusion-layer outcome), complete the signature layer (Ed25519, unfrozen) and the audit-layer vector set (78 + 8 to be added with the signature layer);
 - **preimage_version constant**: v1.5 hash mode = `"erdl-do-v1.5-hash-flat"` (domain separator, §1.1); v1.3 historical vectors retain their own version identifier;
 - **Version discrimination** (verifier Step 0): DO contains canonical_tree or v1.5 fields → v1.5 flat hash; otherwise → v1.3 legacy path (for historical-archive verification only);
 - **Historical compatibility**: the v1.3 nested-algorithm-verified frozen AV-001..013 regression suite continues as the historical-archive verification baseline; production chains do not mix versions.

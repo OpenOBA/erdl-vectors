@@ -14,7 +14,7 @@
 >
 > **继承自 RFC-001（v1.3，已归档）**：本文档为 v1.5 增量，以下内容仍以 RFC-001 为权威、本文档不重复——设计哲学（通用事实证据容器）、生态兼容性（MCP/A2A/OpenTelemetry/OCSF/IETF AAT）、隐私与数据最小化（GDPR/LGPD/DPDP）、法规版本化与升级路径、长期维护与字段治理（只增不删 Append-Only）、威胁模型。
 >
-> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。2026-08-31：链规模治理指针（§8），全线计数口径统一（审计层 78 / Core 301）。2026-09-02：新增 §1.4 生产侧不变量、§1.5 决策推导语义、§1.6 Producer Contract；新增 decision_divergence（跨层语义重推）与 V-PRODUCER（producer-side 一致性）两个验证对象；附录 A 新增 P-05 残余风险；P6 可解析集语义澄清。2026-10-04：定死 DO 规范形态——新增 §2.5 重算最小字段集、§5.4 context 规范形态（点路径解析）、§5.5 脱敏顺序、§5.6 context_snapshot_hash/sanitized_context 语义，并在 §1.1 明确规则本体（policies[].when）在 DO。
+> **修订记录**：经多次修订，确立「扁平哈希 + 表达式树字段」方案，并补齐法域向量与有状态算子（within/rate）统一裁决。2026-08-31：链规模治理指针（§8），全线计数口径统一（审计层 78 / Core 301）。2026-09-02：新增 §1.4 生产侧不变量、§1.5 决策推导语义、§1.6 Producer Contract；新增 decision_divergence（跨层语义重推）与 V-PRODUCER（producer-side 一致性）两个验证对象；附录 A 新增 P-05 残余风险；P6 可解析集语义澄清。2026-10-04：定死 DO 规范形态——新增 §2.5 重算最小字段集、§5.4 context 规范形态（点路径解析）、§5.5 脱敏顺序、§5.6 context_snapshot_hash/sanitized_context 语义，并在 §1.1 明确规则本体（policies[].when）在 DO；签名层算法 ECDSA P-256 → Ed25519（RFC 8032 / FIPS 186-5，PureEdDSA，§10）。
 >
 > **关键字解释**：本文档中的 "MUST"、"MUST NOT"、"SHOULD"、"MAY" 等关键字遵循 RFC 2119 和 RFC 8174 的语义解释。
 
@@ -477,7 +477,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 
 ## 10. 三层证据体系（哈希/签名/TSA）
 
-第一层哈希链 → 第二层 ECDSA P-256 签名链（未冻结）→ 第三层 RFC 3161 TSA（字段冻结，实现随签名后）。
+第一层哈希链 → 第二层 Ed25519 签名链（未冻结）→ 第三层 RFC 3161 TSA（字段冻结，实现随签名后）。
 
 ### 10.1 签名原像完整定义
 
@@ -502,7 +502,7 @@ Step 6（向量验证强制）: recomputed hash 同时与答案文件的期望�
 **签名原像（signature 覆盖的字节）**：
 
 ```
-signature(n) = ECDSA_P256_Sign( private_key,
+signature(n) = Ed25519_Sign( private_key,
                                  JCS( DO(n) − signature − signing_key_id ) )
 ```
 
@@ -532,7 +532,7 @@ signature(n) = ECDSA_P256_Sign( private_key,
 
 | # | 约束                    | 冻结值                                                        |
 | - | --------------------- | ---------------------------------------------------------- |
-| 1 | 算法                    | ECDSA P-256（FIPS 186-5）+ SHA-256                           |
+| 1 | 算法                    | Ed25519（RFC 8032 / FIPS 186-5，PureEdDSA）                              |
 | 2 | 签名格式                  | Base64url                                                  |
 | 3 | 首条 previous_signature | null（保留 null 进 JCS，不 Omit——与哈希模式 previous_hash=null 对称）    |
 | 4 | 签名模式哈希字段              | audit.hash / previous_hash / commitment **物理省略**（Omit，非空值） |
@@ -564,13 +564,13 @@ signature(n) = ECDSA_P256_Sign( private_key,
 
 证据包（Evidence Bundle）：DO 链（含签名）+ 规则集快照 + 知识快照 + 合规画像快照 + TSA 凭证 + 验证报告（哈希重算 + 签名验签 + 规则重编译三核对）。
 
-**V-SIGN 测试密钥声明**：V-SIGN 向量使用**公开的测试密钥对**（私钥公开，仅用于向量验证，严禁用于生产签名）。向量文件嵌入测试公钥（signing_key_id 对应），README 声明测试密钥用途。真实生产签名使用 KMS/HSM 私钥管理，私钥永不下发。
+**V-SIGN 测试密钥声明**：V-SIGN 向量使用**公开的 Ed25519 测试密钥对**（私钥公开，仅用于向量验证，严禁用于生产签名）。向量文件嵌入测试公钥（signing_key_id 对应），README 声明测试密钥用途。真实生产签名使用 KMS/HSM 私钥管理，私钥永不下发。
 
 **司法级宣称门槛**：签名 + TSA 落地并经第三方独立验证后，方可对外宣称司法级证据；此前对外声明为完整性级 + 归属级（签名层上线后）。
 
 ## 11. 版本演进（v1.3 → v1.5）
 
-- **v1.5 相对 v1.3 的增量**：在已验证哈希管线（JCS 扁平 + 唯一删除点）基础上扩展字段集（canonical_tree、知识引用指针、附件指针、human_oversight 对象化、结论层 outcome），补齐签名层（ECDSA P-256，未冻结）与审计层向量集（78 条 + 8 条随签名层补入）；
+- **v1.5 相对 v1.3 的增量**：在已验证哈希管线（JCS 扁平 + 唯一删除点）基础上扩展字段集（canonical_tree、知识引用指针、附件指针、human_oversight 对象化、结论层 outcome），补齐签名层（Ed25519，未冻结）与审计层向量集（78 条 + 8 条随签名层补入）；
 - **preimage_version 常量**：v1.5 哈希模式 = `"erdl-do-v1.5-hash-flat"`（域分隔符，§1.1）；v1.3 历史向量保留其自有版本标识；
 - **版本判别**（验证器 Step 0）：DO 含 canonical_tree 或 v1.5 字段 → v1.5 扁平哈希；否则 → v1.3 历史路径（仅供历史档案验证）；
 - **历史兼容**：v1.3 嵌套算法验证冻结的 AV-001..013 回归套件继续作为历史档案验证基准；生产链不混合版本。
