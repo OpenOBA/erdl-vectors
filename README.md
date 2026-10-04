@@ -67,6 +67,9 @@ Core total **318** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 240.
 | Audit layer | V-DO-v15 | Decision types 13 / chain attacks 8 / anchoring 10 / canary 1 / conclusion 14 / jurisdiction 32 | 78 | ✅ Verified (third-party ×2) |
 | Expression layer | V-ENGINE | Node semantics 136 + evaluation constraints 52 + Simple compilation 30 | 218 | ✅ Verified (concordia-python-expression) |
 | Expression layer | V-GLOSS / V-PROJ | gloss 16 (render 12 + completeness 4) + projection facets 6 | 22 | ✅ Verified (concordia-python-expression) |
+| Resolution layer | V-RESOLVE | §7.1 ring / override / catch-all resolution semantics | 13 | ✅ Verified (RavindraAnnam spec-only runner) |
+| Signature layer | V-SIGN | Ed25519 signature chain | 5 | ✅ Generated (reference self-verified) |
+| Time layer | V-DO-v15-T | RFC 3161 time anchoring | 3 | ✅ Generated (reference self-verified) |
 | **Total** | | **Core** | **318** | **Verified (318/318)** |
 
 **Verification status**:
@@ -89,7 +92,29 @@ Core total **318** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 240.
 | Jurisdiction compliance | V-COMP-001..021 + F01..F11 | 32 | Field conformance 21 (jurisdiction 7 + framework 14) + failure detection 11 (including first-layer tamper / risk-condition layer / priority pinning) |
 | **Hash-layer total** | | **78** | D / C / A / K / G / V-COMP |
 
-Generated, not counted in Core 318: signature chain V-SIGN-001..005 (5 vectors) + time anchoring V-DO-v15-T01..T03 (3 vectors), reference self-verified. Planned, not generated: V-TEMPORAL-001..004 (4 vectors).
+### V-SIGN signature layer (5 vectors)
+
+Ed25519 signature chain — generated, reference self-verified, not yet independently third-party verified:
+
+| Number | Scenario | Detection |
+|--------|----------|-----------|
+| V-SIGN-001 | valid signature verification | verify with the signing_key_id public key succeeds |
+| V-SIGN-002 | tamper verify-fail | tamper any DO field → verify fails (signature mismatch) |
+| V-SIGN-003 | signature-chain trace-back | trace back along previous_signature to the chain head, no break |
+| V-SIGN-004 | forged signature | sign with a wrong private key → verify fails (attribution falsified) |
+| V-SIGN-005 | signature canary | a regressed verifier skipping verification is caught |
+
+### TSA time-anchoring layer (3 vectors)
+
+RFC 3161 time anchoring — generated, reference self-verified, not yet independently third-party verified:
+
+| Number | Scenario | Detection |
+|--------|----------|-----------|
+| V-DO-v15-T01 | TSA token verification | timestamp_proof complete and valid |
+| V-DO-v15-T02 | clock drift | timestamp vs TSA-anchored time deviation exceeds threshold |
+| V-DO-v15-T03 | key decision without time anchor | DELEGATE / ESCALATE / REQUEST_HUMAN missing timestamp_proof |
+
+Planned, not generated: state verification V-TEMPORAL-001..004 (4 vectors).
 
 ### V-ENGINE expression layer (240 vectors)
 
@@ -100,6 +125,22 @@ Node semantics 136 (34 nodes × 4 scenarios) + evaluation constraints 52 (the E1
 The **§7.1 resolution semantics** (ring order 0→3, `override` direction, catch-all inertness) are covered by a third-party independent Runner. The resolution fold and its hand-written reference are proven and mutation-tested in `erdl-formal`, but both encodings descend from the **same reading of SPEC §7.1**, so they can agree on the same mis-reading; the fix is an implementation that re-derives §7.1 from the SPEC text alone.
 
 A 13-vector V-RESOLVE set (`resolution-vectors.json`) + an independent spec-only runner (`scripts/run-v-resolve.mjs`) were contributed by **RavindraAnnam** (PR #5) and cross-verified 13/13 against the reference engine. The independent derivation surfaced and resolved the §7.1 tightening-direction boundary (R08 / R13): a restrictive DENY tightens an established ALLOW by default, regardless of ring or override. See [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md).
+
+| Number | Scenario |
+|--------|----------|
+| R01 | single explicit ALLOW, no catch-all, single ring |
+| R02 | single explicit DENY, no catch-all, single ring |
+| R03 | no explicit matches, catch-all only after explicit pass |
+| R04 | explicit ALLOW matches with a hypothetical catch-all DENY |
+| R05 | explicit DENY matches and catch-all would ALLOW; catch-all remains inert |
+| R06 | explicit rules match in ring 0 and ring 3 with no qualifying override |
+| R07 | ring 0 DENY followed by qualifying high ALLOW override in ring 3 |
+| R08 | ring 0 ALLOW, then ring 3 critical DENY |
+| R09 | ring 0 DENY followed by normal ALLOW in ring 3; non-qualifying override leaves DENY |
+| R10 | multiple explicit rules match with a hypothetical catch-all DENY |
+| R11 | no explicit rules match; catch-all is evaluated in the second pass |
+| R12 | explicit rule matches before a hypothetical catch-all DENY pass |
+| R13 | same-ring ALLOW followed by critical DENY; restrictive tightening does not require override |
 
 ### Semantic re-derivation and producer-side conformance (added 2026-09-02, not in Core 318)
 

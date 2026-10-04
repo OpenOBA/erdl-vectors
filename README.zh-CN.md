@@ -67,6 +67,9 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 | 审计层 | V-DO-v15 | 决策类型 13 / 链攻击 8 / 锚定 10 / 金丝雀 1 / 结论 14 / 法域 32 | 78 | ✅ 已验证（第三方 ×2） |
 | 表达层 | V-ENGINE | 节点语义 136 + 求值约束 52 + Simple 编译 30 | 218 | ✅ 已验证（concordia-python-expression） |
 | 表达层 | V-GLOSS / V-PROJ | gloss 16（渲染 12 + 完整性 4）+ 投影面 6 | 22 | ✅ 已验证（concordia-python-expression） |
+| 裁决层 | V-RESOLVE | §7.1 ring / override / catch-all 裁决语义 | 13 | ✅ 已验证（RavindraAnnam spec-only runner） |
+| 签名层 | V-SIGN | Ed25519 签名链 | 5 | ✅ 已生成（参考实现自验） |
+| 时间层 | V-DO-v15-T | RFC 3161 时间锚定 | 3 | ✅ 已生成（参考实现自验） |
 | **合计** | | **Core** | **318** | **已验证（318/318）** |
 
 **验证状态**：
@@ -89,7 +92,29 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 | 法域合规 | V-COMP-001..021 + F01..F11 | 32 | 字段符合性 21（辖区 7 + 框架 14）+ 失败检测 11（含第一层篡改 / 风险条件层 / 优先级锚定） |
 | **哈希层合计** | | **78** | D / C / A / K / G / V-COMP |
 
-已生成、不计入 Core 318：签名链 V-SIGN-001..005（5 条）+ 时间锚定 V-DO-v15-T01..T03（3 条），参考实现自验。规划、未生成：V-TEMPORAL-001..004（4 条）。
+### V-SIGN 签名层（5 条）
+
+Ed25519 签名链——已生成，参考实现自验，尚未独立第三方验证：
+
+| 编号 | 场景 | 检测 |
+|------|------|------|
+| V-SIGN-001 | 合法验签 | 用 signing_key_id 公钥验签成功 |
+| V-SIGN-002 | 篡改验签失败 | 篡改 DO 任一字段 → 验签失败（签名不匹配） |
+| V-SIGN-003 | 签名链回溯 | 沿 previous_signature 回溯至链首，无断链 |
+| V-SIGN-004 | 伪造签名 | 用错误私钥签名 → 验签失败（归属证伪） |
+| V-SIGN-005 | 签名金丝雀 | 跳过验签的 regressed 验证器被捕获 |
+
+### TSA 时间锚定层（3 条）
+
+RFC 3161 时间锚定——已生成，参考实现自验，尚未独立第三方验证：
+
+| 编号 | 场景 | 检测 |
+|------|------|------|
+| V-DO-v15-T01 | TSA 令牌验核 | timestamp_proof 完整有效 |
+| V-DO-v15-T02 | 时钟漂移 | timestamp 与 TSA 锚定时间偏差超阈值 |
+| V-DO-v15-T03 | 关键决策无时间锚 | DELEGATE / ESCALATE / REQUEST_HUMAN 缺 timestamp_proof |
+
+规划、未生成：状态验证 V-TEMPORAL-001..004（4 条）。
 
 ### V-ENGINE 表达层（240 条）
 
@@ -100,6 +125,22 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 **§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）由一个第三方独立 Runner 覆盖。裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致；修复是一个仅凭 SPEC 文本独立重推导 §7.1 的实现。
 
 13 条 V-RESOLVE 向量集（`resolution-vectors.json`）+ 独立 spec-only runner（`scripts/run-v-resolve.mjs`）由 **RavindraAnnam** 贡献（PR #5），已与参考引擎交叉验证 13/13 一致。这次独立推导暴露并解决了 §7.1 收紧方向的边界（R08/R13）：restrictive DENY 默认收紧已确立的 ALLOW，不比较 ring、无需 override。见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)。
+
+| 编号 | 场景 |
+|------|------|
+| R01 | 单条显式 ALLOW，无 catch-all，单 ring |
+| R02 | 单条显式 DENY，无 catch-all，单 ring |
+| R03 | 无显式命中，catch-all 仅在显式遍历后求值 |
+| R04 | 显式 ALLOW 命中 + 假设性 catch-all DENY |
+| R05 | 显式 DENY 命中 + catch-all 会 ALLOW；catch-all 保持惰性 |
+| R06 | 显式规则在 ring 0 和 ring 3 命中，无合格 override |
+| R07 | ring 0 DENY 后跟 ring 3 合格 high ALLOW override |
+| R08 | ring 0 ALLOW，然后 ring 3 critical DENY |
+| R09 | ring 0 DENY 后跟 ring 3 normal ALLOW；不合格 override 保持 DENY |
+| R10 | 多条显式规则命中 + 假设性 catch-all DENY |
+| R11 | 无显式规则命中；catch-all 在第二趟求值 |
+| R12 | 显式规则在假设性 catch-all DENY 前命中 |
+| R13 | 同 ring ALLOW 后跟 critical DENY；收紧不需 override |
 
 ### 语义重推与生产侧一致性（2026-09-02 新增，非 Core 318）
 
