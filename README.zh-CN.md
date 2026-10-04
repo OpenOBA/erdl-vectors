@@ -46,12 +46,6 @@ Decision Object 是 ERDL 规则引擎一次决策的审计记录——基于 [ER
 
 逐字节重算一致，即证明这份标准在你的实现下成立。v1.5 的 78 条哈希层向量现已有两个独立第三方 Runner 逐字节验证（Go / norviq-go，2026-09-01；Python / concordia-python，2026-09-02），各 107/107 canonical bytes——见 [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) 注册表。
 
-### §7.1 裁决语义 — 首个独立 Runner（RavindraAnnam）
-
-在哈希层与表达式层之外，**§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）同样由独立 Runner 覆盖。裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致。决定性的修复，是一个仅凭 SPEC 文本独立重推导 §7.1 的第三方实现。
-
-13 条 V-RESOLVE 向量集（`resolution-vectors.json`）+ 独立 spec-only runner（`scripts/run-v-resolve.mjs`）由 **RavindraAnnam** 贡献（PR #5），已与参考引擎交叉验证 13/13 一致。这次独立推导暴露并解决了 §7.1 收紧方向的边界（R08/R13）：restrictive DENY 默认收紧已确立的 ALLOW，不比较 ring、无需 override。见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)。
-
 ## A2A 发展语境
 
 A2A（Agent-to-Agent）协议生态正在快速生长。当 Agent 之间开始互相委托决策、互相审批、交换证据时，跨实现的信任不能靠双边背书，而必须建立在可独立验证的基础之上——一方 Agent 产出的决策记录，必须能被另一方的独立实现逐字节核验。
@@ -100,6 +94,12 @@ Core 合计 **318 条** = V-DO-v15 审计层 78 + V-ENGINE 表达层 240。
 ### V-ENGINE 表达层（240 条）
 
 节点语义 136（34 节点 × 4 场景）+ 求值约束 52（E1–E12 可向量化子集）+ Simple 编译 30（运算符）+ gloss 16（渲染 12 + 完整性 4）+ 投影面编译 6。
+
+### Resolution layer（V-RESOLVE 13 条）
+
+**§7.1 裁决语义**（ring 顺序 0→3、`override` 方向、catch-all 惰性）由一个第三方独立 Runner 覆盖。裁决 fold 与其手写参考实现已在 `erdl-formal` 中证明并变异测试，但两者都源自**对 SPEC §7.1 的同一解读**，因此可能在同一次误读上保持一致；修复是一个仅凭 SPEC 文本独立重推导 §7.1 的实现。
+
+13 条 V-RESOLVE 向量集（`resolution-vectors.json`）+ 独立 spec-only runner（`scripts/run-v-resolve.mjs`）由 **RavindraAnnam** 贡献（PR #5），已与参考引擎交叉验证 13/13 一致。这次独立推导暴露并解决了 §7.1 收紧方向的边界（R08/R13）：restrictive DENY 默认收紧已确立的 ALLOW，不比较 ring、无需 override。见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)。
 
 ### 语义重推与生产侧一致性（2026-09-02 新增，非 Core 318）
 

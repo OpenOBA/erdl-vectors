@@ -46,12 +46,6 @@ The 78 audit-layer vectors are a neutral benchmark: they presuppose no language,
 
 Byte-identical recomputation proves that this standard holds under your implementation. The v1.5 78 hash-layer vectors are now byte-verified by two independent third-party runners (Go / norviq-go, 2026-09-01; Python / concordia-python, 2026-09-02), each at 107/107 canonical bytes — see the [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) registry.
 
-### §7.1 resolution semantics — first independent runner (RavindraAnnam)
-
-Beyond the hash layer and the expression layer, the **§7.1 resolution semantics** (ring order 0→3, `override` direction, catch-all inertness) are also covered by independent Runners. The resolution fold and its hand-written reference are proven and mutation-tested in `erdl-formal`, but both encodings descend from the **same reading of SPEC §7.1**, so they can agree on the same mis-reading. The deterministic fix is a third-party implementation that re-derives §7.1 from the SPEC text alone.
-
-A 13-vector V-RESOLVE set (`resolution-vectors.json`) + an independent spec-only runner (`scripts/run-v-resolve.mjs`) were contributed by **RavindraAnnam** (PR #5) and cross-verified 13/13 against the reference engine. The independent derivation surfaced and resolved the §7.1 tightening-direction boundary (R08 / R13): a restrictive DENY tightens an established ALLOW by default, regardless of ring or override. See [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md).
-
 ## A2A context
 
 The A2A (Agent-to-Agent) protocol ecosystem is growing rapidly. When agents begin to delegate decisions to one another, approve one another, and exchange evidence, cross-implementation trust cannot rest on bilateral endorsements; it must be built on a foundation that is independently verifiable — the decision record produced by one agent must be byte-verifiable by the other side's independent implementation.
@@ -100,6 +94,12 @@ Generated, not counted in Core 318: signature chain V-SIGN-001..005 (5 vectors) 
 ### V-ENGINE expression layer (240 vectors)
 
 Node semantics 136 (34 nodes × 4 scenarios) + evaluation constraints 52 (the E1–E12 vectorizable subset) + Simple compilation 30 (operators) + gloss 16 (render 12 + completeness 4) + projection-facet compilation 6.
+
+### Resolution layer (V-RESOLVE 13 vectors)
+
+The **§7.1 resolution semantics** (ring order 0→3, `override` direction, catch-all inertness) are covered by a third-party independent Runner. The resolution fold and its hand-written reference are proven and mutation-tested in `erdl-formal`, but both encodings descend from the **same reading of SPEC §7.1**, so they can agree on the same mis-reading; the fix is an implementation that re-derives §7.1 from the SPEC text alone.
+
+A 13-vector V-RESOLVE set (`resolution-vectors.json`) + an independent spec-only runner (`scripts/run-v-resolve.mjs`) were contributed by **RavindraAnnam** (PR #5) and cross-verified 13/13 against the reference engine. The independent derivation surfaced and resolved the §7.1 tightening-direction boundary (R08 / R13): a restrictive DENY tightens an established ALLOW by default, regardless of ring or override. See [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md).
 
 ### Semantic re-derivation and producer-side conformance (added 2026-09-02, not in Core 318)
 
