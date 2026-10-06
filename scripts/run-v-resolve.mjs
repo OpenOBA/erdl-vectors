@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 
 const source = process.argv[2] || new URL('../resolution-vectors.json', import.meta.url);
 const document = JSON.parse(readFileSync(source, 'utf8'));
-if (document.spec !== 'erdl-language-spec-v2.3.md' || document.spec_commit !== 'ed70333e741b7c57b457b684004fa161536e9733') {
+if (document.spec !== 'erdl-language-spec-v2.3.md' || document.spec_commit !== 'cc53097aa885f2e9cd3bcfe2e1b02753fff30c5e') {
   throw new Error('Unexpected normative specification provenance');
 }
 
