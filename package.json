@@ -26,14 +26,14 @@
     "json-canonicalize": "2.0.0"
   },
   "devDependencies": {
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.3"
   },
   "scripts": {
     "generate": "node scripts/generate-v1.5.cjs",
-  "generate:signature": "node scripts/generate-signature.cjs",
-  "verify:signature": "node scripts/verify-signature.cjs",
-  "generate:tsa": "node scripts/generate-tsa.cjs",
-  "verify:tsa": "node scripts/verify-tsa.cjs",
+    "generate:signature": "node scripts/generate-signature.cjs",
+    "verify:signature": "node scripts/verify-signature.cjs",
+    "generate:tsa": "node scripts/generate-tsa.cjs",
+    "verify:tsa": "node scripts/verify-tsa.cjs",
     "generate:vengine": "node scripts/generate-v-engine.mjs",
     "generate:vresolve": "node scripts/generate-v-resolve.mjs",
     "verify:vresolve": "node scripts/verify-v-resolve-submission.mjs",
