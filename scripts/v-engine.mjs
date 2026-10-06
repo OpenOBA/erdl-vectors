@@ -487,10 +487,10 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E11', scenario: 'ne field null → true when present', tree: { ne: [{ field: 'age' }, null] }, ctx: { age: 35 } },
     { constraint: 'E11', scenario: 'eq null field → false when present', tree: { eq: [null, { field: 'age' }] }, ctx: { age: 35 } },
     { constraint: 'E11', scenario: 'ne null field → false when present', tree: { ne: [null, { field: 'age' }] }, ctx: { age: 35 } },
-    // E11 type-mismatched comparison §7.3(a) (G4): boolean vs number folds false for BOTH eq and ne (fail-closed, no implicit conversion)
-    { constraint: 'E11', scenario: 'ne bool vs number → false (no fail-open)', tree: { ne: [false, 100] }, ctx: {} },
-    { constraint: 'E11', scenario: 'eq bool vs number → false', tree: { eq: [false, 100] }, ctx: {} },
-    { constraint: 'E11', scenario: 'ne string vs number → false', tree: { ne: ['x', 100] }, ctx: {} },
+    // E11 type-mismatched comparison §7.3(a) (G4): boolean vs number folds unknown for BOTH eq and ne (three-valued, no implicit conversion, no fail-open)
+    { constraint: 'E11', scenario: 'ne bool vs number → unknown (no fail-open)', tree: { ne: [false, 100] }, ctx: {} },
+    { constraint: 'E11', scenario: 'eq bool vs number → unknown', tree: { eq: [false, 100] }, ctx: {} },
+    { constraint: 'E11', scenario: 'ne string vs number → unknown', tree: { ne: ['x', 100] }, ctx: {} },
 ];
 /** Generate evaluation-constraint vectors (per-constraint numbering RFC-002 §9; E4 supports expectThrow, E5 uses checkExprExclusive) */
 export function generateConstraintVectors() {

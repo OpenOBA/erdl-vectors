@@ -36,6 +36,11 @@
 
 import { readFileSync } from 'fs'
 
+// M1/M2: Kleene three-valued third value. This script is an INDEPENDENT second source
+// (no engine import), so it defines its own UNKNOWN sentinel rather than importing the
+// engine's Symbol. serializeValue maps it to { value: null, type: 'unknown' }.
+const UNKNOWN = Symbol('ERDL_UNKNOWN')
+
 // ═══════════════════════════════════════════════
 // 1. independent implementation: fixed-point decimal (BigInt rationals + scale=14 half-even)
 //    —— independent of reference-engine fixed-point.ts
@@ -179,13 +184,15 @@ function evalSExpr(tree, ctx) {
       case 'literal': return { v: arg }
       case 'add': case 'mul': {
         const args = arg.map((x) => evalSExpr(x, ctx).v)
+        // M1: missing field (undefined/null) propagates unknown in arithmetic
+        if (args.some((a) => a === undefined || a === null)) return { v: UNKNOWN }
         let acc = key === 'add' ? fromInt(0) : fromInt(1)
         for (const a of args) { const r = toRat(a); if (r === null) return { v: null }; acc = key === 'add' ? add(acc, r) : mul(acc, r) }
         return { v: acc }
       }
-      case 'sub': { if (arg.length !== 2) return { v: null }; const a = toRat(evalSExpr(arg[0], ctx).v); const b = toRat(evalSExpr(arg[1], ctx).v); if (a === null || b === null) return { v: null }; return { v: sub(a, b) } }
-      case 'div': { if (arg.length !== 2) return { v: null }; const a = toRat(evalSExpr(arg[0], ctx).v); const b = toRat(evalSExpr(arg[1], ctx).v); if (a === null || b === null) return { v: null }; if (b.num === 0n) return { v: null }; return { v: div(a, b) } }
-      case 'round': { const a = toRat(evalSExpr(arg[0], ctx).v); if (a === null) return { v: null }; return { v: fromInt(toDecimalString(a, 0)) } }
+      case 'sub': { if (arg.length !== 2) return { v: null }; const av = evalSExpr(arg[0], ctx).v; const bv = evalSExpr(arg[1], ctx).v; if (av === undefined || av === null || bv === undefined || bv === null) return { v: UNKNOWN }; const a = toRat(av); const b = toRat(bv); if (a === null || b === null) return { v: null }; return { v: sub(a, b) } }
+      case 'div': { if (arg.length !== 2) return { v: null }; const av = evalSExpr(arg[0], ctx).v; const bv = evalSExpr(arg[1], ctx).v; if (av === undefined || av === null || bv === undefined || bv === null) return { v: UNKNOWN }; const a = toRat(av); const b = toRat(bv); if (a === null || b === null) return { v: null }; if (b.num === 0n) return { v: null }; return { v: div(a, b) } }
+      case 'round': { const av = evalSExpr(arg[0], ctx).v; if (av === undefined || av === null) return { v: UNKNOWN }; const a = toRat(av); if (a === null) return { v: null }; return { v: fromInt(toDecimalString(a, 0)) } }
       case 'eq': case 'ne': case 'gt': case 'gte': case 'lt': case 'lte': {
         const l = evalSExpr(arg[0], ctx).v; const r = evalSExpr(arg[1], ctx).v
         let out
@@ -195,7 +202,7 @@ function evalSExpr(tree, ctx) {
         if (l === undefined || l === null) {
           const isNullCheck = r === undefined || r === null
           if (isNullCheck) out = key === 'eq' // eq null → true; ne null → false
-          else out = false // missing/null vs non-null: both eq and ne false
+          else out = UNKNOWN // M1: missing/null vs non-null is unknown (three-valued), not false
           return { v: out }
         }
         // left present, right null/undefined → == null / != null presence check
@@ -213,8 +220,8 @@ function evalSExpr(tree, ctx) {
           // E10: strict compare after string NFC normalization
           const ls = typeof l === 'string' ? nfc(l) : l
           const rs = typeof r === 'string' ? nfc(r) : r
-          // §7.3(a): type-mismatched comparison folds false for BOTH eq and ne (no fail-open via !==)
-          if (typeof ls !== typeof rs) out = false
+          // §7.3(a): type-mismatched comparison folds unknown (three-valued; no fail-open via !==)
+          if (typeof ls !== typeof rs) out = UNKNOWN
           else { const e = ls === rs; out = key === 'eq' ? e : !e }
         } else out = false
         return { v: out }
@@ -235,7 +242,7 @@ function evalSExpr(tree, ctx) {
       case 'all': case 'any': case 'none': {
         const over = evalSExpr(arg.over, ctx).v
         if (!Array.isArray(over)) return { v: false }
-        if (over.length === 0) return { v: false } // E8 safe folding
+        if (over.length === 0) return { v: UNKNOWN } // M2: empty array folds to unknown (not false)
         // predicate evaluation (simple predicates only)
         const predVals = over.map(() => evalPred(arg.predicate, ctx))
         const bools = predVals.map((x) => x === true)
@@ -253,8 +260,8 @@ function evalSExpr(tree, ctx) {
         const over = evalSExpr(arg, ctx).v; if (!Array.isArray(over)) return { v: null }
         const rats = over.map(toRat); if (rats.some((x) => x === null)) return { v: null }
         if (key === 'sum') { let a = fromInt(0); for (const r of rats) a = add(a, r); return { v: a } }
-        // §10.4(d): avg/min/max empty-array safe-folds to false (count/sum empty arrays already 0)
-        if (rats.length === 0) return { v: false }
+        // M2: avg/min/max empty-array safe-folds to unknown (count/sum empty arrays already 0)
+        if (rats.length === 0) return { v: UNKNOWN }
         if (key === 'avg') { let a = fromInt(0); for (const r of rats) a = add(a, r); return { v: div(a, fromInt(rats.length)) } }
         if (key === 'min') { let m = rats[0]; for (const r of rats) if (cmp(r, m) < 0) m = r; return { v: m } }
         let m = rats[0]; for (const r of rats) if (cmp(r, m) > 0) m = r; return { v: m }
@@ -278,6 +285,7 @@ function evalPred(pred, ctx) {
 // 4. serialization (aligned with reference-engine serializeValue minimal canonical representation)
 // ═══════════════════════════════════════════════
 function serializeValue(v) {
+  if (v === UNKNOWN) return { value: null, type: 'unknown' }
   if (v === undefined) return { value: false, type: 'boolean' }
   if (v === null) return { value: false, type: 'boolean' }
   if (typeof v === 'boolean') return { value: v, type: 'boolean' }

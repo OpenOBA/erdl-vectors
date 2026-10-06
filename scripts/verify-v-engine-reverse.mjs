@@ -22,13 +22,14 @@
  * recompute and compare with the original expected — the tampered evaluation MUST change (otherwise the vector has no discriminating power).
  * Pure field-reference nodes (no literal) and commutative/boundary cases (e.g. or with first term true) naturally do not change on tamper; not counted as failures.
  */
-import { ExprTreeEvaluator, objectContext, fromSExpr, toDecimalString } from '@openoba/erdl';
+import { ExprTreeEvaluator, objectContext, fromSExpr, toDecimalString, UNKNOWN } from '@openoba/erdl';
 import { readFileSync } from 'fs';
 
 const AS_OF = new Date('2026-08-15T00:00:00Z');
 const ev = new ExprTreeEvaluator();
 
 function serializeValue(v) {
+  if (v === UNKNOWN) return { value: null, type: 'unknown' };
   if (v === undefined) return { value: false, type: 'boolean' };
   if (v === null) return { value: false, type: 'boolean' };
   if (typeof v === 'boolean') return { value: v, type: 'boolean' };

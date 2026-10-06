@@ -26,15 +26,16 @@
  */
 import {
   ExprTreeEvaluator, objectContext, fromSExpr, toSExpr, compileSimpleCondition,
-  renderNode, GuardStateManager, VirtualClock, toDecimalString,
+  renderNode, GuardStateManager, VirtualClock, toDecimalString, UNKNOWN,
 } from '@openoba/erdl';
 import { readFileSync } from 'fs';
 
 const AS_OF = new Date('2026-08-15T00:00:00Z');
 const ev = new ExprTreeEvaluator();
 
-/** Strictly isomorphic with the generator v-engine.mjs serializeValue: value → {value, type} (ER3: number/string/boolean) */
+/** Strictly isomorphic with the generator v-engine.mjs serializeValue: value → {value, type} (ER3: number/string/boolean/unknown) */
 function serializeValue(v) {
+  if (v === UNKNOWN) return { value: null, type: 'unknown' };
   if (v === undefined) return { value: false, type: 'boolean' };
   if (v === null) return { value: false, type: 'boolean' };
   if (typeof v === 'boolean') return { value: v, type: 'boolean' };

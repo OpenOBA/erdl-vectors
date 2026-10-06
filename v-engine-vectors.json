@@ -13108,7 +13108,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
-      "scenario": "ne bool vs number → false (no fail-open)",
+      "scenario": "ne bool vs number → unknown (no fail-open)",
       "expr_tree": {
         "ne": [
           false,
@@ -13122,7 +13122,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
-      "scenario": "eq bool vs number → false",
+      "scenario": "eq bool vs number → unknown",
       "expr_tree": {
         "eq": [
           false,
@@ -13136,7 +13136,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
-      "scenario": "ne string vs number → false",
+      "scenario": "ne string vs number → unknown",
       "expr_tree": {
         "ne": [
           "x",
