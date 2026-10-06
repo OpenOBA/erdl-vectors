@@ -1,6 +1,6 @@
 {
-"spec": "erdl-language-spec-v2.1.md",
-  "spec_commit": "7ba1e64",
+"spec": "erdl-language-spec-v2.3.md",
+  "spec_commit": "ed70333e741b7c57b457b684004fa161536e9733",
   "category": "V-RESOLVE",
   "description": "Neutral vectors for independent re-derivation of ERDL §7.0.2 and §7.1 resolution semantics.",
   "vectors": [

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Independent, deliberately narrow reading of ERDL §7.0.2 and §7.1 at
-// erdl-landing@7ba1e64. No erdl-formal or @openoba/erdl imports.
+// Independent, deliberately narrow reading of ERDL §7.0.2, §7.1 and §7.1a at
+// erdl-landing@ed70333 (v2.3). No erdl-formal or @openoba/erdl imports.
 import { readFileSync } from 'node:fs';
 
 const source = process.argv[2] || new URL('../resolution-vectors.json', import.meta.url);
 const document = JSON.parse(readFileSync(source, 'utf8'));
-if (document.spec !== 'erdl-language-spec-v2.1.md' || document.spec_commit !== '7ba1e64') {
+if (document.spec !== 'erdl-language-spec-v2.3.md' || document.spec_commit !== 'ed70333e741b7c57b457b684004fa161536e9733') {
   throw new Error('Unexpected normative specification provenance');
 }
 
@@ -29,35 +29,37 @@ const ordered = rules => rules.map((rule, index) => ({ ...rule, index })).sort((
   strength[b.override ?? 'normal'] - strength[a.override ?? 'normal'] || a.index - b.index);
 
 export function resolve({ fact, rules }) {
-  // §7.0.2: explicit pass first; enter the catch-all pass only on no match.
+  // §7.0.2: explicit pass first; catch-all inert once any explicit rule matched (§7.1 item 6).
   const explicit = ordered(rules.filter(rule => rule.when !== 'true'));
   const catchAll = ordered(rules.filter(rule => rule.when === 'true'));
   let totalEvaluated = 0;
   const matched = [];
+  const hits = [];
+  let anyExplicitMatched = false;
+  for (const rule of [...explicit, ...catchAll]) {
+    if (rule.when === 'true' && anyExplicitMatched) continue; // §7.1 item 6: catch-all inert
+    totalEvaluated++;
+    if (!matches(rule, fact)) continue;
+    matched.push(rule.name);
+    hits.push({ decision: rule.then, override: rule.override ?? 'normal', ring: rule.ring ?? 3, name: rule.name });
+    if (rule.when !== 'true') anyExplicitMatched = true;
+    if (rule.then === 'EMERGENCY_HALT') break; // 唯一终端短路
+  }
+  // §7.1a 集合式 fold（置换不变）：R=拦截类，O=override ALLOW，覆盖需 level(o)>level(r) 且 ring(o)≤ring(r)（外环不得覆盖内环）。
+  const RESTRICTIVE = new Set(['DENY', 'ROLLBACK', 'QUARANTINE']);
+  const restrictive = hits.filter(h => RESTRICTIVE.has(h.decision));
+  const overrideAllows = hits.filter(h => h.decision === 'ALLOW' && (h.override === 'critical' || h.override === 'high'));
+  const uncovered = restrictive.filter(r =>
+    !overrideAllows.some(o => strength[o.override] > strength[r.override] && o.ring <= r.ring)
+  );
   let decision = null;
-  for (const pass of [explicit, catchAll]) {
-    if (pass === catchAll && matched.length) break;
-    for (const rule of pass) {
-      totalEvaluated++;
-      if (!matches(rule, fact)) continue;
-      matched.push(rule.name);
-      if (decision === null) {
-  decision = rule.then;
-} else if (decision === 'ALLOW' && rule.then === 'DENY') {
-  // §7.1 item 5: tightening is the default.
-  // A restrictive DENY tightens an established ALLOW regardless of ring
-  // and does not require override; override on DENY is inert.
-  decision = 'DENY';
-} else if (
-  decision === 'DENY' &&
-  rule.then === 'ALLOW' &&
-  (rule.override === 'high' || rule.override === 'critical')
-) {
-  // §7.1 item 5: relaxing DENY -> ALLOW requires a qualifying override.
-  decision = 'ALLOW';
-}
-      // A subsequent DENY does not use override to rewrite an ALLOW.
-      if (rule.then === 'EMERGENCY_HALT' || rule.then === 'WORKFLOW') break;
+  if (uncovered.length > 0) {
+    decision = uncovered.reduce((best, h) => (h.ring < best.ring ? h : best)).decision;
+  } else {
+    const nonRestrictive = hits.filter(h => !RESTRICTIVE.has(h.decision) && h.decision !== 'NOTIFY');
+    if (nonRestrictive.length > 0) {
+      const decStrength = { EMERGENCY_HALT: 0, DENY: 1, ROLLBACK: 1, QUARANTINE: 1, REQUEST_HUMAN: 2, WORKFLOW: 2, ESCALATE: 3, DELEGATE: 4, DEFER: 5, CORRECT: 6, GUIDE: 7, ALLOW: 8 };
+      decision = nonRestrictive.reduce((best, h) => ((decStrength[h.decision] ?? 8) < (decStrength[best.decision] ?? 8) ? h : best)).decision;
     }
   }
   return { decision, matched_rules: matched, total_matched: matched.length, total_evaluated: totalEvaluated };
