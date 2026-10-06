@@ -601,9 +601,9 @@
           "total_matched": 1
         },
         "result": {
-          "applied_rule": "rule-d-notify",
-          "reason": "Decision: NOTIFY",
-          "decision": "NOTIFY",
+          "applied_rule": null,
+          "reason": "Fallback: ALLOW (NOTIFY is a side action, not a main decision)",
+          "decision": "ALLOW",
           "rules_matched": [
             "rule-d-notify"
           ]
@@ -613,7 +613,7 @@
         },
         "audit": {
           "mode": "hash",
-          "hash": "sha256:a626e044c480618b1ba7348f125f0c84a259cb47e08dd5417e28868ac83141d0",
+          "hash": "sha256:ed3908743faabae8b82adf327302b259d925da1c42bad34f268e69155b303f3b",
           "previous_hash": null,
           "commitment": {
             "agent_id": "did:erdl:sha256:test-runner-v1.5",

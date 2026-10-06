@@ -177,10 +177,12 @@ function buildDO(o) {
 
   // ── result ──
   const appliedRuleId = policies.length ? policies[0].id : null;
+  // NOTIFY 是附带动作（SPEC §7.1a），不产生主决策；单独命中时主决策落到 fallback ALLOW。
+  const mainDecision = decisionType === 'NOTIFY' ? 'ALLOW' : decisionType;
   const result = {
-    applied_rule: appliedRuleId,
-    reason: `Decision: ${decisionType}`,
-    decision: decisionType,
+    applied_rule: decisionType === 'NOTIFY' ? null : appliedRuleId,
+    reason: decisionType === 'NOTIFY' ? 'Fallback: ALLOW (NOTIFY is a side action, not a main decision)' : `Decision: ${decisionType}`,
+    decision: mainDecision,
     rules_matched: policies.map((p) => p.id),
   };
   if (o.outcome !== undefined) result.outcome = o.outcome;

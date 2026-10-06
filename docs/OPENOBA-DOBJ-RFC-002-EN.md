@@ -281,7 +281,7 @@ Canary: the v1.5 chain-position canary continues the AV-013 pattern — a correc
 
 | Category | Number range | Count | Content |
 |------|------|:---:|------|
-| Decision-type coverage | V-DO-v15-D01..D13 | 13 | 13 decision types (ALLOW/DENY/CORRECT/NOTIFY/REQUEST_HUMAN/ESCALATE/DELEGATE/DEFER/EMERGENCY_HALT/ROLLBACK/QUARANTINE/WORKFLOW/GUIDE) × flat hash (with canonical_tree field) |
+| Decision-type coverage | V-DO-v15-D01..D13 | 13 | 13 decision types (ALLOW/DENY/CORRECT/NOTIFY/REQUEST_HUMAN/ESCALATE/DELEGATE/DEFER/EMERGENCY_HALT/ROLLBACK/QUARANTINE/WORKFLOW/GUIDE) × flat hash (with canonical_tree field). NOTIFY is a side action (§7.1a) — its main decision falls back to ALLOW, with applied_rule=null and the rule recorded in rules_matched |
 | Chain-attack detection | V-DO-v15-C01..C08 | 8 | normal-chain baseline + 7 attacks (single-record tamper / record deletion / dangling pointer / clock regression / whole-chain rebuild / version downgrade / mixed chain, see §9.2) |
 | Anchoring-attack detection | V-DO-v15-A01..A10 | 10 | knowledge tamper / unresolvable reference / fragment mismatch / attachment tamper / intent tamper / memory-key tamper / tree-snapshot forgery / tree tamper ×2 (node order swap / literal precision) / type-B text tamper (see §9.3) |
 | Signature chain (generated, reference self-verified) | V-SIGN-001..005 | 5 | valid verify / tamper verify-fail / chain trace-back / forged signature / signature canary, §10.3 (generated, not yet independently third-party verified) |

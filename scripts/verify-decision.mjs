@@ -47,9 +47,11 @@ function check(doObj) {
   if (!doObj.result || typeof doObj.result.decision !== 'string') return 'skip';
   if (doObj.context === undefined) return 'skip';
 
-  // dangling applied_rule: the cited rule id is absent from policies
+  // dangling applied_rule: a NON-NULL cited rule id must exist in policies.
+  // null = the main decision came from fallback (no rule produced it, e.g. a NOTIFY
+  // side action alone), which is legal and not a divergence.
   const appliedRuleId = doObj.result.applied_rule;
-  if (appliedRuleId !== undefined && !doObj.policies.some((p) => p.id === appliedRuleId)) {
+  if (appliedRuleId !== undefined && appliedRuleId !== null && !doObj.policies.some((p) => p.id === appliedRuleId)) {
     return { reason: `applied_rule ${appliedRuleId} not in policies` };
   }
 
