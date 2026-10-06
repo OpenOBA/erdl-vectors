@@ -70,7 +70,8 @@ Core total **318** = V-DO-v15 audit layer 78 + V-ENGINE expression layer 240.
 | Resolution layer | V-RESOLVE | §7.1 ring / override / catch-all resolution semantics | 13 | ✅ Verified (Ravindra Annam spec-only runner) |
 | Signature layer | V-SIGN | Ed25519 signature chain | 5 | ✅ Generated (reference self-verified) |
 | Time layer | V-DO-v15-T | RFC 3161 time anchoring | 3 | ✅ Generated (reference self-verified) |
-| **Total** | | **Core** | **318** | **Verified (318/318)** |
+| Divergence layer | V-DIVERGENCE | decision-rule coherence re-derivation | 3 | ✅ Re-derivation |
+| **Total** | | **All layers** | **342** | Core 318 verified · resolution 13 / signature 5 / TSA 3 / divergence 3 |
 
 **Verification status**:
 
