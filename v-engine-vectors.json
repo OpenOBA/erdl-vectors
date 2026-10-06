@@ -12728,7 +12728,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E8",
-      "scenario": "all(empty)=false",
+      "scenario": "all(empty)=unknown",
       "expr_tree": {
         "all": {
           "binding": "x",
@@ -12754,7 +12754,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E8",
-      "scenario": "any(empty)=false",
+      "scenario": "any(empty)=unknown",
       "expr_tree": {
         "any": {
           "binding": "x",
@@ -12780,7 +12780,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E8",
-      "scenario": "none(empty)=false",
+      "scenario": "none(empty)=unknown",
       "expr_tree": {
         "none": {
           "binding": "x",
@@ -12799,7 +12799,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E8",
-      "scenario": "min(empty)=false",
+      "scenario": "min(empty)=unknown",
       "expr_tree": {
         "min": {
           "field": "nums"
@@ -12814,7 +12814,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E8",
-      "scenario": "max(empty)=false",
+      "scenario": "max(empty)=unknown",
       "expr_tree": {
         "max": {
           "field": "nums"
@@ -12988,7 +12988,7 @@
       "category": "V-ENGINE",
       "subcategory": "constraint",
       "constraint": "E11",
-      "scenario": "arith missing → type_mismatch",
+      "scenario": "arith missing → unknown",
       "expr_tree": {
         "add": [
           {

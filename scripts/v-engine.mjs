@@ -28,6 +28,7 @@
  * @license Apache-2.0
  */
 import { ExprTreeEvaluator, objectContext } from '@openoba/erdl';
+import { UNKNOWN } from '@openoba/erdl';
 import { fromSExpr, toSExpr } from '@openoba/erdl';
 import { toDecimalString } from '@openoba/erdl';
 import { compileSimpleCondition } from '@openoba/erdl';
@@ -49,8 +50,12 @@ function checkExprExclusive(cond) {
 const AS_OF = new Date('2026-08-15T00:00:00Z');
 /** Serialize an evaluation result into cross-implementation-comparable { value, type } (ER3: number/string/boolean) */
 export function serializeValue(v) {
-    // ER3 (contract): value_type ∈ {number, string, boolean}. number is a decimal string —
+    // ER3 (contract): value_type ∈ {number, string, boolean, unknown}. number is a decimal string —
     // RFC 8785 Appendix D RECOMMENDS JSON strings for numbers beyond IEEE 754 double precision; spec E2 mandates "string serialization".
+    // S3/M1/M2: `unknown` is the Kleene three-valued third value (missing field / empty aggregate),
+    // distinct from `false` — `not(unknown)=unknown` does not fail open.
+    if (v === UNKNOWN)
+        return { value: null, type: 'unknown' };
     if (v === undefined)
         return { value: false, type: 'boolean' };
     if (v === null)
@@ -451,12 +456,12 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E5', scenario: 'expr-only valid', expectE5Exclusive: false, tree: { expr: { eq: [{ field: 'x' }, 1] } }, ctx: {} },
     { constraint: 'E5', scenario: 'field/operator/value-only valid', expectE5Exclusive: false, tree: { field: 'x', operator: 'eq', value: 1 }, ctx: {} },
     // E8 quantifier safe-folding (3)
-    { constraint: 'E8', scenario: 'all(empty)=false', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
-    { constraint: 'E8', scenario: 'any(empty)=false', tree: { any: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
-    { constraint: 'E8', scenario: 'none(empty)=false', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: true } }, ctx: { items: [] } },
+    { constraint: 'E8', scenario: 'all(empty)=unknown', tree: { all: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
+    { constraint: 'E8', scenario: 'any(empty)=unknown', tree: { any: { binding: 'x', over: { field: 'items' }, predicate: { gt: [{ var: 'x' }, 0] } } }, ctx: { items: [] } },
+    { constraint: 'E8', scenario: 'none(empty)=unknown', tree: { none: { binding: 'x', over: { field: 'items' }, predicate: true } }, ctx: { items: [] } },
     // E8 aggregate safe-folding §7.3(e): min/max over empty array fold to false (G2)
-    { constraint: 'E8', scenario: 'min(empty)=false', tree: { min: { field: 'nums' } }, ctx: { nums: [] } },
-    { constraint: 'E8', scenario: 'max(empty)=false', tree: { max: { field: 'nums' } }, ctx: { nums: [] } },
+    { constraint: 'E8', scenario: 'min(empty)=unknown', tree: { min: { field: 'nums' } }, ctx: { nums: [] } },
+    { constraint: 'E8', scenario: 'max(empty)=unknown', tree: { max: { field: 'nums' } }, ctx: { nums: [] } },
     // E9 time-node UTC semantics (4, added 2026-09-05 to lock §7.3(f) no-tz = UTC): no-timezone datetime parses as UTC, explicit Z/offset honored
     { constraint: 'E9', scenario: 'epoch_ms no-timezone datetime = UTC', tree: { epoch_ms: '2026-01-01T12:30:45' }, ctx: {} },
     { constraint: 'E9', scenario: 'epoch_ms Z suffix', tree: { epoch_ms: '2026-01-01T12:30:45Z' }, ctx: {} },
@@ -472,7 +477,7 @@ const CONSTRAINTS_DEFS = [
     { constraint: 'E11', scenario: 'missing field → undefined', tree: { field: 'missing' }, ctx: {} },
     { constraint: 'E11', scenario: 'eq missing → false', tree: { eq: [{ field: 'missing' }, 1] }, ctx: {} },
     { constraint: 'E11', scenario: 'exists missing → false', tree: { exists: { field: 'missing' } }, ctx: {} },
-    { constraint: 'E11', scenario: 'arith missing → type_mismatch', tree: { add: [{ field: 'missing' }, 1] }, ctx: {} },
+    { constraint: 'E11', scenario: 'arith missing → unknown', tree: { add: [{ field: 'missing' }, 1] }, ctx: {} },
     // E11 null literal §7.3(a) (G1): == null / != null sense field presence (the sole comparison that sees absence)
     { constraint: 'E11', scenario: 'eq field null → true when missing', tree: { eq: [{ field: 'missing' }, null] }, ctx: {} },
     { constraint: 'E11', scenario: 'ne field null → false when missing', tree: { ne: [{ field: 'missing' }, null] }, ctx: {} },
