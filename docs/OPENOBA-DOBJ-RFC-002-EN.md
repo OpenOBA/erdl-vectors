@@ -110,7 +110,7 @@ Reference: `scripts/verify-producer.mjs` (a single-path producer is fully consis
 | Tree shape | **JSON nested object** (`{"eq":[{...},"exec"]}`), not an S-expression string; JCS recursively canonicalized |
 | Node order | in-tree arrays follow semantic order (e.g. arithmetic/logical argument order); JCS does not reorder array elements; the matched_rules array follows hit order (§1.3#7) |
 | Field names carry weight | metadata (source location, comments, gloss) stripped; semantics carried by key names and values |
-| Numeric literals | rule values enter the tree as **fixed-point decimal strings** (scale=14 + half-even, SPEC §7.2; engine parses via fromDecimalString), native numbers forbidden, avoiding IEEE 754 cross-language precision divergence; serialized to **minimal canonical representation** (§1.3#4, no trailing zeros / no decimal point on integers) |
+| Numeric literals | number literals encode as the **typed decimal-string object** `{"n":"<decimal>"}` (SPEC v2.3 §8.2 canonical form, S2 breaking change); the `<decimal>` is the fixed-point value (scale=14 + half-even, SPEC §7.2), native numbers forbidden, avoiding IEEE 754 cross-language precision divergence and number/string collision; the typed object is JCS-canonicalized within the tree |
 | String literals | NFC'd once at the engine entry point, thereafter as-is |
 | 0 hits | field absent (Omit), zero special-casing on the verifier side |
 | Non-pure-condition rules (fn delegation, compile returns null) | that rule has no canonical_tree key (Omit); the decision fact is still anchored by the remaining matched_rules fields |

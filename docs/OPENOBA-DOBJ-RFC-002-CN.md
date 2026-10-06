@@ -109,7 +109,7 @@ audit.hash = "sha256:" + HEX( SHA-256( JCS( DO 全量字段 − audit.hash − s
 | 树形态                     | **JSON 嵌套对象**（`{"eq":[{...},"exec"]}`），非 S-expression 字符串；JCS 递归规范化                                                                         |
 | 节点序                     | 树内部数组按语义序（如算术/逻辑参数序），JCS 不重排数组元素；matched_rules 数组按命中顺序（§1.3#7）                                                                              |
 | 字段名承重                   | 元数据（source location、注释、gloss）剥离，语义由键名与值承载                                                                                                   |
-| 数值字面量                   | 规则值以**定点小数字符串**进树（scale=14 + half-even，SPEC §7.2；引擎 fromDecimalString 解析），禁原生 number，规避 IEEE 754 跨语言精度分叉；序列化为**最小规范表示**（§1.3#4，禁尾零/禁整数带小数点） |
+| 数值字面量                   | 数字字面量编码为**带类型十进制字符串对象** `{"n":"<十进制>"}`（SPEC v2.3 §8.2 canonical 形式，S2 破坏性变更）；`<十进制>` 即定点小数值（scale=14 + half-even，SPEC §7.2），禁原生 number，规避 IEEE 754 跨语言精度分叉与数字/字符串碰撞；typed 对象在树内按 JCS 规范化 |
 | 字符串字面量                  | 引擎入口统一 NFC 一次，此后 as-is                                                                                                                      |
 | 命中 0 条                  | 字段不存在（Omit），验证端零特判                                                                                                                          |
 | 非纯条件规则（fn 委派，编译返回 null） | 该规则无 canonical_tree 键（Omit）；决策事实仍由 matched_rules 其余字段锚定                                                                                     |
