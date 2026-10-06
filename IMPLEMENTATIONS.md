@@ -53,7 +53,7 @@ Inclusion implies no endorsement — only "who passed how many vectors on what d
 | **OpenOBA (reference)** | Node.js, @openoba/erdl | 13/13 | 2026-09-27 | [generate-v-resolve.mjs](scripts/generate-v-resolve.mjs) |
 | **RavindraAnnam** | Node.js, spec-only | 13/13 | 2026-09-27 | [PR #5](https://github.com/OpenOBA/erdl-vectors/pull/5) |
 
-> 第三方 V-RESOLVE Runner 见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)；CI 交叉验证（`verify-v-resolve-submission.mjs`）待 `@openoba/erdl` 发布 §7.1 收紧修正后启用。
+> 第三方 V-RESOLVE Runner 见 [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md)；§7.1 收紧修正已落地（v2.3 S5 集合式 fold：外环不得覆盖内环，V-RESOLVE-R07 由 ALLOW 翻转为 DENY），CI 交叉验证（`verify-v-resolve-submission.mjs`）可启用。
 
 ### v1.3 历史档案（Decision Object v1.3，AV 编号）
 

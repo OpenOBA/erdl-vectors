@@ -50,7 +50,7 @@ Inclusion in this table does not imply endorsement by OpenOBA — it records onl
 | **OpenOBA (reference)** | Node.js, @openoba/erdl | 13/13 | 2026-09-27 | [generate-v-resolve.mjs](scripts/generate-v-resolve.mjs) |
 | **RavindraAnnam** | Node.js, spec-only | 13/13 | 2026-09-27 | [PR #5](https://github.com/OpenOBA/erdl-vectors/pull/5) |
 
-> For the third-party V-RESOLVE runner see [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md); CI cross-verification (`verify-v-resolve-submission.mjs`) is enabled once `@openoba/erdl` publishes the §7.1 tightening fix.
+> For the third-party V-RESOLVE runner see [docs/RESOLUTION-INDEPENDENT-REVIEW.md](docs/RESOLUTION-INDEPENDENT-REVIEW.md); the §7.1 tightening fix (v2.3 S5 set-based fold: outer ring MUST NOT cover inner ring, V-RESOLVE-R07 flips ALLOW→DENY) is now landed, so CI cross-verification (`verify-v-resolve-submission.mjs`) can be enabled.
 
 ### v1.3 historical archive (Decision Object v1.3, AV numbering)
 

@@ -6,7 +6,7 @@
 >
 > **License split (2026-09-04)**: two-tier license — test vectors + spec docs → CC0-1.0; code → Apache-2.0.
 
-## [Unreleased] - 2026-09-10
+## [v1.7.0] - 2026-10-07
 
 ### Added
 - **RFC-002 DO 规范形态定死**（2026-10-04）：新增 §2.5 重算最小字段集、§5.4 context 规范形态（点路径解析，嵌套 fact 非扁平点键）、§5.5 脱敏顺序（求值前脱敏；被规则引用字段不得脱敏）、§5.6 context_snapshot_hash/sanitized_context 语义；在 §1.1 明确规则本体（`policies[].when`）在 DO。双语（CN + EN）。
