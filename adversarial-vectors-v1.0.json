@@ -1,0 +1,863 @@
+{
+  "$schema": "https://openoba.com/erdl/adversarial-vectors-v1.0/schema.json",
+  "spec": "erdl-language-spec-v2.3.md",
+  "spec_commit": "cc53097aa885f2e9cd3bcfe2e1b02753fff30c5e",
+  "category": "V-AV",
+  "version": "v1.0.0",
+  "created": "2026-10-07",
+  "maintainer": "OpenOBA (https://openoba.com)",
+  "description": "Delegated-authority adversarial conformance vectors (AV-01~16, INV-01~05, SPEC §6b). Each vector carries an ERDL rule (when → DENY), an attack context (violating the invariant), a legal context (non-violating baseline), and the expected attribution. Proposed by Ravindra Annam, refined through technical review with OpenOBA.",
+  "vectors": [
+    {
+      "id": "AV-01",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-01",
+      "description": "Direct amplification: P grants A effective L2; A delegates to B; B standing L3; B attempts an L3 action under the L2 task.",
+      "rule": {
+        "id": "INV-01_authority_non_amplification",
+        "name": "INV-01_authority_non_amplification",
+        "description": "A delegatee must not exercise task authority exceeding the delegator's effective authority",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "gt": [
+                {
+                  "field": "request.level"
+                },
+                {
+                  "field": "authorized.level"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "requested autonomy level exceeds the delegated effective authority (INV-01)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "request.level": 3,
+        "authorized.level": 2
+      },
+      "legal": {
+        "request.level": 2,
+        "authorized.level": 2
+      },
+      "attribution": {
+        "originating_task": "T-refund-0891",
+        "authority_provenance": "P→A→B",
+        "violation_hop": "A→B",
+        "requested_action": "refund(level=L3)",
+        "effective_authority": "refund(level=L2)",
+        "reason": "AUTHORITY_NON_AMPLIFICATION"
+      }
+    },
+    {
+      "id": "AV-02",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-01",
+      "description": "Transitive authority amplification: P→A(L2)→B(L2)→C where C holds L3 standing privileges. Each hop is locally valid, but C's L3 request exceeds the L2 authority transmitted end-to-end through the chain. NOTE: Annam's matrix marks AV-02 as INV-01 + INV-02 — the INV-02 provenance dimension (end-to-end lineage detection) is a supporting invariant, not encoded in the single-valued invariant field (INV-01 primary).",
+      "rule": {
+        "id": "INV-01_transitive_amplification",
+        "name": "INV-01_transitive_amplification",
+        "description": "End-to-end effective authority must not exceed the authority transmitted through the delegation chain",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "gt": [
+                {
+                  "field": "request.level"
+                },
+                {
+                  "field": "hop_2_level"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "transitive amplification: end-to-end effective authority exceeds the delegated authority (INV-01)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "hop_0_level": 2,
+        "hop_1_level": 2,
+        "hop_2_level": 2,
+        "request.level": 3
+      },
+      "legal": {
+        "hop_0_level": 2,
+        "hop_1_level": 2,
+        "hop_2_level": 2,
+        "request.level": 2
+      },
+      "attribution": {
+        "originating_task": "T-refund-0892",
+        "authority_provenance": "P→A→B→C",
+        "violation_hop": "B→C",
+        "requested_action": "refund(level=L3)",
+        "effective_authority": "refund(level=L2)",
+        "reason": "TRANSITIVE_AUTHORITY_AMPLIFICATION"
+      }
+    },
+    {
+      "id": "AV-03",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-01",
+      "description": "Privileged delegate laundering: Agent A is not authorized to perform action write; Agent B independently possesses write standing. A delegates to B to cause B to perform write, laundering B's broader privilege into the task.",
+      "rule": {
+        "id": "INV-01_privileged_delegate_laundering",
+        "name": "INV-01_privileged_delegate_laundering",
+        "description": "A delegatee's independent standing privileges must not become available to the delegated task",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "ne": [
+                {
+                  "field": "request.action"
+                },
+                {
+                  "field": "effective.action"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "privileged delegate laundering: delegatee exercised standing privilege outside the delegated authority (INV-01)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "effective.action": "read",
+        "request.action": "write"
+      },
+      "legal": {
+        "effective.action": "read",
+        "request.action": "read"
+      },
+      "attribution": {
+        "originating_task": "T-report-0903",
+        "authority_provenance": "P→A→B",
+        "violation_hop": "A→B",
+        "requested_action": "write(Resource-R)",
+        "effective_authority": "read(Resource-R)",
+        "reason": "PRIVILEGED_DELEGATE_LAUNDERING"
+      }
+    },
+    {
+      "id": "AV-04",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-03",
+      "description": "Downstream constraint removal: P grants amount<=500; A delegates to B preserving it; B delegates to C widening amount to 5000.",
+      "rule": {
+        "id": "INV-03_narrow_only_inheritance",
+        "name": "INV-03_narrow_only_inheritance",
+        "description": "A downstream delegation must not widen an inherited constraint",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "gt": [
+                {
+                  "field": "downstream.amount"
+                },
+                {
+                  "field": "inherited.amount"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "downstream constraint widens the inherited amount (INV-03)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "downstream.amount": 5000,
+        "inherited.amount": 500
+      },
+      "legal": {
+        "downstream.amount": 250,
+        "inherited.amount": 500
+      },
+      "attribution": {
+        "originating_task": "T-refund-0891",
+        "authority_provenance": "P→A→B→C",
+        "violation_hop": "B→C",
+        "requested_action": "refund(amount=5000)",
+        "effective_authority": "refund(amount=500)",
+        "reason": "CONSTRAINT_NARROW_ONLY_VIOLATION"
+      }
+    },
+    {
+      "id": "AV-05",
+      "family": "delegated-authority",
+      "profile": "snapshot",
+      "invariant": "INV-04",
+      "description": "Revoked ancestor: P→A→B→C where C holds unexercised derived authority. P revokes the authorization granted to A; C then attempts to exercise the previously delegated authority.",
+      "rule": {
+        "id": "INV-04_enforcement_boundary_revocation",
+        "name": "INV-04_enforcement_boundary_revocation",
+        "description": "Authority derived solely from a revoked upstream authorization must not be exercised after the revocation",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "gt": [
+                {
+                  "epoch_ms": {
+                    "field": "request_t"
+                  }
+                },
+                {
+                  "epoch_ms": {
+                    "field": "revocation_t"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "derived authority exercised after upstream revocation (INV-04)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "revocation_t": "2026-01-01T01:00:00Z",
+        "request_t": "2026-01-01T02:00:00Z"
+      },
+      "legal": {
+        "revocation_t": "2026-01-01T01:00:00Z",
+        "request_t": "2026-01-01T00:30:00Z"
+      },
+      "attribution": {
+        "originating_task": "T-delegate-0905",
+        "authority_provenance": "P→A→B→C",
+        "violation_hop": "P→A",
+        "requested_action": "exercise(derived-authority)",
+        "effective_authority": "revoked (P→A revoked)",
+        "reason": "ENFORCEMENT_BOUNDARY_REVOCATION"
+      }
+    },
+    {
+      "id": "AV-06",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-05",
+      "description": "Capability-boundary laundering: B is authorized read(R) only; B invokes Skill S, S invokes Tool T, T (standing capability write) attempts write against R. NOTE: Annam's matrix marks AV-06 with primary INV-05 and supporting INV-01/02/03 (non-amplification, provenance, constraint inheritance) — the supporting invariants are not encoded in the single-valued invariant field (INV-05 primary).",
+      "rule": {
+        "id": "INV-05_capability_boundary_non_amplification",
+        "name": "INV-05_capability_boundary_non_amplification",
+        "description": "A downstream component's standing capability must not become task authority",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "ne": [
+                {
+                  "field": "request.action"
+                },
+                {
+                  "field": "authorized.action"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "requested action differs from the authorized action (INV-05)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "request.action": "write",
+        "authorized.action": "read"
+      },
+      "legal": {
+        "request.action": "read",
+        "authorized.action": "read"
+      },
+      "attribution": {
+        "originating_task": "T-audit-0421",
+        "authority_provenance": "P→A→B→S→T→R",
+        "violation_hop": "T→R",
+        "requested_action": "write(Resource-R)",
+        "effective_authority": "read(Resource-R)",
+        "reason": "CAPABILITY_BOUNDARY_AUTHORITY_AMPLIFICATION"
+      }
+    },
+    {
+      "id": "AV-07",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-01",
+      "description": "Delegation depth violation: the implementation permits at most 3 agent-to-agent delegation edges (A→B→C→D is valid). D delegates to E, creating a 4th edge that exceeds the configured depth limit. NOTE: Annam's AV-07 has two attack variants — depth-limit exceeded (covered here) and loop/repeated-element (A→B→C→B, not yet covered).",
+      "rule": {
+        "id": "INV-01_delegation_depth",
+        "name": "INV-01_delegation_depth",
+        "description": "A delegation chain must not exceed the configured maximum delegation depth",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "gt": [
+                {
+                  "field": "chain_depth"
+                },
+                {
+                  "field": "max_depth"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "delegation chain depth exceeds the configured maximum (INV-01 depth/loop safety)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "chain_depth": 4,
+        "max_depth": 3
+      },
+      "legal": {
+        "chain_depth": 3,
+        "max_depth": 3
+      },
+      "attribution": {
+        "originating_task": "T-delegate-0907",
+        "authority_provenance": "A→B→C→D→E",
+        "violation_hop": "D→E",
+        "requested_action": "delegate(D→E)",
+        "effective_authority": "max depth 3 (4 edges attempted)",
+        "reason": "DELEGATION_DEPTH_VIOLATION"
+      }
+    },
+    {
+      "id": "AV-08",
+      "family": "delegated-authority",
+      "profile": "snapshot",
+      "invariant": "INV-02",
+      "description": "Sequence replay: a replayed delegation DO carries an already-consumed chain_seq; the audit chain's Phase-1 continuity check detects the replay deterministically (no wall-clock, per E9).",
+      "rule": {
+        "id": "INV-02_sequence_replay",
+        "name": "INV-02_sequence_replay",
+        "description": "A delegation DO must not carry an already-consumed chain_seq (no sequence replay)",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "lte": [
+                {
+                  "field": "replayed.seq"
+                },
+                {
+                  "field": "chain.last_consumed_seq"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "replayed delegation carries an already-consumed chain_seq (INV-02)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "replayed.seq": 5,
+        "chain.last_consumed_seq": 10
+      },
+      "legal": {
+        "replayed.seq": 11,
+        "chain.last_consumed_seq": 10
+      },
+      "attribution": {
+        "originating_task": "T-delegate-0908",
+        "authority_provenance": "P→A→B",
+        "violation_hop": "A→B",
+        "requested_action": "accept(T, replayed-delegation)",
+        "effective_authority": "chain_seq must be unconsumed",
+        "reason": "SEQUENCE_REPLAY"
+      }
+    },
+    {
+      "id": "AV-09",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-01",
+      "description": "Aggregation amplification: origin authorizes amount<=500 as a shared cumulative budget; A delegates two narrow tasks to B, each amount<=500; B consumes both for a total of 1000 under the same origin budget.",
+      "rule": {
+        "id": "INV-01_aggregation_non_amplification",
+        "name": "INV-01_aggregation_non_amplification",
+        "description": "Multiple narrow delegations must not sum past the origin's shared cumulative budget",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "gt": [
+                {
+                  "field": "aggregate.amount"
+                },
+                {
+                  "field": "origin.budget"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "aggregated amount exceeds the origin's shared cumulative budget (INV-01)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "aggregate.amount": 1000,
+        "origin.budget": 500
+      },
+      "legal": {
+        "aggregate.amount": 400,
+        "origin.budget": 500
+      },
+      "attribution": {
+        "originating_task": "T-refund-0921",
+        "authority_provenance": "P→A→B",
+        "violation_hop": "A→B",
+        "requested_action": "consume(delegation-2, amount=500)",
+        "effective_authority": "amount<=500 shared cumulative budget",
+        "reason": "AGGREGATION_NON_AMPLIFICATION"
+      }
+    },
+    {
+      "id": "AV-10",
+      "family": "delegated-authority",
+      "profile": "snapshot",
+      "invariant": "INV-04",
+      "description": "Stale-negative revocation (freshness): P→A→B→C; a boundary caches revocation state at epoch N; P revokes P→A at epoch N+1; the boundary, still at N, receives C's protected action and sees no tombstone.",
+      "rule": {
+        "id": "INV-04_revocation_freshness",
+        "name": "INV-04_revocation_freshness",
+        "description": "An enforcement boundary must not treat the absence of a visible revocation as proof of validity unless its observed epoch is fresh enough",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "lt": [
+                {
+                  "field": "boundary.epoch"
+                },
+                {
+                  "field": "revocation.epoch"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "revocation state is stale relative to the boundary epoch (INV-04 freshness)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "boundary.epoch": 100,
+        "revocation.epoch": 101
+      },
+      "legal": {
+        "boundary.epoch": 102,
+        "revocation.epoch": 101
+      },
+      "attribution": {
+        "originating_task": "T-exec-0931",
+        "authority_provenance": "P→A→B→C",
+        "violation_hop": "P→A",
+        "requested_action": "exercise(protected-action)",
+        "effective_authority": "AUTHORITY_STATE_UNVERIFIED (stale-negative)",
+        "reason": "REVOCATION_FRESHNESS_STALE"
+      }
+    },
+    {
+      "id": "AV-11",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-01",
+      "description": "Rogue-agent creation: origin authorizes A with a non-delegatable basis; A, compromised, attempts to DELEGATE the task to a new agent B.",
+      "rule": {
+        "id": "INV-01_delegation_authority",
+        "name": "INV-01_delegation_authority",
+        "description": "A DELEGATE action is a privilege, not a default: an agent may issue a DELEGATE only if its own basis is delegatable",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "and": [
+                {
+                  "eq": [
+                    {
+                      "field": "action"
+                    },
+                    "delegate"
+                  ]
+                },
+                {
+                  "eq": [
+                    {
+                      "field": "basis.delegatable"
+                    },
+                    false
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "delegation issued from a non-delegatable authorization basis (INV-01 delegation-depth control)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "action": "delegate",
+        "basis.delegatable": false
+      },
+      "legal": {
+        "action": "delegate",
+        "basis.delegatable": true
+      },
+      "attribution": {
+        "originating_task": "T-delegate-0941",
+        "authority_provenance": "P→A",
+        "violation_hop": "A→B",
+        "requested_action": "delegate(T, B)",
+        "effective_authority": "non-delegatable basis",
+        "reason": "DELEGATION_AUTHORITY_VIOLATION"
+      }
+    },
+    {
+      "id": "AV-12",
+      "family": "delegated-authority",
+      "profile": "stateless",
+      "invariant": "INV-02",
+      "description": "Agent impersonation: origin authorizes a task to agent B bound to B's cryptographic identity; a rogue agent C claims B's agent-ID string.",
+      "rule": {
+        "id": "INV-02_identity_binding",
+        "name": "INV-02_identity_binding",
+        "description": "The authorization basis binds the delegatee's cryptographic identity, not an agent-ID string",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "ne": [
+                {
+                  "field": "executor.identity"
+                },
+                {
+                  "field": "bound.identity"
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "executing agent's identity does not match the bound cryptographic identity (INV-02 identity binding)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "executor.identity": "key-C",
+        "bound.identity": "key-B"
+      },
+      "legal": {
+        "executor.identity": "key-B",
+        "bound.identity": "key-B"
+      },
+      "attribution": {
+        "originating_task": "T-exec-0951",
+        "authority_provenance": "P→B",
+        "violation_hop": "B",
+        "requested_action": "execute(T, as-B)",
+        "effective_authority": "bound to key-B only",
+        "reason": "IDENTITY_BINDING_VIOLATION"
+      }
+    },
+    {
+      "id": "AV-13",
+      "family": "delegated-authority",
+      "profile": "snapshot",
+      "invariant": "INV-04",
+      "description": "Completed-action no-reversal (AV-05's dual): a protected action legitimately completed before revocation must NOT be reversed after the revocation — exercises the INV-04 'no reversal of completed actions' boundary rather than merely asserting it.",
+      "rule": {
+        "id": "INV-04_no_reversal_completed",
+        "name": "INV-04_no_reversal_completed",
+        "description": "A revocation invalidates unexercised derived authority but does not reverse actions that legitimately completed before it",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "gte": [
+                {
+                  "epoch_ms": {
+                    "field": "completion_t"
+                  }
+                },
+                {
+                  "epoch_ms": {
+                    "field": "revocation_t"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "action was unexercised at revocation time and must not proceed (INV-04)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "completion_t": "2026-01-01T02:00:00Z",
+        "revocation_t": "2026-01-01T01:00:00Z"
+      },
+      "legal": {
+        "completion_t": "2026-01-01T00:30:00Z",
+        "revocation_t": "2026-01-01T01:00:00Z"
+      },
+      "attribution": {
+        "originating_task": "T-exec-0905",
+        "authority_provenance": "P→A→B→C",
+        "violation_hop": "P→A",
+        "requested_action": "reverse(completed-action)",
+        "effective_authority": "completed before revocation (no reversal)",
+        "reason": "NO_REVERSAL_OF_COMPLETED_ACTION"
+      }
+    },
+    {
+      "id": "AV-14",
+      "family": "delegated-authority",
+      "profile": "snapshot",
+      "invariant": "INV-04",
+      "description": "Unavailable authority state (Q6): an enforcement boundary must fail closed when the revocation/authority state it requires cannot be established. The boundary's view carries no revocation epoch at all — the state is simply absent.",
+      "rule": {
+        "id": "INV-04_unavailable_state",
+        "name": "INV-04_unavailable_state",
+        "description": "A boundary MUST NOT authorize when the authority/revocation state it requires is absent (cannot be established)",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "not_exists": {
+                "field": "revocation.epoch"
+              }
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "authority/revocation state unavailable (INV-04 fail-closed)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "boundary.epoch": 100
+      },
+      "legal": {
+        "boundary.epoch": 102,
+        "revocation.epoch": 101
+      },
+      "attribution": {
+        "originating_task": "T-exec-0935",
+        "authority_provenance": "P→A→B→C",
+        "violation_hop": "P→A",
+        "requested_action": "exercise(protected-action)",
+        "effective_authority": "AUTHORITY_STATE_UNAVAILABLE (state absent)",
+        "reason": "AUTHORITY_STATE_UNAVAILABLE"
+      }
+    },
+    {
+      "id": "AV-15",
+      "family": "delegated-authority",
+      "profile": "snapshot",
+      "invariant": "INV-04",
+      "description": "Re-authorization without authorization-root provenance: root P authorizes A; P revokes; A (the non-root subject) triggers re-authorize so the state returns to authorized; A then attempts a protected effect. The re-established authorization must be attributed to an authorization root (a new valid authorization basis), not to the subject itself (SPEC §6a.10).",
+      "rule": {
+        "id": "INV-04_reauthorization_root_provenance",
+        "name": "INV-04_reauthorization_root_provenance",
+        "description": "A re-established authorization (authorized) must carry authorization-root provenance; an authorized state re-established without it must not be exercisable",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "and": [
+                {
+                  "eq": [
+                    {
+                      "field": "authorization_state"
+                    },
+                    "authorized"
+                  ]
+                },
+                {
+                  "eq": [
+                    {
+                      "field": "authorization_root_provenance"
+                    },
+                    false
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "re-authorization lacks authorization-root provenance (INV-04 / §6a.10)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "authorization_state": "authorized",
+        "authorization_root_provenance": false
+      },
+      "legal": {
+        "authorization_state": "authorized",
+        "authorization_root_provenance": true
+      },
+      "attribution": {
+        "originating_task": "T-reauth-0916",
+        "authority_provenance": "P→A",
+        "violation_hop": "A→A",
+        "requested_action": "re-authorize(revoked-authorization)",
+        "effective_authority": "authorized (no authorization-root provenance)",
+        "reason": "REAUTHORIZATION_WITHOUT_ROOT_PROVENANCE"
+      }
+    },
+    {
+      "id": "AV-16",
+      "family": "delegated-authority",
+      "profile": "snapshot",
+      "invariant": "INV-04",
+      "description": "Multi-root basis-scoped revocation: P1→A→B grants {read, write} (basis-X); P2→C→B independently grants {read} (basis-Y); revoke(P1→A). B's write (derivable only through the revoked basis-X) must be DENY; B's read (derivable through the still-valid basis-Y) must be ALLOW (SPEC §6b.4).",
+      "rule": {
+        "id": "INV-04_multi_root_basis_scoped_revocation",
+        "name": "INV-04_multi_root_basis_scoped_revocation",
+        "description": "A requested action must be derivable from a currently-valid authorization basis; an action derivable only from a revoked basis must not be exercisable",
+        "category": "security",
+        "conditions": [
+          {
+            "expr": {
+              "not": {
+                "in": [
+                  {
+                    "field": "request.action"
+                  },
+                  {
+                    "field": "effective_authority.scope"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "conditionLogic": "AND",
+        "action": {
+          "decision": "DENY",
+          "reason": "requested action not derivable from a currently-valid authorization basis (INV-04 / §6b.4 basis-scoped revocation)"
+        },
+        "priority": 1,
+        "enabled": true
+      },
+      "attack": {
+        "request.action": "write",
+        "effective_authority.scope": [
+          "read"
+        ]
+      },
+      "legal": {
+        "request.action": "read",
+        "effective_authority.scope": [
+          "read"
+        ]
+      },
+      "attribution": {
+        "originating_task": "T-multiroot-0916",
+        "authority_provenance": "P1→A→B (basis-X) + P2→C→B (basis-Y)",
+        "violation_hop": "P1→A",
+        "requested_action": "write(Resource-X)",
+        "effective_authority": "read(Resource-X) via still-valid basis-Y",
+        "reason": "BASIS_SCOPED_REVOCATION_UNDER_REVOCATION",
+        "bases": [
+          {
+            "id": "basis-X",
+            "lineage": "P1→A→B",
+            "granted_scope": [
+              "read",
+              "write"
+            ],
+            "revoked": true
+          },
+          {
+            "id": "basis-Y",
+            "lineage": "P2→C→B",
+            "granted_scope": [
+              "read"
+            ],
+            "revoked": false
+          }
+        ]
+      }
+    }
+  ]
+}
