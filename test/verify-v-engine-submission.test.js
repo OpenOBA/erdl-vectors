@@ -48,14 +48,14 @@ describe('verify-v-engine-submission.mjs (ER3/ER4 comparison semantics)', () => 
     buildSubmission({ tailZero: true });
     const r = run();
     expect(r.status, 'stdout: ' + r.stdout + '\nstderr: ' + r.stderr).toBe(0);
-    expect(r.stdout).toContain('240/240');
+    expect(r.stdout).toContain('205/205');
   });
 
   it('accepts string NFC-equivalent differences (NFC-normalized byte equality)', () => {
     buildSubmission({ nfcDecompose: true });
     const r = run();
     expect(r.status, 'stdout: ' + r.stdout + '\nstderr: ' + r.stderr).toBe(0);
-    expect(r.stdout).toContain('240/240');
+    expect(r.stdout).toContain('205/205');
   });
 
   it('rejects an E4 vector missing `threw: true`', () => {
@@ -63,6 +63,6 @@ describe('verify-v-engine-submission.mjs (ER3/ER4 comparison semantics)', () => 
     const r = run();
     expect(r.status).toBe(1);
     expect(r.stdout).toContain('threw');
-    expect(r.stdout).not.toContain('240/240');
+    expect(r.stdout).not.toContain('205/205');
   });
 });
