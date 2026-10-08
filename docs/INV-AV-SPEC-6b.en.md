@@ -1,7 +1,7 @@
 # ERDL SPEC v2.3 · §6b Delegated-Authority Security Model（冻结文本，英文）
 
 > 用途：随 frozen INV/AV set 发给 Annam 做 pre-release review
-> 基准：erdl-language-spec-v2.3.en.md @ cc53097aa885f2e9cd3bcfe2e1b02753fff30c5e
+> 基准：erdl-language-spec-v2.3.en.md @ e78c39629e8f6fa10a2a436acf800e5c6f04e4a5
 
 ---
 
@@ -57,7 +57,7 @@ This section generalizes §6a.9 (latest-authoritative-head freshness) to the del
 
 Before exercising authority that depends on a revocable ancestor, the enforcement boundary MUST establish that revocation state satisfies the configured freshness requirement; **absence of visible revocation MUST NOT by itself establish continued validity**; when freshness cannot be established, fail closed. Mechanism-neutral: monotonic epoch / lease / version vector / signed status object / online introspection / equivalent mechanisms.
 
-### 6b.5 Adversarial Vector Family (AV-01~14)
+### 6b.4 Adversarial Vector Family (AV-01~14)
 
 Convergence criterion = `decision` + `matched_invariant` + `first_invalid_boundary`. Full vector table in the independent conformance suite (`vectors/` + `conformance/CONFORMANCE.md`).
 

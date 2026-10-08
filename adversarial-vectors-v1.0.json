@@ -1,7 +1,7 @@
 {
   "$schema": "https://openoba.com/erdl/adversarial-vectors-v1.0/schema.json",
   "spec": "erdl-language-spec-v2.3.md",
-  "spec_commit": "cc53097aa885f2e9cd3bcfe2e1b02753fff30c5e",
+  "spec_commit": "e78c39629e8f6fa10a2a436acf800e5c6f04e4a5",
   "category": "V-AV",
   "version": "v1.0.0",
   "created": "2026-10-07",

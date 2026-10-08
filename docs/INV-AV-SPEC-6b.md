@@ -1,7 +1,7 @@
 # ERDL 规范 v2.3 · §6b 委托权威安全模型（冻结文本，中文）
 
 > 用途：随 frozen INV/AV set 发给 Annam 做 pre-release review
-> 基准：erdl-language-spec-v2.3.md @ cc53097aa885f2e9cd3bcfe2e1b02753fff30c5e
+> 基准：erdl-language-spec-v2.3.md @ e78c39629e8f6fa10a2a436acf800e5c6f04e4a5
 
 ---
 
@@ -57,7 +57,7 @@
 
 行使依赖可撤销祖先的权威前，执行边界 MUST 确立撤销状态满足配置的新鲜度要求；**可见撤销的缺失 MUST NOT 单独构成持续有效**；无法确立新鲜度即 fail-closed。机制中立：monotonic epoch / lease / version vector / signed status object / online introspection / 等价机制。
 
-### 6b.5 对抗向量族（AV-01~14）
+### 6b.4 对抗向量族（AV-01~14）
 
 收敛标准 = `decision` + `matched_invariant` + `first_invalid_boundary`。完整向量表见独立 conformance 套件（`vectors/` + `conformance/CONFORMANCE.md`）。
 
