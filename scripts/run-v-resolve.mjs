@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Independent, deliberately narrow reading of ERDL §7.0.2, §7.1 and §7.1a at
-// erdl-landing@ed70333 (v2.3). No erdl-formal or @openoba/erdl imports.
+// erdl-landing@e78c396 (v2.3). No erdl-formal or @openoba/erdl imports.
 import { readFileSync } from 'node:fs';
 
 const source = process.argv[2] || new URL('../resolution-vectors.json', import.meta.url);
 const document = JSON.parse(readFileSync(source, 'utf8'));
-if (document.spec !== 'erdl-language-spec-v2.3.md' || document.spec_commit !== 'cc53097aa885f2e9cd3bcfe2e1b02753fff30c5e') {
+if (document.spec !== 'erdl-language-spec-v2.3.md' || document.spec_commit !== 'e78c39629e8f6fa10a2a436acf800e5c6f04e4a5') {
   throw new Error('Unexpected normative specification provenance');
 }
 
